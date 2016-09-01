@@ -3,8 +3,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.2'
+        classpath 'com.android.tools.build:gradle:2+'
     }
+    System.properties['com.android.build.gradle.overrideVersionCheck'] = 'true'
 }
 
 apply plugin: 'com.android.application'
@@ -14,13 +15,13 @@ repositories {
 }
 
 dependencies {
-    compile 'com.fasterxml.jackson.core:jackson-core:2.7.3'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.8.2'
     compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'joda-time:joda-time:2.9.3'
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:recyclerview-v7:23.4.0'
-	compile 'com.android.support:design:23.4.0'
-    compile 'com.squareup.okhttp:okhttp:2.7.5'
+    compile 'joda-time:joda-time:2.9.4'
+    compile 'com.android.support:appcompat-v7:23.3.0'
+    compile 'com.android.support:recyclerview-v7:23.3.0'
+    compile 'com.android.support:design:23.3.0'
+    compile 'com.squareup.okhttp3:okhttp:3.4.1'
     compile 'info.guardianproject.netcipher:netcipher:1.2.1'
 
     testCompile 'junit:junit:4.12'
@@ -42,6 +43,26 @@ android {
         release {
             minifyEnabled false
         }
+    }
+
+    if (project.hasProperty('signingStoreLocation') &&
+            project.hasProperty('signingStorePassword') &&
+            project.hasProperty('signingKeyAlias') &&
+            project.hasProperty('signingKeyPassword')) {
+        println "Found sign properties in gradle.properties! Signing build…"
+
+        signingConfigs {
+            release {
+                storeFile file(signingStoreLocation)
+                storePassword signingStorePassword
+                keyAlias signingKeyAlias
+                keyPassword signingKeyPassword
+            }
+        }
+
+        buildTypes.release.signingConfig = signingConfigs.release
+    } else {
+        buildTypes.release.signingConfig = null
     }
 
     compileOptions {

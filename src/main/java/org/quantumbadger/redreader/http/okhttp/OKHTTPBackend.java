@@ -18,13 +18,13 @@
 package org.quantumbadger.redreader.http.okhttp;
 
 import android.content.Context;
-import com.squareup.okhttp.CacheControl;
-import com.squareup.okhttp.Call;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
+import okhttp3.CacheControl;
+import okhttp3.Call;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.quantumbadger.redreader.cache.CacheRequest;
 import org.quantumbadger.redreader.common.TorCommon;
 import org.quantumbadger.redreader.http.HTTPBackend;
@@ -49,16 +49,16 @@ public class OKHTTPBackend implements HTTPBackend {
 		if(TorCommon.isTorEnabled()) {
 			Proxy tor = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8118));
 			//SOCKS appears to be broken for now, Relevant: https://github.com/square/okhttp/issues/2315
-			mClient.setProxy(tor);
+			mClient.newBuilder().proxy(tor);
 		}
 
-		mClient.setFollowRedirects(true);
-		mClient.setFollowSslRedirects(true);
-
-		mClient.setConnectTimeout(15000, TimeUnit.SECONDS);
-		mClient.setReadTimeout(10000, TimeUnit.SECONDS);
-
-		mClient.setRetryOnConnectionFailure(true);
+		mClient.newBuilder()
+			.followRedirects(true)
+			.followSslRedirects(true)
+			.connectTimeout(15000, TimeUnit.SECONDS)
+			.readTimeout(10000, TimeUnit.SECONDS)
+			.retryOnConnectionFailure(true)
+			.build();
 	}
 
 	public static synchronized HTTPBackend getHttpBackend() {
@@ -75,7 +75,7 @@ public class OKHTTPBackend implements HTTPBackend {
 	@Override
 	public Request prepareRequest(final Context context, final RequestDetails details) {
 
-		final com.squareup.okhttp.Request.Builder builder = new com.squareup.okhttp.Request.Builder();
+		final okhttp3.Request.Builder builder = new okhttp3.Request.Builder();
 
 		final List<PostField> postFields = details.getPostFields();
 
