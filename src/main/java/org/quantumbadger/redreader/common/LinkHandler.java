@@ -48,6 +48,7 @@ import org.quantumbadger.redreader.reddit.url.RedditURLParser;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -179,6 +180,7 @@ public class LinkHandler {
 			switch(redditURL.pathType()) {
 
 				case RedditURLParser.SUBREDDIT_POST_LISTING_URL:
+				case RedditURLParser.MULTIREDDIT_POST_LISTING_URL:
 				case RedditURLParser.USER_POST_LISTING_URL:
 				case RedditURLParser.UNKNOWN_POST_LISTING_URL: {
 					final Intent intent = new Intent(activity, PostListingActivity.class);
@@ -294,7 +296,9 @@ public class LinkHandler {
 			lvmePattern = Pattern.compile(".*[^A-Za-z]livememe\\.com/(\\w+).*"),
 			gfycatPattern = Pattern.compile(".*[^A-Za-z]gfycat\\.com/(\\w+).*"),
 			streamablePattern = Pattern.compile(".*[^A-Za-z]streamable\\.com/(\\w+).*"),
-			reddituploadsPattern = Pattern.compile(".*[^A-Za-z]i\\.reddituploads\\.com/(\\w+).*");
+			reddituploadsPattern = Pattern.compile(".*[^A-Za-z]i\\.reddituploads\\.com/(\\w+).*"),
+			imgflipPattern = Pattern.compile(".*[^A-Za-z]imgflip\\.com/i/(\\w+).*"),
+			makeamemePattern = Pattern.compile(".*[^A-Za-z]makeameme\\.org/meme/([\\w\\-]+).*");
 
 	public static boolean isProbablyAnImage(final String url) {
 
@@ -337,6 +341,28 @@ public class LinkHandler {
 			if(matchRedditUploads.find()) {
 				final String imgId = matchRedditUploads.group(1);
 				if(imgId.length() > 10) {
+					return true;
+				}
+			}
+		}
+
+		{
+			final Matcher matchImgflip = imgflipPattern.matcher(url);
+
+			if(matchImgflip.find()) {
+				final String imgId = matchImgflip.group(1);
+				if(imgId.length() > 3) {
+					return true;
+				}
+			}
+		}
+
+		{
+			final Matcher matchMakeameme = makeamemePattern.matcher(url);
+
+			if(matchMakeameme.find()) {
+				final String imgId = matchMakeameme.group(1);
+				if(imgId.length() > 3) {
 					return true;
 				}
 			}
@@ -517,6 +543,32 @@ public class LinkHandler {
 			}
 		}
 
+		{
+			final Matcher matchImgflip = imgflipPattern.matcher(url);
+
+			if(matchImgflip.find()) {
+				final String imgId = matchImgflip.group(1);
+				if(imgId.length() > 3) {
+					final String imageUrl = "https://i.imgflip.com/" + imgId + ".jpg";
+					listener.onSuccess(new ImageInfo(imageUrl));
+					return;
+				}
+			}
+		}
+
+		{
+			final Matcher matchMakeameme = makeamemePattern.matcher(url);
+
+			if(matchMakeameme.find()) {
+				final String imgId = matchMakeameme.group(1);
+				if(imgId.length() > 3) {
+					final String imageUrl = "https://media.makeameme.org/created/" + imgId + ".jpg";
+					listener.onSuccess(new ImageInfo(imageUrl));
+					return;
+				}
+			}
+		}
+
 		final String imageUrlPatternMatch = getImageUrlPatternMatch(url);
 
 		if(imageUrlPatternMatch != null) {
@@ -528,7 +580,7 @@ public class LinkHandler {
 
 	private static String getImageUrlPatternMatch(final String url) {
 
-		final String urlLower = url.toLowerCase();
+		final String urlLower = General.asciiLowercase(url);
 
 		final String[] imageExtensions = {".jpg", ".jpeg", ".png", ".gif", ".webm", ".mp4", ".h264", ".gifv", ".mkv", ".3gp"};
 
@@ -554,7 +606,7 @@ public class LinkHandler {
 		if(matchQkme1.find()) {
 			final String imgId = matchQkme1.group(1);
 			if(imgId.length() > 2)
-				return String.format("http://i.qkme.me/%s.jpg", imgId);
+				return String.format(Locale.US, "http://i.qkme.me/%s.jpg", imgId);
 		}
 
 		final Matcher matchQkme2 = qkmePattern2.matcher(url);
@@ -562,7 +614,7 @@ public class LinkHandler {
 		if(matchQkme2.find()) {
 			final String imgId = matchQkme2.group(1);
 			if(imgId.length() > 2)
-				return String.format("http://i.qkme.me/%s.jpg", imgId);
+				return String.format(Locale.US, "http://i.qkme.me/%s.jpg", imgId);
 		}
 
 		final Matcher matchLvme = lvmePattern.matcher(url);
@@ -570,7 +622,7 @@ public class LinkHandler {
 		if(matchLvme.find()) {
 			final String imgId = matchLvme.group(1);
 			if(imgId.length() > 2)
-				return String.format("http://www.livememe.com/%s.jpg", imgId);
+				return String.format(Locale.US, "http://www.livememe.com/%s.jpg", imgId);
 		}
 
 		return null;

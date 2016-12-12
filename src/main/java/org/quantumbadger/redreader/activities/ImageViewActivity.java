@@ -26,6 +26,7 @@ import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -36,12 +37,12 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.VideoView;
 import com.github.lzyzsd.circleprogress.DonutProgress;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
+import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfNotCached;
 import org.quantumbadger.redreader.common.AndroidApi;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
@@ -60,6 +61,7 @@ import org.quantumbadger.redreader.reddit.things.RedditPost;
 import org.quantumbadger.redreader.reddit.url.PostCommentListingURL;
 import org.quantumbadger.redreader.views.GIFView;
 import org.quantumbadger.redreader.views.HorizontalSwipeProgressOverlay;
+import org.quantumbadger.redreader.views.MediaVideoView;
 import org.quantumbadger.redreader.views.RedditPostView;
 import org.quantumbadger.redreader.views.bezelmenu.BezelSwipeOverlay;
 import org.quantumbadger.redreader.views.bezelmenu.SideToolbarOverlay;
@@ -106,12 +108,16 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 
 	private int mGallerySwipeLengthPx;
 
-	private LinearLayout mFloatingToolbar;
+	@Nullable private LinearLayout mFloatingToolbar;
+
+	@Override
+	protected boolean baseActivityIsToolbarActionBarEnabled() {
+		return false;
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
-		setToolbarActionBarEnabled(false);
 		super.onCreate(savedInstanceState);
 
 		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -212,7 +218,7 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 								null,
 								Constants.Priority.IMAGE_VIEW,
 								0,
-								CacheRequest.DOWNLOAD_IF_NECESSARY,
+								DownloadStrategyIfNotCached.INSTANCE,
 								Constants.FileType.IMAGE,
 								CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
 								false,
@@ -311,7 +317,10 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 		final FrameLayout outerFrame = new FrameLayout(this);
 		outerFrame.addView(mLayout);
 
-		{
+		if(PrefsUtility.pref_appearance_image_viewer_show_floating_toolbar(
+				this,
+				PreferenceManager.getDefaultSharedPreferences(this))) {
+
 			mFloatingToolbar = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.floating_toolbar, outerFrame, false);
 			outerFrame.addView(mFloatingToolbar);
 
@@ -412,7 +421,9 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 			AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
 				@Override
 				public void run() {
-					mFloatingToolbar.setVisibility(View.VISIBLE);
+					if(mFloatingToolbar != null) {
+						mFloatingToolbar.setVisibility(View.VISIBLE);
+					}
 				}
 			});
 		}
@@ -475,7 +486,7 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 							final RelativeLayout layout = new RelativeLayout(ImageViewActivity.this);
 							layout.setGravity(Gravity.CENTER);
 
-							final VideoView videoView = new VideoView(ImageViewActivity.this);
+							final MediaVideoView videoView = new MediaVideoView(ImageViewActivity.this);
 
 							videoView.setVideoURI(cacheFile.getUri());
 							videoView.setMediaController(null);

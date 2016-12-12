@@ -20,6 +20,7 @@ package org.quantumbadger.redreader.reddit.url;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.IntDef;
+import org.quantumbadger.redreader.common.General;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -34,17 +35,18 @@ public class RedditURLParser {
 	public static final int USER_COMMENT_LISTING_URL = 5;
 	public static final int UNKNOWN_COMMENT_LISTING_URL = 6;
 	public static final int POST_COMMENT_LISTING_URL = 7;
+	public static final int MULTIREDDIT_POST_LISTING_URL = 8;
 
 	@IntDef({SUBREDDIT_POST_LISTING_URL, USER_POST_LISTING_URL, SEARCH_POST_LISTING_URL,
 		UNKNOWN_POST_LISTING_URL, USER_PROFILE_URL, USER_COMMENT_LISTING_URL,
-		UNKNOWN_COMMENT_LISTING_URL, POST_COMMENT_LISTING_URL})
+		UNKNOWN_COMMENT_LISTING_URL, POST_COMMENT_LISTING_URL, MULTIREDDIT_POST_LISTING_URL})
 	@Retention(RetentionPolicy.SOURCE)
 	public @interface PathType {}
 
 	private static boolean isRedditUri(Uri uri) {
 
 		if (uri == null || uri.getHost() == null) return false;
-		final String[] hostSegments = uri.getHost().toLowerCase().split("\\.");
+		final String[] hostSegments = General.asciiLowercase(uri.getHost()).split("\\.");
 		if (hostSegments.length < 2) return false;
 		if (hostSegments[hostSegments.length - 1].equals("com") && hostSegments[hostSegments.length - 2].equals("reddit"))
 			return true;
@@ -63,6 +65,13 @@ public class RedditURLParser {
 			final SubredditPostListURL subredditPostListURL = SubredditPostListURL.parse(uri);
 			if (subredditPostListURL != null) {
 				return subredditPostListURL;
+			}
+		}
+
+		{
+			final MultiredditPostListURL multiredditPostListURL = MultiredditPostListURL.parse(uri);
+			if (multiredditPostListURL != null) {
+				return multiredditPostListURL;
 			}
 		}
 
@@ -127,6 +136,10 @@ public class RedditURLParser {
 
 		public final SubredditPostListURL asSubredditPostListURL() {
 			return (SubredditPostListURL) this;
+		}
+
+		public final MultiredditPostListURL asMultiredditPostListURL() {
+			return (MultiredditPostListURL) this;
 		}
 
 		public final SearchPostListURL asSearchPostListURL() {

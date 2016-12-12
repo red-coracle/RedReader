@@ -53,12 +53,12 @@ public class PMSendActivity extends BaseActivity {
 	private static final String SAVED_STATE_TEXT = "pm_text";
 	private static final String SAVED_STATE_SUBJECT = "pm_subject";
 
-	private static final int REQUEST_CAPTCHA = 0;
-
 	private Spinner usernameSpinner;
 	private EditText recipientEdit;
 	private EditText subjectEdit;
 	private EditText textEdit;
+
+	private boolean mSendSuccess;
 
 	private static String lastText, lastRecipient, lastSubject;
 
@@ -69,7 +69,7 @@ public class PMSendActivity extends BaseActivity {
 
 		super.onCreate(savedInstanceState);
 
-		getSupportActionBarOrThrow().setTitle(R.string.pm_send_actionbar);
+		setTitle(R.string.pm_send_actionbar);
 
 		final LinearLayout layout = (LinearLayout) getLayoutInflater().inflate(R.layout.pm_send, null);
 
@@ -87,20 +87,23 @@ public class PMSendActivity extends BaseActivity {
 			initialSubject = savedInstanceState.getString(SAVED_STATE_SUBJECT);
 			initialText = savedInstanceState.getString(SAVED_STATE_TEXT);
 
-		} else if(getIntent() != null && getIntent().hasExtra(EXTRA_RECIPIENT)) {
-			initialRecipient = getIntent().getStringExtra(EXTRA_RECIPIENT);
-			initialSubject = getIntent().getStringExtra(EXTRA_SUBJECT);
-			initialText = lastText;
-
-		} else if(lastText != null) {
-			initialRecipient = lastRecipient;
-			initialSubject = lastSubject;
-			initialText = lastText;
-
 		} else {
-			initialRecipient = null;
-			initialSubject = null;
-			initialText = null;
+
+			final Intent intent = getIntent();
+
+			if(intent != null && intent.hasExtra(EXTRA_RECIPIENT)) {
+				initialRecipient = intent.getStringExtra(EXTRA_RECIPIENT);
+			} else {
+				initialRecipient = lastRecipient;
+			}
+
+			if(intent != null && intent.hasExtra(EXTRA_SUBJECT)) {
+				initialSubject = intent.getStringExtra(EXTRA_SUBJECT);
+			} else {
+				initialSubject = lastSubject;
+			}
+
+			initialText = lastText;
 		}
 
 		if(initialRecipient != null) {
@@ -157,11 +160,9 @@ public class PMSendActivity extends BaseActivity {
 	}
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
+	public boolean onOptionsItemSelected(MenuItem item) {
 
-		if(requestCode == REQUEST_CAPTCHA) {
-
-			if(resultCode != RESULT_OK) return;
+		if(item.getTitle().equals(getString(R.string.comment_reply_send))) {
 
 			final ProgressDialog progressDialog = new ProgressDialog(this);
 			progressDialog.setTitle(getString(R.string.comment_reply_submitting_title));
@@ -195,7 +196,15 @@ public class PMSendActivity extends BaseActivity {
 					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
+
 							if(progressDialog.isShowing()) progressDialog.dismiss();
+
+							mSendSuccess = true;
+
+							lastText = null;
+							lastRecipient = null;
+							lastSubject = null;
+
 							General.quickToast(PMSendActivity.this, getString(R.string.pm_send_done));
 							finish();
 						}
@@ -252,9 +261,6 @@ public class PMSendActivity extends BaseActivity {
 				throw new RuntimeException("Selected account no longer present");
 			}
 
-			final String captchaId = data.getStringExtra("captchaId");
-			final String captchaText = data.getStringExtra("captchaText");
-
 			RedditAPI.compose(
 					cm,
 					handler,
@@ -262,21 +268,9 @@ public class PMSendActivity extends BaseActivity {
 					recipientEdit.getText().toString(),
 					subjectEdit.getText().toString(),
 					textEdit.getText().toString(),
-					captchaId,
-					captchaText,
 					this);
 
 			progressDialog.show();
-		}
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-
-		if(item.getTitle().equals(getString(R.string.comment_reply_send))) {
-			final Intent captchaIntent = new Intent(this, CaptchaActivity.class);
-			captchaIntent.putExtra("username", (String)usernameSpinner.getSelectedItem());
-			startActivityForResult(captchaIntent, REQUEST_CAPTCHA);
 
 		} else if(item.getTitle().equals(getString(R.string.comment_reply_preview))) {
 			MarkdownPreviewDialog.newInstance(textEdit.getText().toString()).show(getSupportFragmentManager(), "MarkdownPreviewDialog");
@@ -289,7 +283,7 @@ public class PMSendActivity extends BaseActivity {
 	protected void onDestroy() {
 		super.onDestroy();
 
-		if(textEdit != null) {
+		if(!mSendSuccess && textEdit != null) {
 			lastRecipient = recipientEdit.getText().toString();
 			lastSubject = subjectEdit.getText().toString();
 			lastText = textEdit.getText().toString();

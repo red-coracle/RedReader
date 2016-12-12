@@ -122,7 +122,16 @@ public class GroupedRecyclerViewAdapter extends RecyclerView.Adapter {
 
 	@Override
 	public RecyclerView.ViewHolder onCreateViewHolder(final ViewGroup viewGroup, final int viewType) {
-		return mViewTypeItemMap.get(viewType).onCreateViewHolder(viewGroup);
+
+		final RecyclerView.ViewHolder viewHolder = mViewTypeItemMap.get(viewType).onCreateViewHolder(viewGroup);
+
+		final RecyclerView.LayoutParams layoutParams = new RecyclerView.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT);
+
+		viewHolder.itemView.setLayoutParams(layoutParams);
+
+		return viewHolder;
 	}
 
 	@Override
@@ -186,8 +195,9 @@ public class GroupedRecyclerViewAdapter extends RecyclerView.Adapter {
 
 		mItems[group].add(item);
 
-		item.mCurrentlyHidden = false;
-		notifyItemInserted(position);
+		if(!item.mCurrentlyHidden) {
+			notifyItemInserted(position);
+		}
 	}
 
 	public void appendToGroup(final int group, final Collection<Item> items) {
@@ -201,6 +211,23 @@ public class GroupedRecyclerViewAdapter extends RecyclerView.Adapter {
 		}
 
 		notifyItemRangeInserted(position, items.size());
+	}
+
+	public void removeAllFromGroup(final int groupId) {
+
+		final ArrayList<Item> group = mItems[groupId];
+
+		for(int i = group.size() - 1; i >= 0; i--) {
+
+			final Item item = group.get(i);
+			final int position = getItemPositionInternal(groupId, i);
+
+			group.remove(i);
+
+			if(!item.mCurrentlyHidden) {
+				notifyItemRemoved(position);
+			}
+		}
 	}
 
 	public void removeFromGroup(final int groupId, final Item item) {

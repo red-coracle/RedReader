@@ -25,20 +25,21 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.support.annotation.Nullable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.Spinner;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountChangeListener;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.adapters.MainMenuSelectionListener;
 import org.quantumbadger.redreader.cache.CacheManager;
+import org.quantumbadger.redreader.common.DialogUtils;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
@@ -50,6 +51,7 @@ import org.quantumbadger.redreader.fragments.PostListingFragment;
 import org.quantumbadger.redreader.fragments.SessionListDialog;
 import org.quantumbadger.redreader.listingcontrollers.CommentListingController;
 import org.quantumbadger.redreader.listingcontrollers.PostListingController;
+import org.quantumbadger.redreader.reddit.PostSort;
 import org.quantumbadger.redreader.reddit.api.RedditSubredditSubscriptionManager;
 import org.quantumbadger.redreader.reddit.prepared.RedditPreparedPost;
 import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
@@ -61,6 +63,7 @@ import org.quantumbadger.redreader.reddit.url.UserPostListingURL;
 import org.quantumbadger.redreader.reddit.url.UserProfileURL;
 import org.quantumbadger.redreader.views.RedditPostView;
 
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -98,6 +101,11 @@ public class MainActivity extends RefreshableActivity
 	private SharedPreferences sharedPreferences;
 
 	@Override
+	protected boolean baseActivityIsActionBarBackEnabled() {
+		return false;
+	}
+
+	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 
 		PrefsUtility.applyTheme(this);
@@ -110,7 +118,7 @@ public class MainActivity extends RefreshableActivity
 				onSelected(SubredditPostListURL.getFrontPage());
 		}
 
-		getSupportActionBar().setTitle(R.string.app_name);
+		setTitle(R.string.app_name);
 
 		twoPane = General.isTablet(this, sharedPreferences);
 
@@ -219,7 +227,8 @@ public class MainActivity extends RefreshableActivity
 				.addListener(this);
 	}
 
-	public void onSelected(final @MainMenuFragment.MainMenuAction int type, final String name) {
+	@Override
+	public void onSelected(final @MainMenuFragment.MainMenuAction int type) {
 
 		final String username = RedditAccountManager.getInstance(this).getDefaultAccount().username;
 
@@ -260,45 +269,66 @@ public class MainActivity extends RefreshableActivity
 			case MainMenuFragment.MENU_MENU_ACTION_CUSTOM: {
 
 				final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
-				final EditText editText = (EditText) getLayoutInflater().inflate(R.layout.dialog_editbox, null);
+				final View root = getLayoutInflater().inflate(R.layout.dialog_mainmenu_custom, null);
 
-				editText.addTextChangedListener(new TextWatcher() {
-					@Override
-					public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+				final Spinner destinationType = (Spinner)root.findViewById(R.id.dialog_mainmenu_custom_type);
+				final EditText editText = (EditText)root.findViewById(R.id.dialog_mainmenu_custom_value);
 
-					@Override
-					public void onTextChanged(CharSequence s, int start, int before, int count) {}
+				final String[] typeReturnValues
+						= getResources().getStringArray(R.array.mainmenu_custom_destination_type_return);
 
-					@Override
-					public void afterTextChanged(Editable s) {
-						if (s.toString().contains(" ")) {
-							String result = s.toString().replaceAll(" ", "");
-
-							editText.setText(result);
-							editText.setSelection(result.length());
-						}
-					}
-				});
-
-				alertBuilder.setView(editText);
-				alertBuilder.setTitle(R.string.mainmenu_custom);
+				alertBuilder.setView(root);
 
 				alertBuilder.setPositiveButton(R.string.dialog_go, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 
-						final String subredditInput = editText.getText().toString().trim().replace(" ", "");
+						final String typeName = typeReturnValues[destinationType.getSelectedItemPosition()];
 
-						try {
-							final String normalizedName = RedditSubreddit.stripRPrefix(subredditInput);
-							final RedditURLParser.RedditURL redditURL = SubredditPostListURL.getSubreddit(normalizedName);
-							if(redditURL == null || redditURL.pathType() != RedditURLParser.SUBREDDIT_POST_LISTING_URL) {
-								General.quickToast(MainActivity.this, R.string.mainmenu_custom_invalid_name);
-							} else {
-								onSelected(redditURL.asSubredditPostListURL());
+						switch(typeName) {
+							case "subreddit": {
+
+								final String subredditInput = editText.getText().toString().trim().replace(" ", "");
+
+								try {
+									final String normalizedName = RedditSubreddit.stripRPrefix(subredditInput);
+									final RedditURLParser.RedditURL redditURL = SubredditPostListURL.getSubreddit(normalizedName);
+									if(redditURL == null || redditURL.pathType() != RedditURLParser.SUBREDDIT_POST_LISTING_URL) {
+										General.quickToast(MainActivity.this, R.string.mainmenu_custom_invalid_name);
+									} else {
+										onSelected(redditURL.asSubredditPostListURL());
+									}
+								} catch(RedditSubreddit.InvalidSubredditNameException e){
+									General.quickToast(MainActivity.this, R.string.mainmenu_custom_invalid_name);
+								}
+								break;
 							}
-						} catch(RedditSubreddit.InvalidSubredditNameException e){
-							General.quickToast(MainActivity.this, R.string.mainmenu_custom_invalid_name);
+
+							case "user":
+
+								String userInput = editText.getText().toString().trim().replace(" ", "");
+
+								if(!userInput.startsWith("/u/")
+										&& !userInput.startsWith("/user/")) {
+
+									if(userInput.startsWith("u/")
+										|| userInput.startsWith("user/")) {
+
+										userInput = "/" + userInput;
+
+									} else {
+										userInput = "/u/" + userInput;
+									}
+								}
+
+								LinkHandler.onLinkClicked(MainActivity.this, userInput);
+
+								break;
+
+							case "url": {
+								LinkHandler.onLinkClicked(MainActivity.this, editText.getText().toString().trim());
+								break;
+							}
 						}
 					}
 				});
@@ -333,7 +363,7 @@ public class MainActivity extends RefreshableActivity
 
 		if(twoPane) {
 
-			postListingController = new PostListingController(url);
+			postListingController = new PostListingController(url, this);
 			requestRefresh(RefreshableFragment.POSTS, false);
 
 		} else {
@@ -452,6 +482,7 @@ public class MainActivity extends RefreshableActivity
 		mLeftPane.addView(mainMenuView);
 		mRightPane.addView(postListingView);
 
+		showBackButton(false);
 		invalidateOptionsMenu();
 	}
 
@@ -460,6 +491,7 @@ public class MainActivity extends RefreshableActivity
 		if(twoPane) {
 
 			commentListingController = new CommentListingController(PostCommentListingURL.forPostId(post.src.getIdAlone()), this);
+			showBackButton(true);
 
 			if(isMenuShown) {
 
@@ -567,9 +599,6 @@ public class MainActivity extends RefreshableActivity
 				subredditPinState,
 				subredditBlockedState);
 
-		getSupportActionBar().setHomeButtonEnabled(!isMenuShown);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(!isMenuShown);
-
 		if(commentListingFragment != null) {
 			commentListingFragment.onCreateOptionsMenu(menu);
 		}
@@ -592,6 +621,19 @@ public class MainActivity extends RefreshableActivity
 		requestRefresh(RefreshableFragment.COMMENTS, false);
 	}
 
+	@Override
+	public void onSearchComments() {
+		DialogUtils.showSearchDialog(this, R.string.action_search_comments, new DialogUtils.OnSearchListener() {
+			@Override
+			public void onSearch(@Nullable String query) {
+				Intent searchIntent = new Intent(MainActivity.this, CommentListingActivity.class);
+				searchIntent.setData(commentListingController.getUri());
+				searchIntent.putExtra(CommentListingActivity.EXTRA_SEARCH_STRING, query);
+				startActivity(searchIntent);
+			}
+		});
+	}
+
 	public void onRefreshPosts() {
 		postListingController.setSession(null);
 		requestRefresh(RefreshableFragment.POSTS, true);
@@ -610,7 +652,7 @@ public class MainActivity extends RefreshableActivity
 		startActivity(intent);
 	}
 
-	public void onSortSelected(final PostListingController.Sort order) {
+	public void onSortSelected(final PostSort order) {
 		postListingController.setSort(order);
 		requestRefresh(RefreshableFragment.POSTS, false);
 	}
@@ -633,7 +675,8 @@ public class MainActivity extends RefreshableActivity
 	public void onSidebar() {
 		final Intent intent = new Intent(this, HtmlViewActivity.class);
 		intent.putExtra("html", postListingFragment.getSubreddit().getSidebarHtml(PrefsUtility.isNightMode(this)));
-		intent.putExtra("title", String.format("%s: %s",
+		intent.putExtra("title", String.format(
+				Locale.US, "%s: %s",
 				getString(R.string.sidebar_activity_title),
 				postListingFragment.getSubreddit().url));
 		startActivityForResult(intent, 1);
@@ -717,7 +760,9 @@ public class MainActivity extends RefreshableActivity
 	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		if(commentListingFragment != null) {
-			commentListingFragment.onOptionsItemSelected(item);
+			if(commentListingFragment.onOptionsItemSelected(item)) {
+				return true;
+			}
 		}
 
 		switch(item.getItemId()) {
@@ -789,4 +834,13 @@ public class MainActivity extends RefreshableActivity
 			}
 		});
 	}
+
+	private void showBackButton(boolean isVisible) {
+		configBackButton(isVisible, new View.OnClickListener() {
+			@Override
+			public void onClick(final View v) {
+				onBackPressed();
+			}
+		});
+	}	
 }

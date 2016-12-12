@@ -27,6 +27,16 @@
                         android:entryValues="@array/pref_appearance_theme_return"
                         android:defaultValue="red"/>
 
+		<ListPreference android:title="@string/pref_appearance_navbar_color_title"
+						android:key="@string/pref_appearance_navbar_color_key"
+						android:entries="@array/pref_appearance_navbar_color_options"
+						android:entryValues="@array/pref_appearance_navbar_color_options_return"
+						android:defaultValue="black"/>
+
+		<CheckBoxPreference android:title="@string/pref_appearance_hide_android_status_title"
+							android:key="@string/pref_appearance_hide_android_status_key"
+							android:defaultValue="false"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_appearance_locale_header">
@@ -60,6 +70,14 @@
                         android:defaultValue="1"/>
 
     </PreferenceCategory>
+
+	<PreferenceCategory android:title="@string/pref_appearance_image_viewer_header">
+
+		<CheckBoxPreference android:title="@string/pref_appearance_image_viewer_show_floating_toolbar_title"
+							android:key="@string/pref_appearance_image_viewer_show_floating_toolbar_key"
+							android:defaultValue="true"/>
+
+	</PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_appearance_thumbnails_header">
 
@@ -102,6 +120,10 @@
         <CheckBoxPreference android:title="@string/pref_appearance_linkbuttons_title"
                             android:key="@string/pref_appearance_linkbuttons_key"
                             android:defaultValue="true"/>
+
+		<CheckBoxPreference android:title="@string/pref_appearance_link_text_clickable_title"
+							android:key="@string/pref_appearance_link_text_clickable_key"
+							android:defaultValue="true"/>
 
         <CheckBoxPreference android:title="@string/pref_appearance_indentlines_title"
                             android:key="@string/pref_appearance_indentlines_key"

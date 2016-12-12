@@ -57,7 +57,6 @@ public class PostSubmitActivity extends BaseActivity {
 	private static final String[] postTypes = {"Link", "Self", "Upload to Imgur"};
 
 	private static final int
-			REQUEST_CAPTCHA = 0,
 			REQUEST_UPLOAD = 1;
 
 	@Override
@@ -67,10 +66,7 @@ public class PostSubmitActivity extends BaseActivity {
 
 		super.onCreate(savedInstanceState);
 
-		getSupportActionBarOrThrow().setTitle(R.string.submit_post_actionbar);
-
-		getSupportActionBar().setHomeButtonEnabled(true);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		setTitle(R.string.submit_post_actionbar);
 
 		final LinearLayout layout = (LinearLayout) getLayoutInflater().inflate(R.layout.post_submit, null);
 
@@ -184,14 +180,14 @@ public class PostSubmitActivity extends BaseActivity {
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public boolean onOptionsItemSelected(final MenuItem item) {
 
-		if (item.getItemId() == android.R.id.home) {
-			finish();
-		} else if(item.getTitle().equals(getString(R.string.comment_reply_send))) {
+		if(item.getTitle().equals(getString(R.string.comment_reply_send))) {
+
 			String subreddit = subredditEdit.getText().toString();
-			String postTitle = titleEdit.getText().toString();
-			String text = textEdit.getText().toString();
+			final String postTitle = titleEdit.getText().toString();
+			final String text = textEdit.getText().toString();
+
 			if (subreddit.isEmpty()) {
 				Toast.makeText(this, R.string.submit_post_specify_subreddit, Toast.LENGTH_SHORT).show();
 				subredditEdit.requestFocus();
@@ -202,118 +198,108 @@ public class PostSubmitActivity extends BaseActivity {
 				Toast.makeText(this, R.string.submit_post_url_empty, Toast.LENGTH_SHORT).show();
 				textEdit.requestFocus();
 			} else {
-				final Intent captchaIntent = new Intent(this, CaptchaActivity.class);
-				captchaIntent.putExtra("username", (String)usernameSpinner.getSelectedItem());
-				startActivityForResult(captchaIntent, REQUEST_CAPTCHA);
+				final ProgressDialog progressDialog = new ProgressDialog(this);
+				progressDialog.setTitle(getString(R.string.comment_reply_submitting_title));
+				progressDialog.setMessage(getString(R.string.comment_reply_submitting_message));
+				progressDialog.setIndeterminate(true);
+				progressDialog.setCancelable(true);
+				progressDialog.setCanceledOnTouchOutside(false);
+
+				progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+					public void onCancel(final DialogInterface dialogInterface) {
+						General.quickToast(PostSubmitActivity.this, getString(R.string.comment_reply_oncancel));
+						progressDialog.dismiss();
+					}
+				});
+
+				progressDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+					public boolean onKey(final DialogInterface dialogInterface, final int keyCode, final KeyEvent keyEvent) {
+
+						if(keyCode == KeyEvent.KEYCODE_BACK) {
+							General.quickToast(PostSubmitActivity.this, getString(R.string.comment_reply_oncancel));
+							progressDialog.dismiss();
+						}
+
+						return true;
+					}
+				});
+
+				final CacheManager cm = CacheManager.getInstance(this);
+
+				final APIResponseHandler.ActionResponseHandler handler = new APIResponseHandler.ActionResponseHandler(this) {
+					@Override
+					protected void onSuccess() {
+						AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+							@Override
+							public void run() {
+								if(progressDialog.isShowing()) progressDialog.dismiss();
+								General.quickToast(PostSubmitActivity.this, getString(R.string.post_submit_done));
+								finish();
+							}
+						});
+					}
+
+					@Override
+					protected void onCallbackException(Throwable t) {
+						BugReportActivity.handleGlobalError(PostSubmitActivity.this, t);
+					}
+
+					@Override
+					protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+
+						final RRError error = General.getGeneralErrorForFailure(context, type, t, status, null);
+
+						AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+							@Override
+							public void run() {
+								General.showResultDialog(PostSubmitActivity.this, error);
+								if(progressDialog.isShowing()) progressDialog.dismiss();
+							}
+						});
+					}
+
+					@Override
+					protected void onFailure(final APIFailureType type) {
+
+						final RRError error = General.getGeneralErrorForFailure(context, type);
+
+						AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+							@Override
+							public void run() {
+								General.showResultDialog(PostSubmitActivity.this, error);
+								if(progressDialog.isShowing()) progressDialog.dismiss();
+							}
+						});
+					}
+				};
+
+				final boolean is_self = typeSpinner.getSelectedItem().equals("Self");
+
+				final RedditAccount selectedAccount = RedditAccountManager.getInstance(this).getAccount((String)usernameSpinner.getSelectedItem());
+
+				while(subreddit.startsWith("/")) subreddit = subreddit.substring(1);
+				while(subreddit.startsWith("r/")) subreddit = subreddit.substring(2);
+				while(subreddit.endsWith("/")) subreddit = subreddit.substring(0, subreddit.length() - 1);
+
+				RedditAPI.submit(cm, handler, selectedAccount, is_self, subreddit, postTitle, text, this);
+
+				progressDialog.show();
 			}
+			return true;
+
 		} else if(item.getTitle().equals(getString(R.string.comment_reply_preview))) {
 			MarkdownPreviewDialog.newInstance(textEdit.getText().toString()).show(getSupportFragmentManager(), null);
-		}
+			return true;
 
-		return true;
+		} else {
+			return super.onOptionsItemSelected(item);
+		}
 	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
 
-		if(requestCode == REQUEST_CAPTCHA) {
-
-			if(resultCode != RESULT_OK) return;
-
-			final ProgressDialog progressDialog = new ProgressDialog(this);
-			progressDialog.setTitle(getString(R.string.comment_reply_submitting_title));
-			progressDialog.setMessage(getString(R.string.comment_reply_submitting_message));
-			progressDialog.setIndeterminate(true);
-			progressDialog.setCancelable(true);
-			progressDialog.setCanceledOnTouchOutside(false);
-
-			progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-				public void onCancel(final DialogInterface dialogInterface) {
-					General.quickToast(PostSubmitActivity.this, getString(R.string.comment_reply_oncancel));
-					progressDialog.dismiss();
-				}
-			});
-
-			progressDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-				public boolean onKey(final DialogInterface dialogInterface, final int keyCode, final KeyEvent keyEvent) {
-
-					if(keyCode == KeyEvent.KEYCODE_BACK) {
-						General.quickToast(PostSubmitActivity.this, getString(R.string.comment_reply_oncancel));
-						progressDialog.dismiss();
-					}
-
-					return true;
-				}
-			});
-
-			final CacheManager cm = CacheManager.getInstance(this);
-
-			final APIResponseHandler.ActionResponseHandler handler = new APIResponseHandler.ActionResponseHandler(this) {
-				@Override
-				protected void onSuccess() {
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
-						@Override
-						public void run() {
-							if(progressDialog.isShowing()) progressDialog.dismiss();
-							General.quickToast(PostSubmitActivity.this, getString(R.string.post_submit_done));
-							finish();
-						}
-					});
-				}
-
-				@Override
-				protected void onCallbackException(Throwable t) {
-					BugReportActivity.handleGlobalError(PostSubmitActivity.this, t);
-				}
-
-				@Override
-				protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
-
-					final RRError error = General.getGeneralErrorForFailure(context, type, t, status, null);
-
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
-						@Override
-						public void run() {
-							General.showResultDialog(PostSubmitActivity.this, error);
-							if(progressDialog.isShowing()) progressDialog.dismiss();
-						}
-					});
-				}
-
-				@Override
-				protected void onFailure(final APIFailureType type) {
-
-					final RRError error = General.getGeneralErrorForFailure(context, type);
-
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
-						@Override
-						public void run() {
-							General.showResultDialog(PostSubmitActivity.this, error);
-							if(progressDialog.isShowing()) progressDialog.dismiss();
-						}
-					});
-				}
-			};
-
-			final boolean is_self = typeSpinner.getSelectedItem().equals("Self");
-
-			final RedditAccount selectedAccount = RedditAccountManager.getInstance(this).getAccount((String)usernameSpinner.getSelectedItem());
-
-			String subreddit = subredditEdit.getText().toString();
-			final String title = titleEdit.getText().toString();
-			final String text = textEdit.getText().toString();
-			final String captchaId = data.getStringExtra("captchaId");
-			final String captchaText = data.getStringExtra("captchaText");
-
-			while(subreddit.startsWith("/")) subreddit = subreddit.substring(1);
-			while(subreddit.startsWith("r/")) subreddit = subreddit.substring(2);
-			while(subreddit.endsWith("/")) subreddit = subreddit.substring(0, subreddit.length() - 1);
-
-			RedditAPI.submit(cm, handler, selectedAccount, is_self, subreddit, title, text, captchaId, captchaText, this);
-
-			progressDialog.show();
-
-		} else if(requestCode == REQUEST_UPLOAD) {
+		if(requestCode == REQUEST_UPLOAD) {
 
 			if(data != null && data.getData() != null) {
 				textEdit.setText(data.getData().toString());

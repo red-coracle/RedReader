@@ -24,6 +24,8 @@ import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.activities.BugReportActivity;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
+import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategy;
+import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyAlways;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.TimestampBound;
 import org.quantumbadger.redreader.http.HTTPBackend;
@@ -76,8 +78,6 @@ public final class RedditAPI {
 							   final String subreddit,
 							   final String title,
 							   final String body,
-							   final String captchaId,
-							   final String captchaText,
 							   final Context context) {
 
 		final LinkedList<PostField> postFields = new LinkedList<>();
@@ -85,8 +85,6 @@ public final class RedditAPI {
 		postFields.add(new PostField("sendreplies", "true"));
 		postFields.add(new PostField("sr", subreddit));
 		postFields.add(new PostField("title", title));
-		postFields.add(new PostField("captcha", captchaText));
-		postFields.add(new PostField("iden", captchaId));
 
 		if(is_self)
 			postFields.add(new PostField("text", body));
@@ -135,14 +133,10 @@ public final class RedditAPI {
 			@NonNull final String recipient,
 			@NonNull final String subject,
 			@NonNull final String body,
-			@NonNull final String captchaId,
-			@NonNull final String captchaText,
 			@NonNull final Context context) {
 
 		final LinkedList<PostField> postFields = new LinkedList<>();
 		postFields.add(new PostField("api_type", "json"));
-		postFields.add(new PostField("captcha", captchaText));
-		postFields.add(new PostField("iden", captchaId));
 		postFields.add(new PostField("subject", subject));
 		postFields.add(new PostField("to", recipient));
 		postFields.add(new PostField("text", body));
@@ -293,45 +287,6 @@ public final class RedditAPI {
 				}
 
 				responseHandler.notifySuccess();
-			}
-
-			@Override
-			protected void onCallbackException(Throwable t) {
-				BugReportActivity.handleGlobalError(context, t);
-			}
-
-			@Override
-			protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
-				responseHandler.notifyFailure(type, t, status, readableMessage);
-			}
-		});
-	}
-
-	public static void newCaptcha(final CacheManager cm,
-								   final APIResponseHandler.NewCaptchaResponseHandler responseHandler,
-								   final RedditAccount user,
-								   final Context context) {
-
-		final LinkedList<PostField> postFields = new LinkedList<>();
-
-		cm.makeRequest(new APIPostRequest(Constants.Reddit.getUri("/api/new_captcha"), user, postFields, context) {
-
-			@Override
-			public void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache) {
-
-				try {
-					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
-
-					if(failureType != null) {
-						responseHandler.notifyFailure(failureType);
-						return;
-					}
-
-				} catch(Throwable t) {
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
-				}
-
-				responseHandler.notifySuccess(findCaptchaId(result));
 			}
 
 			@Override
@@ -503,13 +458,13 @@ public final class RedditAPI {
 							   final String usernameToGet,
 							   final APIResponseHandler.UserResponseHandler responseHandler,
 							   final RedditAccount user,
-							   final @CacheRequest.DownloadType int downloadType,
+							   final DownloadStrategy downloadStrategy,
 							   final boolean cancelExisting,
 							   final Context context) {
 
 		final URI uri = Constants.Reddit.getUri("/user/" + usernameToGet + "/about.json");
 
-		cm.makeRequest(new APIGetRequest(uri, user, Constants.Priority.API_USER_ABOUT, Constants.FileType.USER_ABOUT, downloadType, true, cancelExisting, context) {
+		cm.makeRequest(new APIGetRequest(uri, user, Constants.Priority.API_USER_ABOUT, Constants.FileType.USER_ABOUT, downloadStrategy, true, cancelExisting, context) {
 
 			@Override
 			protected void onDownloadNecessary() {}
@@ -619,44 +574,6 @@ public final class RedditAPI {
 		return null;
 	}
 
-	// lol, reddit api
-	private static String findCaptchaId(final JsonValue response) {
-
-		switch(response.getType()) {
-
-			case JsonValue.TYPE_OBJECT:
-
-				for(final Map.Entry<String, JsonValue> v : response.asObject()) {
-					final String captchaId = findCaptchaId(v.getValue());
-					if(captchaId != null) return captchaId;
-				}
-
-				break;
-
-			case JsonValue.TYPE_ARRAY:
-
-				for(final JsonValue v : response.asArray()) {
-					final String captchaId = findCaptchaId(v);
-					if(captchaId != null) return captchaId;
-				}
-
-				break;
-
-			case JsonValue.TYPE_STRING:
-
-				if(response.asString().length() > 20) { // This is probably it :S
-					return response.asString();
-				}
-
-				break;
-
-			default:
-				// Ignore
-		}
-
-		return null;
-	}
-
 	private static abstract class APIPostRequest extends CacheRequest {
 
 		@Override
@@ -666,7 +583,8 @@ public final class RedditAPI {
 		protected void onDownloadStarted() {}
 
 		public APIPostRequest(final URI url, final RedditAccount user, final List<HTTPBackend.PostField> postFields, final Context context) {
-			super(url, user, null, Constants.Priority.API_ACTION, 0, DOWNLOAD_FORCE, Constants.FileType.NOCACHE, DOWNLOAD_QUEUE_REDDIT_API, true, postFields, false, false, context);
+			super(url, user, null, Constants.Priority.API_ACTION, 0,
+					DownloadStrategyAlways.INSTANCE, Constants.FileType.NOCACHE, DOWNLOAD_QUEUE_REDDIT_API, true, postFields, false, false, context);
 		}
 
 		@Override
@@ -685,8 +603,8 @@ public final class RedditAPI {
 	// TODO merge get and post into one?
 	private static abstract class APIGetRequest extends CacheRequest {
 
-		public APIGetRequest(final URI url, final RedditAccount user, final int priority, final int fileType, final @DownloadType int downloadType, final boolean cache, final boolean cancelExisting, final Context context) {
-			super(url, user, null, priority, 0, downloadType, fileType, DOWNLOAD_QUEUE_REDDIT_API, true, null, cache, cancelExisting, context);
+		public APIGetRequest(final URI url, final RedditAccount user, final int priority, final int fileType, final DownloadStrategy downloadStrategy, final boolean cache, final boolean cancelExisting, final Context context) {
+			super(url, user, null, priority, 0, downloadStrategy, fileType, DOWNLOAD_QUEUE_REDDIT_API, true, null, cache, cancelExisting, context);
 		}
 
 		@Override

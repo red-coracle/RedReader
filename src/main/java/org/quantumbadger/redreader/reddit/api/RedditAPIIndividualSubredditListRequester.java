@@ -23,6 +23,7 @@ import android.util.Log;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
+import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyAlways;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.TimestampBound;
@@ -39,7 +40,11 @@ import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
 import org.quantumbadger.redreader.reddit.things.RedditThing;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.UUID;
 
 public class RedditAPIIndividualSubredditListRequester
 		implements CacheDataSource<RedditSubredditManager.SubredditListType, WritableHashSet, SubredditRequestFailure> {
@@ -63,7 +68,7 @@ public class RedditAPIIndividualSubredditListRequester
 			final HashSet<String> data = new HashSet<>(Constants.Reddit.DEFAULT_SUBREDDITS.length + 1);
 
 			for(String name : Constants.Reddit.DEFAULT_SUBREDDITS) {
-				data.add(name.toLowerCase());
+				data.add(General.asciiLowercase(name));
 			}
 
 			data.add("/r/redreader");
@@ -141,7 +146,7 @@ public class RedditAPIIndividualSubredditListRequester
 				null,
 				Constants.Priority.API_SUBREDDIT_INVIDIVUAL,
 				0,
-				CacheRequest.DOWNLOAD_FORCE,
+				DownloadStrategyAlways.INSTANCE,
 				Constants.FileType.SUBREDDIT_LIST,
 				CacheRequest.DOWNLOAD_QUEUE_REDDIT_API,
 				true,

@@ -20,9 +20,9 @@ package org.quantumbadger.redreader.cache;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
-
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.activities.BugReportActivity;
 import org.quantumbadger.redreader.common.General;
@@ -43,6 +43,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -127,17 +129,34 @@ public final class CacheManager {
 		}
 	}
 
-	public void pruneTemp() {
+	public static List<File> getCacheDirs(Context context) {
 
-		final File externalCacheDir = context.getExternalCacheDir();
-		final File internalCacheDir = context.getCacheDir();
+		final ArrayList<File> dirs = new ArrayList<>();
 
-		if(externalCacheDir != null) {
-			pruneTemp(externalCacheDir);
+		dirs.add(context.getCacheDir());
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			for(final File dir : context.getExternalCacheDirs()) {
+				if(dir != null) {
+					dirs.add(dir);
+				}
+			}
+
+		} else {
+			final File extDir = context.getExternalCacheDir();
+			if (extDir != null) {
+				dirs.add(extDir);
+			}
 		}
 
-		if(internalCacheDir != null) {
-			pruneTemp(internalCacheDir);
+
+		return dirs;
+	}
+
+	public void pruneTemp() {
+		List<File> dirs = getCacheDirs(context);
+		for (File dir : dirs) {
+			pruneTemp(dir);
 		}
 	}
 
@@ -147,15 +166,9 @@ public final class CacheManager {
 
 			final HashSet<Long> currentFiles = new HashSet<>(128);
 
-			final File externalCacheDir = context.getExternalCacheDir();
-			final File internalCacheDir = context.getCacheDir();
-
-			if(externalCacheDir != null) {
-				getCacheFileList(externalCacheDir, currentFiles);
-			}
-
-			if(internalCacheDir != null) {
-				getCacheFileList(internalCacheDir, currentFiles);
+			List<File> dirs = getCacheDirs(context);
+			for (File dir : dirs) {
+				getCacheFileList(dir, currentFiles);
 			}
 
 			final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -188,18 +201,24 @@ public final class CacheManager {
 		return dbManager.select(url, user.username, null);
 	}
 
+	public File getPreferredCacheLocation() {
+		return new File(
+				PrefsUtility.pref_cache_location(context, PreferenceManager.getDefaultSharedPreferences(context)));
+	}
+
 	public class WritableCacheFile {
 
 		private final NotifyOutputStream os;
 		private long cacheFileId = -1;
 		private ReadableCacheFile readableCacheFile = null;
 		private final CacheRequest request;
+		private final File location;
 
 		private WritableCacheFile(final CacheRequest request, final UUID session, final String mimetype) throws IOException {
 
 			this.request = request;
-
-			final File tmpFile = new File(General.getBestCacheDir(context), UUID.randomUUID().toString() + tempExt);
+			location = getPreferredCacheLocation();
+			final File tmpFile = new File(location, UUID.randomUUID().toString() + tempExt);
 			final FileOutputStream fos = new FileOutputStream(tmpFile);
 
 			final OutputStream bufferedOs = new BufferedOutputStream(fos, 64 * 1024);
@@ -209,7 +228,7 @@ public final class CacheManager {
 
 					cacheFileId = dbManager.newEntry(request, session, mimetype);
 
-					final File dstFile = new File(General.getBestCacheDir(context), cacheFileId + ext);
+					final File dstFile = new File(location, cacheFileId + ext);
 					General.moveFile(tmpFile, dstFile);
 
 					dbManager.setEntryDone(cacheFileId);
@@ -237,7 +256,7 @@ public final class CacheManager {
 					os.flush();
 					os.close();
 				} catch(IOException e) {
-					Log.e("RR DEBUG getReadableCacheFile", "Error closing " + cacheFileId);
+					Log.e("getReadableCacheFile", "Error closing " + cacheFileId);
 					throw e;
 				}
 			}
@@ -264,7 +283,7 @@ public final class CacheManager {
 
 		@Override
 		public String toString() {
-			return String.format("[ReadableCacheFile : id %d]", id);
+			return String.format(Locale.US, "[ReadableCacheFile : id %d]", id);
 		}
 
 		public long getSize() {
@@ -277,23 +296,12 @@ public final class CacheManager {
 	}
 
 	private File getExistingCacheFile(final long id) {
-
-		final File externalCacheDir = context.getExternalCacheDir();
-
-		if(externalCacheDir != null) {
-			final File fExternal = new File(externalCacheDir, id + ext);
-
-			if(fExternal.exists()) {
-				return fExternal;
-			}
+		List<File> dirs = getCacheDirs(context);
+		for (File dir : dirs) {
+			final File f = new File(dir, id + ext);
+			if (f.exists())
+				return f;
 		}
-
-		final File fInternal = new File(context.getCacheDir(), id + ext);
-
-		if(fInternal.exists()) {
-			return fInternal;
-		}
-
 		return null;
 	}
 
@@ -345,45 +353,44 @@ public final class CacheManager {
 		private void handleRequest(final CacheRequest request) {
 
 			if(request.url == null) {
-				request.notifyFailure(CacheRequest.REQUEST_FAILURE_MALFORMED_URL, new NullPointerException("URL was null"), null, "URL was null");
+				request.notifyFailure(
+						CacheRequest.REQUEST_FAILURE_MALFORMED_URL,
+						new NullPointerException("URL was null"),
+						null,
+						"URL was null");
 				return;
 			}
 
-			switch(request.downloadType) {
+			if(request.downloadStrategy.shouldDownloadWithoutCheckingCache()) {
+				queueDownload(request);
 
-				case CacheRequest.DOWNLOAD_NEVER: {
+			} else {
 
-					final LinkedList<CacheEntry> result = dbManager.select(request.url, request.user.username, request.requestSession);
+				final LinkedList<CacheEntry> result = dbManager.select(request.url, request.user.username, request.requestSession);
 
-					if(result.size() == 0) {
-						request.notifyFailure(CacheRequest.REQUEST_FAILURE_CACHE_MISS, null, null, "Could not find this data in the cache");
+				if(result.isEmpty()) {
 
-					} else {
-						final CacheEntry entry = mostRecentFromList(result);
-						handleCacheEntryFound(entry, request);
-					}
-
-					break;
-				}
-
-				case CacheRequest.DOWNLOAD_IF_NECESSARY: {
-
-					final LinkedList<CacheEntry> result = dbManager.select(request.url, request.user.username, request.requestSession);
-
-					if(result.size() == 0) {
+					if(request.downloadStrategy.shouldDownloadIfNotCached()) {
 						queueDownload(request);
 
 					} else {
-						final CacheEntry entry = mostRecentFromList(result);
-						handleCacheEntryFound(entry, request);
+						request.notifyFailure(
+								CacheRequest.REQUEST_FAILURE_CACHE_MISS,
+								null,
+								null,
+								"Could not find this data in the cache");
 					}
 
-					break;
-				}
+				} else {
 
-				case CacheRequest.DOWNLOAD_FORCE:
-					queueDownload(request);
-					break;
+					final CacheEntry entry = mostRecentFromList(result);
+
+					if(request.downloadStrategy.shouldDownloadIfCacheEntryFound(entry)) {
+						queueDownload(request);
+					} else {
+						handleCacheEntryFound(entry, request);
+					}
+				}
 			}
 		}
 
@@ -402,7 +409,12 @@ public final class CacheManager {
 
 		private void queueDownload(final CacheRequest request) {
 			request.notifyDownloadNecessary();
-			downloadQueue.add(request, CacheManager.this);
+
+			try {
+				downloadQueue.add(request, CacheManager.this);
+			} catch(final Exception e) {
+				request.notifyFailure(CacheRequest.REQUEST_FAILURE_MALFORMED_URL, e, null, e.toString());
+			}
 		}
 
 		private void handleCacheEntryFound(final CacheEntry entry, final CacheRequest request) {
@@ -411,11 +423,13 @@ public final class CacheManager {
 
 			if(cacheFile == null) {
 
-				if(request.downloadType == CacheRequest.DOWNLOAD_IF_NECESSARY) {
-					queueDownload(request);
-				} else {
-					request.notifyFailure(CacheRequest.REQUEST_FAILURE_STORAGE, null, null, "A cache entry was found in the database, but the actual data couldn't be found. Press refresh to download the content again.");
-				}
+				request.notifyFailure(
+						CacheRequest.REQUEST_FAILURE_STORAGE,
+						null,
+						null,
+						"A cache entry was found in the database, but the actual data couldn't be found. Press refresh to download the content again.");
+
+				dbManager.delete(entry.id);
 
 				return;
 			}
@@ -468,11 +482,7 @@ public final class CacheManager {
 								existingCacheFile.delete();
 							}
 
-							if(request.downloadType == CacheRequest.DOWNLOAD_IF_NECESSARY) {
-								queueDownload(request);
-							} else {
-								request.notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "Error parsing the JSON stream");
-							}
+							request.notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "Error parsing the JSON stream");
 
 							return;
 						}

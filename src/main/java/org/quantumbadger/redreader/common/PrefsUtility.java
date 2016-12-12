@@ -28,10 +28,12 @@ import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.OptionsMenuUtility;
 import org.quantumbadger.redreader.fragments.MainMenuFragment;
 import org.quantumbadger.redreader.io.WritableHashSet;
+import org.quantumbadger.redreader.reddit.PostSort;
 import org.quantumbadger.redreader.reddit.prepared.RedditPreparedPost;
 import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
 import org.quantumbadger.redreader.reddit.url.PostCommentListingURL;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -77,14 +79,19 @@ public final class PrefsUtility {
 				|| key.equals(context.getString(R.string.pref_behaviour_fling_post_right_key))
 				|| key.equals(context.getString(R.string.pref_behaviour_nsfw_key))
 				|| key.equals(context.getString(R.string.pref_behaviour_postcount_key))
-				|| key.equals(context.getString(R.string.pref_behaviour_comment_min_key));
+				|| key.equals(context.getString(R.string.pref_behaviour_comment_min_key))
+				|| key.equals(context.getString(R.string.pref_behaviour_pinned_subredditsort_key))
+				|| key.equals(context.getString(R.string.pref_behaviour_blocked_subredditsort_key));
 	}
 
 	public static boolean isRestartRequired(Context context, String key) {
 		return context.getString(R.string.pref_appearance_theme_key).equals(key)
+				|| context.getString(R.string.pref_appearance_navbar_color_key).equals(key)
 				|| context.getString(R.string.pref_appearance_langforce_key).equals(key)
 				|| context.getString(R.string.pref_behaviour_bezel_toolbar_swipezone_key).equals(key)
-				|| context.getString(R.string.pref_appearance_hide_username_main_menu_key).equals(key);
+				|| context.getString(R.string.pref_appearance_hide_username_main_menu_key).equals(key)
+				|| context.getString(R.string.pref_appearance_hide_android_status_key).equals(key)
+				|| context.getString(R.string.pref_behaviour_enable_swipe_refresh_key).equals(key);
 	}
 
 	///////////////////////////////
@@ -101,7 +108,7 @@ public final class PrefsUtility {
 		return AppearanceTwopane.valueOf(General.asciiUppercase(getString(R.string.pref_appearance_twopane_key, "auto", context, sharedPreferences)));
 	}
 
-	public static enum AppearanceTheme {
+	public enum AppearanceTheme {
 		RED, GREEN, BLUE, LTBLUE, ORANGE, GRAY, NIGHT
 	}
 
@@ -111,6 +118,14 @@ public final class PrefsUtility {
 
 	public static AppearanceTheme appearance_theme(final Context context, final SharedPreferences sharedPreferences) {
 		return AppearanceTheme.valueOf(General.asciiUppercase(getString(R.string.pref_appearance_theme_key, "red", context, sharedPreferences)));
+	}
+
+	public enum AppearanceNavbarColour {
+		BLACK, PRIMARY, PRIMARYDARK
+	}
+
+	public static AppearanceNavbarColour appearance_navbar_colour(final Context context, final SharedPreferences sharedPreferences) {
+		return AppearanceNavbarColour.valueOf(General.asciiUppercase(getString(R.string.pref_appearance_navbar_color_key, "black", context, sharedPreferences)));
 	}
 
 	public static void applyTheme(@NonNull final Activity activity) {
@@ -216,8 +231,24 @@ public final class PrefsUtility {
 		return getBoolean(R.string.pref_appearance_hide_username_main_menu_key, false, context, sharedPreferences);
 	}
 
+	public static boolean pref_appearance_show_blocked_subreddits_main_menu(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_appearance_show_blocked_subreddits_main_menu_key, false, context, sharedPreferences);
+	}
+
 	public static boolean pref_appearance_linkbuttons(final Context context, final SharedPreferences sharedPreferences) {
 		return getBoolean(R.string.pref_appearance_linkbuttons_key, true, context, sharedPreferences);
+	}
+
+	public static boolean pref_appearance_hide_android_status(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_appearance_hide_android_status_key, false, context, sharedPreferences);
+	}
+
+	public static boolean pref_appearance_link_text_clickable(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_appearance_link_text_clickable_key, true, context, sharedPreferences);
+	}
+
+	public static boolean pref_appearance_image_viewer_show_floating_toolbar(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_appearance_image_viewer_show_floating_toolbar_key, true, context, sharedPreferences);
 	}
 
 	public static boolean pref_appearance_indentlines(final Context context, final SharedPreferences sharedPreferences) {
@@ -238,7 +269,7 @@ public final class PrefsUtility {
 			if(s.equalsIgnoreCase("ups_downs")) continue;
 
 			try {
-				result.add(AppearanceCommentHeaderItem.valueOf(s.toUpperCase()));
+				result.add(AppearanceCommentHeaderItem.valueOf(General.asciiUppercase(s)));
 			} catch(IllegalArgumentException e) {
 				// Ignore -- this option no longer exists
 			}
@@ -261,6 +292,10 @@ public final class PrefsUtility {
 
 	public static boolean pref_behaviour_notifications(final Context context, final SharedPreferences sharedPreferences) {
 		return getBoolean(R.string.pref_behaviour_notifications_key, true, context, sharedPreferences);
+	}
+
+	public static boolean pref_behaviour_enable_swipe_refresh(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_behaviour_enable_swipe_refresh_key, true, context, sharedPreferences);
 	}
 
 	public static int pref_behaviour_bezel_toolbar_swipezone_dp(final Context context, final SharedPreferences sharedPreferences) {
@@ -359,6 +394,20 @@ public final class PrefsUtility {
 		return PostFlingAction.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_fling_post_right_key, "upvote", context, sharedPreferences)));
 	}
 
+	// pref_behaviour_fling_comment
+
+	public enum CommentFlingAction {
+		UPVOTE, DOWNVOTE, SAVE, REPLY, USER_PROFILE, COLLAPSE, ACTION_MENU, PROPERTIES, DISABLED
+	}
+
+	public static CommentFlingAction pref_behaviour_fling_comment_left(final Context context, final SharedPreferences sharedPreferences) {
+		return CommentFlingAction.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_fling_comment_left_key, "downvote", context, sharedPreferences)));
+	}
+
+	public static CommentFlingAction pref_behaviour_fling_comment_right(final Context context, final SharedPreferences sharedPreferences) {
+		return CommentFlingAction.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_fling_comment_right_key, "upvote", context, sharedPreferences)));
+	}
+
 	public enum CommentAction {
 		COLLAPSE, ACTION_MENU, NOTHING
 	}
@@ -371,12 +420,36 @@ public final class PrefsUtility {
 		return CommentAction.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_actions_comment_longclick_key, "action_menu", context, sharedPreferences)));
 	}
 
+	public static PostSort pref_behaviour_postsort(final Context context, final SharedPreferences sharedPreferences) {
+		return PostSort.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_postsort_key, "hot", context, sharedPreferences)));
+	}
+
 	public static PostCommentListingURL.Sort pref_behaviour_commentsort(final Context context, final SharedPreferences sharedPreferences) {
 		return PostCommentListingURL.Sort.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_commentsort_key, "best", context, sharedPreferences)));
 	}
 
+	public enum PinnedSubredditSort {
+		NAME, DATE
+	}
+
+	public static PinnedSubredditSort pref_behaviour_pinned_subredditsort(final Context context, final SharedPreferences sharedPreferences) {
+		return PinnedSubredditSort.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_pinned_subredditsort_key, "name", context, sharedPreferences)));
+	}
+
+	public enum BlockedSubredditSort {
+		NAME, DATE
+	}
+
+	public static BlockedSubredditSort pref_behaviour_blocked_subredditsort(final Context context, final SharedPreferences sharedPreferences) {
+		return BlockedSubredditSort.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_blocked_subredditsort_key, "name", context, sharedPreferences)));
+	}
+
 	public static boolean pref_behaviour_nsfw(final Context context, final SharedPreferences sharedPreferences) {
 		return getBoolean(R.string.pref_behaviour_nsfw_key, false, context, sharedPreferences);
+	}
+
+	public static boolean pref_behaviour_share_permalink(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_behaviour_share_permalink_key, false, context, sharedPreferences);
 	}
 
 	public enum PostCount {
@@ -398,6 +471,38 @@ public final class PrefsUtility {
 	///////////////////////////////
 	// pref_cache
 	///////////////////////////////
+
+	// pref_cache_location
+
+	public static String pref_cache_location(final Context context,
+			final SharedPreferences sharedPreferences) {
+		File defaultCacheDir = context.getExternalCacheDir();
+		if (defaultCacheDir == null) {
+			defaultCacheDir = context.getCacheDir();
+		}
+		return getString(R.string.pref_cache_location_key,
+				defaultCacheDir.getAbsolutePath(),
+				context, sharedPreferences);
+	}
+
+	public static void pref_cache_location(Context context,
+			final SharedPreferences sharedPreferences, final String path) {
+		sharedPreferences.edit()
+				.putString(context.getString(R.string.pref_cache_location_key), path)
+				.apply();
+	}
+
+	public static long pref_cache_rerequest_postlist_age_ms(final Context context, final SharedPreferences sharedPreferences) {
+		try {
+			final int hours = Integer.parseInt(
+					getString(R.string.pref_cache_rerequest_postlist_age_key, "1", context, sharedPreferences));
+
+			return General.hoursToMs(hours);
+
+		} catch(Throwable e) {
+			return 1;
+		}
+	}
 
 	// pref_cache_maxage
 
@@ -546,7 +651,7 @@ public final class PrefsUtility {
 		final List<String> list = pref_pinned_subreddits(context, sharedPreferences);
 
 		for(final String existingSr : list) {
-			if(subreddit.toLowerCase().equals(existingSr.toLowerCase())) return true;
+			if(General.asciiLowercase(subreddit).equals(General.asciiLowercase(existingSr))) return true;
 		}
 
 		return false;
@@ -589,7 +694,7 @@ public final class PrefsUtility {
 		final List<String> list = pref_blocked_subreddits(context, sharedPreferences);
 
 		for(final String existingSr : list) {
-			if (subreddit.toLowerCase().equals(existingSr.toLowerCase())) return true;
+			if (General.asciiLowercase(subreddit).equals(General.asciiLowercase(existingSr))) return true;
 		}
 
 		return false;
@@ -620,7 +725,7 @@ public final class PrefsUtility {
 
 		final ArrayList<String> result = new ArrayList<>(list.size());
 		for(final String existingSr : list) {
-			if(!name.toLowerCase().equals(existingSr.toLowerCase())) {
+			if(!General.asciiLowercase(name).equals(General.asciiLowercase(existingSr))) {
 				result.add(existingSr);
 			}
 		}

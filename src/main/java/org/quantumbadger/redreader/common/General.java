@@ -23,14 +23,18 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Looper;
 import android.os.Message;
 import android.os.StatFs;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
@@ -54,11 +58,14 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class General {
+
+	public static int COLOR_INVALID = Color.MAGENTA;
 
 	private static long lastBackPress = -1;
 
@@ -129,19 +136,42 @@ public final class General {
 	}
 
 	public static boolean isCacheDiskFull(final Context context) {
-		final StatFs stat = new StatFs(getBestCacheDir(context).getPath());
-		return (long)stat.getBlockSize() *(long)stat.getAvailableBlocks() < 128 * 1024 * 1024;
+		final long space = getFreeSpaceAvailable(PrefsUtility.pref_cache_location(context,
+				PreferenceManager.getDefaultSharedPreferences(context)));
+		return space < 128 * 1024 * 1024;
 	}
 
-	public static File getBestCacheDir(final Context context) {
-
-		final File externalCacheDir = context.getExternalCacheDir();
-
-		if(externalCacheDir != null) {
-			return externalCacheDir;
+	/// Get the number of free bytes that are available on the external storage.
+	@SuppressWarnings("deprecation")
+	public static long getFreeSpaceAvailable(String path) {
+		StatFs stat = new StatFs(path);
+		long availableBlocks;
+		long blockSize;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+			availableBlocks = stat.getAvailableBlocksLong();
+			blockSize = stat.getBlockSizeLong();
+		} else {
+			availableBlocks = stat.getAvailableBlocks();
+			blockSize = stat.getBlockSize();
 		}
+		return availableBlocks * blockSize;
+	}
 
-		return context.getCacheDir();
+	/** Takes a size in bytes and converts it into a human-readable
+	 * String with units.
+	 */
+	public static String addUnits(final long input) {
+		int i = 0;
+		long result = input;
+		while (i <= 3 && result >= 1024)
+			result = input / (long) Math.pow(1024, ++i);
+
+		switch (i) {
+		default: return result + " B";
+		case 1: return result + " KiB";
+		case 2: return result + " MiB";
+		case 3: return result + " GiB";
+		}
 	}
 
 	public static int dpToPixels(final Context context, final float dp) {
@@ -199,6 +229,12 @@ public final class General {
 		return info != null && info.getDetailedState() == NetworkInfo.DetailedState.CONNECTED;
 	}
 
+	public static boolean isNetworkConnected(final Context context) {
+		final ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		final NetworkInfo activeNetworkInfo = cm.getActiveNetworkInfo();
+		return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+	}
+
 	public static RRError getGeneralErrorForFailure(Context context, @CacheRequest.RequestFailureType int type, Throwable t, Integer status, String url) {
 
 		final int title, message;
@@ -232,6 +268,10 @@ public final class General {
 			case CacheRequest.REQUEST_FAILURE_DISK_SPACE:
 				title = R.string.error_disk_space_title;
 				message = R.string.error_disk_space_message;
+				break;
+			case CacheRequest.REQUEST_FAILURE_CACHE_DIR_DOES_NOT_EXIST:
+				title = R.string.error_cache_dir_does_not_exist_title;
+				message = R.string.error_cache_dir_does_not_exist_message;
 				break;
 			case CacheRequest.REQUEST_FAILURE_REQUEST:
 
@@ -360,6 +400,10 @@ public final class General {
 
 	private static final Pattern urlPattern = Pattern.compile("^(https?)://([^/]+)/+([^\\?#]+)((?:\\?[^#]+)?)((?:#.+)?)$");
 
+	public static String filenameFromString(String url) {
+		return uriFromString(url).getPath().replace(File.separator, "");
+	}
+
 	public static URI uriFromString(String url) {
 
 		try {
@@ -413,7 +457,7 @@ public final class General {
 		digest.update(plaintext, 0, plaintext.length);
 		final byte[] hash = digest.digest();
 		final StringBuilder result = new StringBuilder(hash.length * 2);
-		for(byte b : hash) result.append(String.format("%02X", b));
+		for(byte b : hash) result.append(String.format(Locale.US, "%02X", b));
 		return result.toString();
 	}
 
@@ -485,7 +529,8 @@ public final class General {
 		return new String(chars);
 	}
 
-	public static String asciiLowercase(final String input) {
+	@NonNull
+	public static String asciiLowercase(@NonNull final String input) {
 
 		final char[] chars = input.toCharArray();
 
@@ -521,6 +566,12 @@ public final class General {
 		layoutParams.bottomMargin = marginPx;
 	}
 
+	public static void setLayoutMatchParent(final View view) {
+		final ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+		layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+		layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+	}
+
 	public static void recreateActivityNoAnimation(final AppCompatActivity activity) {
 
 		// http://stackoverflow.com/a/3419987/1526861
@@ -530,5 +581,9 @@ public final class General {
 		activity.finish();
 		activity.overridePendingTransition(0, 0);
 		activity.startActivity(intent);
+	}
+
+	public static long hoursToMs(final long hours) {
+		return hours * 60L * 60L * 1000L;
 	}
 }

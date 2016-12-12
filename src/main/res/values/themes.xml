@@ -32,8 +32,11 @@
         <item name="android:windowBackground">@color/darkWindowBackground</item>
 
         <item name="rrListItemBackgroundCol">#000000</item>
-        <item name="rrListItemHighlightCol">#555555</item>
+        <item name="rrListItemBackgroundHighlightCol">#555555</item>
         <item name="rrListBackgroundCol">#111111</item>
+
+		<item name="rrIndentBackgroundCol">#0A0A0A</item>
+		<item name="rrIndentLineCol">#2D2D2D</item>
 
         <item name="rrListDividerCol">#555555</item>
         <item name="rrListHeaderTextCol">#CCCCCC</item>
@@ -61,8 +64,6 @@
         <item name="rrPostCommentsButtonTextCol">#BBBBBB</item>
         <item name="rrPostThumbnailBackground">#000000</item>
         <item name="rrPostFlingTextCol">#FFFFFF</item>
-        <item name="rrPostBackgroundColSticky">#004400</item>
-        <item name="rrPostCommentsButtonBackColSticky">#226622</item>
         <item name="rrFlairBackCol">#333333</item>
         <item name="rrFlairTextCol">#AAAAAA</item>
         <item name="rrGoldBackCol">#B0923C</item>
@@ -132,11 +133,14 @@
         <item name="rrLoadingRingForegroundCol">?colorPrimary</item>
         <item name="rrLoadingRingBackgroundCol">#22000000</item>
 
+		<item name="rrIndentBackgroundCol">#F1F1F1</item>
+		<item name="rrIndentLineCol">#D0D0D0</item>
+
         <item name="android:windowBackground">@color/lightWindowBackground</item>
 
         <item name="rrListItemBackgroundCol">#FBFBFB</item>
-        <item name="rrListItemHighlightCol">#DDDDDD</item>
-        <item name="rrListBackgroundCol">#FFFFFF</item>
+        <item name="rrListItemBackgroundHighlightCol">#DDDDDD</item>
+        <item name="rrListBackgroundCol">#F5F5F5</item>
 
         <item name="alertDialogTheme">@style/Theme.AppCompat.Light.Dialog.Alert</item>
 		<item name="rrActionBarPopupThemeStyle">@style/ThemeOverlay.AppCompat.Light</item>
@@ -170,8 +174,6 @@
         <item name="rrPostCommentsButtonTextCol">#666666</item>
         <item name="rrPostThumbnailBackground">#DDDDDD</item>
         <item name="rrPostFlingTextCol">?colorPrimary</item>
-        <item name="rrPostBackgroundColSticky">#DDFFDD</item>
-        <item name="rrPostCommentsButtonBackColSticky">#BBEEBB</item>
         <item name="rrFlairBackCol">#DDDDDD</item>
         <item name="rrFlairTextCol">#444444</item>
         <item name="rrGoldBackCol">#FFDF52</item>
@@ -208,8 +210,8 @@
     </style>
 
     <style name="RR.Light.Blue" parent="RR.Light.DarkActionBar">
-        <item name="colorPrimary">#1976d2</item>
-        <item name="colorPrimaryDark">#1560ab</item>
+        <item name="colorPrimary">#126291</item>
+        <item name="colorPrimaryDark">#10496b</item>
     </style>
 
     <style name="RR.Light.LtBlue" parent="RR.Light.DarkActionBar">

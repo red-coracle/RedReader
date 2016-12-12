@@ -29,6 +29,7 @@ public class RedditParsedPost implements RedditThingWithIdAndType {
 
 	private final String mTitle;
 	private final String mUrl;
+	private final String mPermalink;
 	private final MarkdownParagraphGroup mSelfText;
 	private final String mFlairText;
 
@@ -45,6 +46,7 @@ public class RedditParsedPost implements RedditThingWithIdAndType {
 		}
 
 		mUrl = StringEscapeUtils.unescapeHtml4(src.url);
+		mPermalink = StringEscapeUtils.unescapeHtml4(src.permalink);
 
 		if(parseSelfText && src.is_self && src.selftext != null && src.selftext.trim().length() > 0) {
 			mSelfText = MarkdownParser.parse(StringEscapeUtils.unescapeHtml4(src.selftext).toCharArray());
@@ -77,6 +79,10 @@ public class RedditParsedPost implements RedditThingWithIdAndType {
 		return mUrl;
 	}
 
+	public String getPermalink() {
+		return mPermalink;
+	}
+
 	public boolean isStickied() {
 		return mSrc.stickied;
 	}
@@ -99,6 +105,10 @@ public class RedditParsedPost implements RedditThingWithIdAndType {
 
 	public String getRawSelfText() {
 		return mSrc.selftext;
+	}
+
+	public String getUnescapedSelfText() {
+		return StringEscapeUtils.unescapeHtml4(mSrc.selftext);
 	}
 
 	public String getSubreddit() {

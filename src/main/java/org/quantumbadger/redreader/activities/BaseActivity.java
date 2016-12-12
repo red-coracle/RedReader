@@ -20,6 +20,7 @@ package org.quantumbadger.redreader.activities;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.TypedArray;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -29,7 +30,10 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.PrefsUtility;
@@ -38,18 +42,42 @@ import org.quantumbadger.redreader.common.TorCommon;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class BaseActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public abstract class BaseActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-	private SharedPreferences sharedPreferences;
+	private SharedPreferences mSharedPreferences;
 
 	private static boolean closingAll = false;
 
 	private final AtomicInteger mPermissionRequestIdGenerator = new AtomicInteger();
 	private final HashMap<Integer, PermissionCallback> mPermissionRequestCallbacks = new HashMap<>();
 
+	private TextView mActionbarTitleTextView;
 	private FrameLayout mContentView;
 
-	private boolean mToolbarActionBarEnabled = true;
+	private ImageView mActionbarBackIconView;
+	private View mActionbarTitleOuterView;
+
+	protected boolean baseActivityIsToolbarActionBarEnabled() {
+		return true;
+	}
+
+	protected boolean baseActivityIsActionBarBackEnabled() {
+		return true;
+	}
+
+	@Override
+	public void setTitle(final CharSequence text) {
+		super.setTitle(text);
+
+		if(mActionbarTitleTextView != null) {
+			mActionbarTitleTextView.setText(text);
+		}
+	}
+
+	@Override
+	public void setTitle(final int res) {
+		setTitle(getText(res));
+	}
 
 	public interface PermissionCallback {
 		void onPermissionGranted();
@@ -59,10 +87,6 @@ public class BaseActivity extends AppCompatActivity implements SharedPreferences
 	public void closeAllExceptMain() {
 		closingAll = true;
 		closeIfNecessary();
-	}
-
-	public void setToolbarActionBarEnabled(boolean toolbarActionBarEnabled) {
-		mToolbarActionBarEnabled = toolbarActionBarEnabled;
 	}
 
 	// Avoids IDE warnings about null pointers
@@ -78,15 +102,36 @@ public class BaseActivity extends AppCompatActivity implements SharedPreferences
 		return result;
 	}
 
+	protected void configBackButton(boolean isVisible, View.OnClickListener listener) {
+		if(isVisible) {
+			mActionbarBackIconView.setVisibility(View.VISIBLE);
+			mActionbarTitleOuterView.setOnClickListener(listener);
+			mActionbarTitleOuterView.setClickable(true);
+		} else {
+			mActionbarBackIconView.setVisibility(View.GONE);
+			mActionbarTitleOuterView.setClickable(false);
+		}
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+
 		super.onCreate(savedInstanceState);
-		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+		mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+		if(PrefsUtility.pref_appearance_hide_android_status(this, mSharedPreferences)) {
+			getWindow().setFlags(
+					WindowManager.LayoutParams.FLAG_FULLSCREEN,
+					WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		}
+
+
+		mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
 		setOrientationFromPrefs();
 		closeIfNecessary();
 
-		if(mToolbarActionBarEnabled) {
+		if(baseActivityIsToolbarActionBarEnabled()) {
 			final View outerView = getLayoutInflater().inflate(R.layout.rr_actionbar, null);
 
 			final Toolbar toolbar = (Toolbar) outerView.findViewById(R.id.rr_actionbar_toolbar);
@@ -94,6 +139,55 @@ public class BaseActivity extends AppCompatActivity implements SharedPreferences
 
 			super.setContentView(outerView);
 			setSupportActionBar(toolbar);
+
+			getSupportActionBarOrThrow().setCustomView(R.layout.actionbar_title);
+			getSupportActionBarOrThrow().setDisplayShowCustomEnabled(true);
+			getSupportActionBarOrThrow().setDisplayShowTitleEnabled(false);
+			toolbar.setContentInsetsAbsolute(0, 0);
+
+			mActionbarTitleTextView = (TextView)toolbar.findViewById(R.id.actionbar_title_text);
+
+			mActionbarBackIconView = (ImageView)toolbar.findViewById(R.id.actionbar_title_back_image);
+			mActionbarTitleOuterView = toolbar.findViewById(R.id.actionbar_title_outer);
+
+			if(getTitle() != null) {
+				// Update custom action bar text
+				setTitle(getTitle());
+			}
+
+			configBackButton(baseActivityIsActionBarBackEnabled(), new View.OnClickListener() {
+				@Override
+				public void onClick(final View v) {
+					finish();
+				}
+			});
+
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+				final PrefsUtility.AppearanceNavbarColour navbarColour = PrefsUtility.appearance_navbar_colour(
+						this,
+						mSharedPreferences);
+
+				if(navbarColour != PrefsUtility.AppearanceNavbarColour.BLACK) {
+
+					final int colour;
+					{
+						final TypedArray appearance = obtainStyledAttributes(new int[]{
+								R.attr.colorPrimary,
+								R.attr.colorPrimaryDark});
+
+						if(navbarColour == PrefsUtility.AppearanceNavbarColour.PRIMARY) {
+							colour = appearance.getColor(0, General.COLOR_INVALID);
+						} else {
+							colour = appearance.getColor(1, General.COLOR_INVALID);
+						}
+
+						appearance.recycle();
+					}
+
+					getWindow().setNavigationBarColor(colour);
+				}
+			}
 		}
 	}
 
@@ -127,7 +221,7 @@ public class BaseActivity extends AppCompatActivity implements SharedPreferences
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+		mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
 	}
 
 	private void closeIfNecessary() {
@@ -184,7 +278,8 @@ public class BaseActivity extends AppCompatActivity implements SharedPreferences
 	}
 
 	private void setOrientationFromPrefs() {
-		PrefsUtility.ScreenOrientation orientation = PrefsUtility.pref_behaviour_screen_orientation(this, sharedPreferences);
+		PrefsUtility.ScreenOrientation orientation = PrefsUtility.pref_behaviour_screen_orientation(this,
+				mSharedPreferences);
 		if (orientation == PrefsUtility.ScreenOrientation.AUTO)
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 		else if (orientation == PrefsUtility.ScreenOrientation.PORTRAIT)

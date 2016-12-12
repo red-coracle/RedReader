@@ -19,10 +19,11 @@ package org.quantumbadger.redreader.reddit.url;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
-import org.quantumbadger.redreader.listingcontrollers.PostListingController;
+import org.quantumbadger.redreader.reddit.PostSort;
 import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
 
 import java.util.ArrayList;
@@ -31,11 +32,11 @@ import java.util.List;
 public class SubredditPostListURL extends PostListingURL {
 
 	public static SubredditPostListURL getFrontPage() {
-		return new SubredditPostListURL(Type.FRONTPAGE, null, PostListingController.Sort.HOT, null, null, null);
+		return new SubredditPostListURL(Type.FRONTPAGE, null, null, null, null, null);
 	}
 
 	public static SubredditPostListURL getAll() {
-		return new SubredditPostListURL(Type.ALL, null, PostListingController.Sort.HOT, null, null, null);
+		return new SubredditPostListURL(Type.ALL, null, null, null, null, null);
 	}
 
 	public static RedditURLParser.RedditURL getSubreddit(String subreddit) throws RedditSubreddit.InvalidSubredditNameException {
@@ -56,11 +57,18 @@ public class SubredditPostListURL extends PostListingURL {
 	public final Type type;
 	public final String subreddit;
 
-	public final PostListingController.Sort order;
-	public final Integer limit;
-	public final String before, after;
+	@Nullable public final PostSort order;
+	@Nullable public final Integer limit;
+	@Nullable public final String before, after;
 
-	SubredditPostListURL(Type type, String subreddit, PostListingController.Sort order, Integer limit, String before, String after) {
+	private SubredditPostListURL(
+			Type type,
+			String subreddit,
+			@Nullable PostSort order,
+			@Nullable Integer limit,
+			@Nullable String before,
+			@Nullable String after) {
+
 		this.type = type;
 		this.subreddit = subreddit;
 		this.order = order;
@@ -77,43 +85,13 @@ public class SubredditPostListURL extends PostListingURL {
 		return new SubredditPostListURL(type, subreddit, order, newLimit, before, after);
 	}
 
-	public SubredditPostListURL sort(PostListingController.Sort newOrder) {
+	public SubredditPostListURL sort(PostSort newOrder) {
 		return new SubredditPostListURL(type, subreddit, newOrder, limit, before, after);
 	}
 
-	public PostListingController.Sort getOrder() {
+	public PostSort getOrder() {
 		return order;
 	}
-
-	private static PostListingController.Sort getOrder(String sort, String t) {
-
-		sort = sort.toLowerCase();
-		t = t != null ? t.toLowerCase() : null;
-
-		if(sort.equals("hot")) {
-			return PostListingController.Sort.HOT;
-		} else if(sort.equals("new")) {
-			return PostListingController.Sort.NEW;
-		} else if(sort.equals("controversial")) {
-			return PostListingController.Sort.CONTROVERSIAL;
-		} else if(sort.equals("rising")) {
-			return PostListingController.Sort.RISING;
-		} else if(sort.equals("top")) {
-
-			if(t == null)				return PostListingController.Sort.TOP_ALL;
-			else if(t.equals("all"))	return PostListingController.Sort.TOP_ALL;
-			else if(t.equals("hour"))	return PostListingController.Sort.TOP_HOUR;
-			else if(t.equals("day"))	return PostListingController.Sort.TOP_DAY;
-			else if(t.equals("week"))	return PostListingController.Sort.TOP_WEEK;
-			else if(t.equals("month"))	return PostListingController.Sort.TOP_MONTH;
-			else if(t.equals("year"))	return PostListingController.Sort.TOP_YEAR;
-			else						return PostListingController.Sort.TOP_ALL;
-
-		} else {
-			return null;
-		}
-	}
-
 
 	@Override
 	public Uri generateJsonUri() {
@@ -140,25 +118,7 @@ public class SubredditPostListURL extends PostListingURL {
 		}
 
 		if(order != null) {
-			switch(order) {
-
-				case HOT:
-				case NEW:
-				case RISING:
-				case CONTROVERSIAL:
-					builder.appendEncodedPath(order.name().toLowerCase());
-					break;
-
-				case TOP_HOUR:
-				case TOP_DAY:
-				case TOP_WEEK:
-				case TOP_MONTH:
-				case TOP_YEAR:
-				case TOP_ALL:
-					builder.appendEncodedPath("top");
-					builder.appendQueryParameter("t", order.name().split("_")[1].toLowerCase());
-					break;
-			}
+			order.addToSubredditListingUri(builder);
 		}
 
 		if(before != null) {
@@ -211,7 +171,7 @@ public class SubredditPostListURL extends PostListingURL {
 			final ArrayList<String> pathSegmentsFiltered = new ArrayList<>(pathSegmentsList.size());
 			for(String segment : pathSegmentsList) {
 
-				while(segment.toLowerCase().endsWith(".json") || segment.toLowerCase().endsWith(".xml")) {
+				while(General.asciiLowercase(segment).endsWith(".json") || General.asciiLowercase(segment).endsWith(".xml")) {
 					segment = segment.substring(0, segment.lastIndexOf('.'));
 				}
 
@@ -223,16 +183,16 @@ public class SubredditPostListURL extends PostListingURL {
 			pathSegments = pathSegmentsFiltered.toArray(new String[pathSegmentsFiltered.size()]);
 		}
 
-		final PostListingController.Sort order;
+		final PostSort order;
 		if(pathSegments.length > 0) {
-			order = getOrder(pathSegments[pathSegments.length - 1], uri.getQueryParameter("t"));
+			order = PostSort.parse(pathSegments[pathSegments.length - 1], uri.getQueryParameter("t"));
 		} else {
 			order = null;
 		}
 
 		switch(pathSegments.length) {
 			case 0:
-				return new SubredditPostListURL(Type.FRONTPAGE, null, PostListingController.Sort.HOT, limit, before, after);
+				return new SubredditPostListURL(Type.FRONTPAGE, null, null, limit, before, after);
 
 			case 1: {
 				if(order != null) {
@@ -252,7 +212,7 @@ public class SubredditPostListURL extends PostListingURL {
 				if(subreddit.equals("all")) {
 
 					if(pathSegments.length == 2) {
-						return new SubredditPostListURL(Type.ALL, null, PostListingController.Sort.HOT, limit, before, after);
+						return new SubredditPostListURL(Type.ALL, null, null, limit, before, after);
 
 					} else if(order != null) {
 						return new SubredditPostListURL(Type.ALL, null, order, limit, before, after);
@@ -264,7 +224,7 @@ public class SubredditPostListURL extends PostListingURL {
 				} else if(subreddit.matches("all(\\-[\\w\\.]+)+")) {
 
 					if(pathSegments.length == 2) {
-						return new SubredditPostListURL(Type.ALL_SUBTRACTION, subreddit, PostListingController.Sort.HOT, limit, before, after);
+						return new SubredditPostListURL(Type.ALL_SUBTRACTION, subreddit, null, limit, before, after);
 
 					} else if(order != null) {
 						return new SubredditPostListURL(Type.ALL_SUBTRACTION, subreddit, order, limit, before, after);
@@ -276,7 +236,7 @@ public class SubredditPostListURL extends PostListingURL {
 				} else if(subreddit.matches("\\w+(\\+[\\w\\.]+)+")) {
 
 					if(pathSegments.length == 2) {
-						return new SubredditPostListURL(Type.SUBREDDIT_COMBINATION, subreddit, PostListingController.Sort.HOT, limit, before, after);
+						return new SubredditPostListURL(Type.SUBREDDIT_COMBINATION, subreddit, null, limit, before, after);
 
 					} else if(order != null) {
 						return new SubredditPostListURL(Type.SUBREDDIT_COMBINATION, subreddit, order, limit, before, after);
@@ -288,7 +248,7 @@ public class SubredditPostListURL extends PostListingURL {
 				} else if(subreddit.matches("[\\w\\.]+")) {
 
 					if(pathSegments.length == 2) {
-						return new SubredditPostListURL(Type.SUBREDDIT, subreddit, PostListingController.Sort.HOT, limit, before, after);
+						return new SubredditPostListURL(Type.SUBREDDIT, subreddit, null, limit, before, after);
 
 					} else if(order != null) {
 						return new SubredditPostListURL(Type.SUBREDDIT, subreddit, order, limit, before, after);
@@ -304,6 +264,29 @@ public class SubredditPostListURL extends PostListingURL {
 
 			default:
 				return null;
+		}
+	}
+
+	@Override
+	public String humanReadablePath() {
+
+		String path = super.humanReadablePath();
+
+		if(order == null) {
+			return path;
+		}
+
+		switch(order) {
+			case TOP_HOUR:
+			case TOP_DAY:
+			case TOP_WEEK:
+			case TOP_MONTH:
+			case TOP_YEAR:
+			case TOP_ALL:
+				return path + "?t=" + General.asciiLowercase(order.name().split("_")[1]);
+
+			default:
+				return path;
 		}
 	}
 

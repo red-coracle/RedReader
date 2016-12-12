@@ -17,11 +17,14 @@
 
 package org.quantumbadger.redreader.listingcontrollers;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import org.quantumbadger.redreader.cache.CacheRequest;
+import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.fragments.PostListingFragment;
+import org.quantumbadger.redreader.reddit.PostSort;
 import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
 import org.quantumbadger.redreader.reddit.url.PostListingURL;
 import org.quantumbadger.redreader.reddit.url.RedditURLParser;
@@ -43,43 +46,54 @@ public class PostListingController {
 		return session;
 	}
 
-	public PostListingController(PostListingURL url) {
+	public PostListingController(PostListingURL url, final Context context) {
+
+		if(url.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL) {
+			if(url.asSubredditPostListURL().order == null) {
+				url = url.asSubredditPostListURL().sort(defaultOrder(context));
+			}
+		}
+
 		this.url = url;
 	}
 
 	public boolean isSortable() {
 		return (url.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL)
+				|| (url.pathType() == RedditURLParser.MULTIREDDIT_POST_LISTING_URL)
 				|| (url.pathType() == RedditURLParser.SEARCH_POST_LISTING_URL);
 	}
 
-	public static enum Sort {
-		HOT, NEW, RISING, TOP_HOUR, TOP_DAY, TOP_WEEK, TOP_MONTH, TOP_YEAR, TOP_ALL, CONTROVERSIAL,
-		// Sorts related to Search Listings
-		RELEVANCE, COMMENTS, TOP
-	}
-
-	public static Sort parseSort(String string) {
-		Sort[] sorts = Sort.values();
-		for(Sort sort: sorts)
-			if(sort.name().toLowerCase().contentEquals(string))
-				return sort;
-		return null;
-	}
-
-	public final void setSort(final Sort order) {
+	public final void setSort(final PostSort order) {
 		if(url.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL) {
 			url = url.asSubredditPostListURL().sort(order);
+
+		} else if(url.pathType() == RedditURLParser.MULTIREDDIT_POST_LISTING_URL) {
+			url = url.asMultiredditPostListURL().sort(order);
+
 		} else if(url.pathType() == RedditURLParser.SEARCH_POST_LISTING_URL) {
 			url = url.asSearchPostListURL().sort(order);
+
 		} else {
 			throw new RuntimeException("Cannot set sort for this URL");
 		}
 	}
 
-	public final Sort getSort() {
+	private PostSort defaultOrder(final Context context) {
+		return PrefsUtility.pref_behaviour_postsort(context, PreferenceManager.getDefaultSharedPreferences(context));
+	}
+
+	public final PostSort getSort() {
 
 		if(url.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL) {
 			return url.asSubredditPostListURL().order;
+		}
+
+		if(url.pathType() == RedditURLParser.MULTIREDDIT_POST_LISTING_URL) {
+			return url.asMultiredditPostListURL().order;
+		}
+
+		if(url.pathType() == RedditURLParser.SEARCH_POST_LISTING_URL) {
+			return url.asSearchPostListURL().order;
 		}
 
 		return null;
@@ -91,7 +105,7 @@ public class PostListingController {
 
 	public final PostListingFragment get(final AppCompatActivity parent, final boolean force, final Bundle savedInstanceState) {
 		if(force) session = null;
-		return new PostListingFragment(parent, savedInstanceState, getUri(), session, force ? CacheRequest.DOWNLOAD_FORCE : CacheRequest.DOWNLOAD_IF_NECESSARY);
+		return new PostListingFragment(parent, savedInstanceState, getUri(), session, force);
 	}
 
 	public final boolean isSubreddit() {

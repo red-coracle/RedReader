@@ -67,7 +67,17 @@
                     android:entryValues="@array/pref_behaviour_screenorientation_array_return"
                     android:defaultValue="auto" />
 
+	<CheckBoxPreference android:title="@string/pref_behaviour_enable_swipe_refresh_title"
+						android:key="@string/pref_behaviour_enable_swipe_refresh_key"
+						android:defaultValue="true"/>
+
     <PreferenceCategory android:title="@string/pref_behaviour_sort_header">
+
+		<ListPreference android:title="@string/pref_behaviour_postsort"
+						android:key="@string/pref_behaviour_postsort_key"
+						android:entries="@array/pref_behaviour_postsort_array"
+						android:entryValues="@array/pref_behaviour_postsort_array_return"
+						android:defaultValue="hot"/>
 
         <ListPreference android:title="@string/pref_behaviour_commentsort"
                         android:key="@string/pref_behaviour_commentsort_key"
@@ -75,8 +85,19 @@
                         android:entryValues="@array/pref_behaviour_commentsort_array_return"
                         android:defaultValue="best"/>
 
-    </PreferenceCategory>
+		<ListPreference android:title="@string/pref_behaviour_pinned_subredditsort"
+						android:key="@string/pref_behaviour_pinned_subredditsort_key"
+						android:entries="@array/pref_behaviour_pinned_subredditsort_array"
+						android:entryValues="@array/pref_behaviour_pinned_subredditsort_array_return"
+						android:defaultValue="name"/>
 
+		<ListPreference android:title="@string/pref_behaviour_blocked_subredditsort"
+						android:key="@string/pref_behaviour_blocked_subredditsort_key"
+						android:entries="@array/pref_behaviour_blocked_subredditsort_array"
+						android:entryValues="@array/pref_behaviour_blocked_subredditsort_array_return"
+						android:defaultValue="name"/>
+
+    </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_behaviour_actions_post_header">
 
@@ -108,6 +129,18 @@
 						android:entryValues="@array/pref_behaviour_actions_comment_return"
 						android:defaultValue="action_menu"/>
 
+		<ListPreference android:title="@string/pref_behaviour_fling_comment_left_title"
+						android:key="@string/pref_behaviour_fling_comment_left_key"
+						android:entries="@array/pref_behaviour_fling_comment_actions"
+						android:entryValues="@array/pref_behaviour_fling_comment_actions_return"
+						android:defaultValue="downvote"/>
+
+		<ListPreference android:title="@string/pref_behaviour_fling_comment_right_title"
+						android:key="@string/pref_behaviour_fling_comment_right_key"
+						android:entries="@array/pref_behaviour_fling_comment_actions"
+						android:entryValues="@array/pref_behaviour_fling_comment_actions_return"
+						android:defaultValue="upvote"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_behaviour_posts_header">
@@ -115,6 +148,10 @@
         <CheckBoxPreference android:title="@string/pref_behaviour_nsfw_title"
                             android:key="@string/pref_behaviour_nsfw_key"
                             android:defaultValue="false"/>
+
+		<CheckBoxPreference android:title="@string/pref_behaviour_share_permalink_title"
+				android:key="@string/pref_behaviour_share_permalink_key"
+				android:defaultValue="false"/>
 
         <ListPreference android:title="@string/pref_behaviour_postcount_title"
                         android:key="@string/pref_behaviour_postcount_key"

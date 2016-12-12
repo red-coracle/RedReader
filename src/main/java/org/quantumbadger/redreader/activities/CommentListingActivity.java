@@ -20,12 +20,15 @@ package org.quantumbadger.redreader.activities;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountChangeListener;
 import org.quantumbadger.redreader.account.RedditAccountManager;
+import org.quantumbadger.redreader.common.DialogUtils;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
@@ -47,6 +50,8 @@ public class CommentListingActivity extends RefreshableActivity
 
 	private static final String TAG = "CommentListingActivity";
 
+	public static final String EXTRA_SEARCH_STRING = "cla_search_string";
+
 	private static final String SAVEDSTATE_SESSION = "cla_session";
 	private static final String SAVEDSTATE_SORT = "cla_sort";
 	private static final String SAVEDSTATE_FRAGMENT = "cla_fragment";
@@ -61,9 +66,7 @@ public class CommentListingActivity extends RefreshableActivity
 
 		super.onCreate(savedInstanceState);
 
-		getSupportActionBar().setHomeButtonEnabled(true);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		getSupportActionBar().setTitle(getString(R.string.app_name));
+		setTitle(getString(R.string.app_name));
 
 		RedditAccountManager.getInstance(this).addUpdateListener(this);
 
@@ -72,7 +75,9 @@ public class CommentListingActivity extends RefreshableActivity
 			final Intent intent = getIntent();
 
 			final String url = intent.getDataString();
+			final String searchString = intent.getStringExtra(EXTRA_SEARCH_STRING);
 			controller = new CommentListingController(RedditURLParser.parseProbableCommentListing(Uri.parse(url)), this);
+			controller.setSearchString(searchString);
 
 			Bundle fragmentSavedInstanceState = null;
 
@@ -120,7 +125,20 @@ public class CommentListingActivity extends RefreshableActivity
 
 	@Override
 	public boolean onCreateOptionsMenu(final Menu menu) {
-		OptionsMenuUtility.prepare(this, menu, false, false, true, false, false, controller.isSortable(), null, false, true, null, null);
+		OptionsMenuUtility.prepare(
+				this,
+				menu,
+				false,
+				false,
+				true,
+				false,
+				false,
+				controller.isSortable(),
+				null,
+				false,
+				true,
+				null,
+				null);
 
 		if(mFragment != null) {
 			mFragment.onCreateOptionsMenu(menu);
@@ -136,8 +154,12 @@ public class CommentListingActivity extends RefreshableActivity
 	@Override
 	protected void doRefresh(final RefreshableFragment which, final boolean force, final Bundle savedInstanceState) {
 		mFragment = controller.get(this, force, savedInstanceState);
-		setBaseActivityContentView(mFragment.getView());
-		getSupportActionBar().setTitle(controller.getCommentListingUrl().humanReadableName(this, false));
+
+		final View view = mFragment.getView();
+		setBaseActivityContentView(view);
+		General.setLayoutMatchParent(view);
+
+		setTitle(controller.getCommentListingUrl().humanReadableName(this, false));
 		invalidateOptionsMenu();
 	}
 
@@ -157,6 +179,18 @@ public class CommentListingActivity extends RefreshableActivity
 	}
 
 	@Override
+	public void onSearchComments() {
+		DialogUtils.showSearchDialog(this, new DialogUtils.OnSearchListener() {
+			@Override
+			public void onSearch(@Nullable String query) {
+				Intent searchIntent = getIntent();
+				searchIntent.putExtra(EXTRA_SEARCH_STRING, query);
+				startActivity(searchIntent);
+			}
+		});
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		if(mFragment != null) {
@@ -165,13 +199,7 @@ public class CommentListingActivity extends RefreshableActivity
 			}
 		}
 
-		switch(item.getItemId()) {
-			case android.R.id.home:
-				finish();
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
-		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	public void onSessionRefreshSelected(SessionChangeType type) {

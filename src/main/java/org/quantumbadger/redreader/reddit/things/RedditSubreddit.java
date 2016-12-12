@@ -20,9 +20,11 @@ package org.quantumbadger.redreader.reddit.things;
 import android.os.Parcel;
 import android.os.Parcelable;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.UnexpectedInternalStateException;
 import org.quantumbadger.redreader.io.WritableObject;
 
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,7 +34,7 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 		try {
 			return getCanonicalName();
 		} catch(InvalidSubredditNameException e) {
-			throw new UnexpectedInternalStateException(String.format("Cannot save subreddit '%s'", url));
+			throw new UnexpectedInternalStateException(String.format(Locale.US, "Cannot save subreddit '%s'", url));
 		}
 	}
 
@@ -44,7 +46,7 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 
 	public static final class InvalidSubredditNameException extends Exception {
 		public InvalidSubredditNameException(String subredditName) {
-			super(String.format("Invalid subreddit name '%s'.", subredditName == null ? "NULL" : subredditName));
+			super(String.format(Locale.US, "Invalid subreddit name '%s'.", subredditName == null ? "NULL" : subredditName));
 		}
 	}
 
@@ -79,7 +81,7 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 	 * @throws InvalidSubredditNameException if {@code name} is null or not in the expected format
 	 */
 	public static String getCanonicalName(String name) throws InvalidSubredditNameException {
-		return "/r/" + stripRPrefix(name).toLowerCase();
+		return "/r/" + General.asciiLowercase(stripRPrefix(name));
 	}
 
 	public String getCanonicalName() throws InvalidSubredditNameException {
@@ -153,7 +155,7 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 	};
 
 	public int compareTo(final RedditSubreddit another) {
-		return display_name.toLowerCase().compareTo(another.display_name.toLowerCase());
+		return General.asciiLowercase(display_name).compareTo(General.asciiLowercase(another.display_name));
 	}
 
 	public String getSidebarHtml(boolean nightMode) {

@@ -56,26 +56,101 @@
         <item>disabled</item>
     </string-array>
 
-    <string-array name="pref_behaviour_commentsort_array">
-        <item>@string/sort_comments_best</item>
-        <item>@string/sort_comments_hot</item>
-        <item>@string/sort_comments_new</item>
-        <item>@string/sort_comments_old</item>
-        <item>@string/sort_comments_controversial</item>
-        <item>@string/sort_comments_top</item>
-        <item>@string/sort_comments_qa</item>
-    </string-array>
+	<string-array name="pref_behaviour_fling_comment_actions">
+		<item>@string/action_upvote</item>
+		<item>@string/action_downvote</item>
+		<item>@string/action_save</item>
+		<item>@string/action_reply</item>
+		<item>@string/action_user_profile</item>
+		<item>@string/action_collapse</item>
+		<item>@string/action_properties</item>
+		<item>@string/action_actionmenu</item>
+		<item>@string/action_fling_disabled</item>
+	</string-array>
 
-    <!-- Constants. Do not change. -->
-    <string-array name="pref_behaviour_commentsort_array_return">
-        <item>best</item>
-        <item>hot</item>
-        <item>new</item>
-        <item>old</item>
-        <item>controversial</item>
-        <item>top</item>
-        <item>qa</item>
-    </string-array>
+	<!-- Constants. Do not change. -->
+	<string-array name="pref_behaviour_fling_comment_actions_return">
+		<item>upvote</item>
+		<item>downvote</item>
+		<item>save</item>
+		<item>reply</item>
+		<item>user_profile</item>
+		<item>collapse</item>
+		<item>properties</item>
+		<item>action_menu</item>
+		<item>disabled</item>
+	</string-array>
+
+	<string-array name="pref_behaviour_postsort_array">
+		<item>@string/sort_posts_hot</item>
+		<item>@string/sort_posts_new</item>
+		<item>@string/sort_posts_rising</item>
+		<item>@string/sort_posts_controversial</item>
+		<item>@string/sort_posts_top_hour</item>
+		<item>@string/sort_posts_top_today</item>
+		<item>@string/sort_posts_top_week</item>
+		<item>@string/sort_posts_top_month</item>
+		<item>@string/sort_posts_top_year</item>
+		<item>@string/sort_posts_top_all</item>
+	</string-array>
+
+	<!-- Constants. Do not change. -->
+	<string-array name="pref_behaviour_postsort_array_return">
+		<item>hot</item>
+		<item>new</item>
+		<item>rising</item>
+		<item>controversial</item>
+		<item>top_hour</item>
+		<item>top_day</item>
+		<item>top_week</item>
+		<item>top_month</item>
+		<item>top_year</item>
+		<item>top_all</item>
+
+	</string-array>
+
+	<string-array name="pref_behaviour_commentsort_array">
+		<item>@string/sort_comments_best</item>
+		<item>@string/sort_comments_hot</item>
+		<item>@string/sort_comments_new</item>
+		<item>@string/sort_comments_old</item>
+		<item>@string/sort_comments_controversial</item>
+		<item>@string/sort_comments_top</item>
+		<item>@string/sort_comments_qa</item>
+	</string-array>
+
+	<!-- Constants. Do not change. -->
+	<string-array name="pref_behaviour_commentsort_array_return">
+		<item>best</item>
+		<item>hot</item>
+		<item>new</item>
+		<item>old</item>
+		<item>controversial</item>
+		<item>top</item>
+		<item>qa</item>
+	</string-array>
+
+	<string-array name="pref_behaviour_pinned_subredditsort_array">
+		<item>@string/sort_pinned_subreddit_name</item>
+		<item>@string/sort_pinned_subreddit_date</item>
+	</string-array>
+
+	<!-- Constants. Do not change. -->
+	<string-array name="pref_behaviour_pinned_subredditsort_array_return">
+		<item>name</item>
+		<item>date</item>
+	</string-array>
+
+	<string-array name="pref_behaviour_blocked_subredditsort_array">
+		<item>@string/sort_blocked_subreddit_name</item>
+		<item>@string/sort_blocked_subreddit_date</item>
+	</string-array>
+
+	<!-- Constants. Do not change. -->
+	<string-array name="pref_behaviour_blocked_subredditsort_array_return">
+		<item>name</item>
+		<item>date</item>
+	</string-array>
 
     <string-array name="pref_behaviour_actions_comment">
         <item>@string/action_collapse</item>
@@ -90,26 +165,39 @@
         <item>nothing</item>
     </string-array>
 
-    <string-array name="pref_appearance_theme">
-        <item>@string/theme_name_red</item>
-        <item>@string/theme_name_night</item>
-        <item>@string/theme_name_green</item>
-        <item>@string/theme_name_blue</item>
-        <item>@string/theme_name_ltblue</item>
-        <item>@string/theme_name_orange</item>
-        <item>@string/theme_name_gray</item>
+    <string-array name="pref_appearance_navbar_color_options">
+        <item>@string/pref_appearance_navbar_color_option_black</item>
+        <item>@string/pref_appearance_navbar_color_option_primary</item>
+        <item>@string/pref_appearance_navbar_color_option_primarydark</item>
     </string-array>
 
     <!-- Constants. Do not change. -->
-    <string-array name="pref_appearance_theme_return">
-        <item>red</item>
-        <item>night</item>
-        <item>green</item>
-        <item>blue</item>
-        <item>ltblue</item>
-        <item>orange</item>
-        <item>gray</item>
+    <string-array name="pref_appearance_navbar_color_options_return">
+        <item>black</item>
+        <item>primary</item>
+        <item>primarydark</item>
     </string-array>
+
+	<string-array name="pref_appearance_theme">
+		<item>@string/theme_name_red</item>
+		<item>@string/theme_name_night</item>
+		<item>@string/theme_name_green</item>
+		<item>@string/theme_name_blue</item>
+		<item>@string/theme_name_ltblue</item>
+		<item>@string/theme_name_orange</item>
+		<item>@string/theme_name_gray</item>
+	</string-array>
+
+	<!-- Constants. Do not change. -->
+	<string-array name="pref_appearance_theme_return">
+		<item>red</item>
+		<item>night</item>
+		<item>green</item>
+		<item>blue</item>
+		<item>ltblue</item>
+		<item>orange</item>
+		<item>gray</item>
+	</string-array>
 
     <string-array name="pref_appearance_langforce">
         <item>@string/lang_auto</item>
@@ -122,6 +210,9 @@
         <item>@string/lang_cs</item>
         <item>@string/lang_it</item>
         <item>@string/lang_se</item>
+	    <item>@string/lang_nl</item>
+	    <item>@string/lang_ro</item>
+		<item>@string/lang_hu</item>
     </string-array>
 
     <!-- Constants. Do not change. -->
@@ -136,10 +227,15 @@
         <item>cs</item>
         <item>it</item>
         <item>se</item>
+		<item>nl</item>
+		<item>ro</item>
+		<item>hu</item>
     </string-array>
 
     <string-array name="pref_cache_maxage">
         <item>@string/time_1hr</item>
+		<item>@string/time_2hr</item>
+		<item>@string/time_3hr</item>
         <item>@string/time_6hr</item>
         <item>@string/time_1day</item>
         <item>@string/time_3day</item>
@@ -151,6 +247,8 @@
     <!-- Constants. Do not change. -->
     <string-array name="pref_cache_maxage_return">
         <item>1</item>
+		<item>2</item>
+		<item>3</item>
         <item>6</item>
         <item>24</item>
         <item>72</item>
@@ -158,6 +256,33 @@
         <item>730</item>
         <item>2191</item>
     </string-array>
+
+	<string-array name="pref_cache_autorefresh_age">
+		<item>@string/time_every_time</item>
+		<item>@string/time_1hr</item>
+		<item>@string/time_2hr</item>
+		<item>@string/time_3hr</item>
+		<item>@string/time_6hr</item>
+		<item>@string/time_1day</item>
+		<item>@string/time_3day</item>
+		<item>@string/time_1week</item>
+		<item>@string/time_1month</item>
+		<item>@string/time_3month</item>
+	</string-array>
+
+	<!-- Constants. Do not change. -->
+	<string-array name="pref_cache_autorefresh_age_return">
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+		<item>6</item>
+		<item>24</item>
+		<item>72</item>
+		<item>168</item>
+		<item>730</item>
+		<item>2191</item>
+	</string-array>
 
     <string-array name="pref_appearance_fontscale">
         <item>0.7x</item>
@@ -175,6 +300,14 @@
         <item>1.8x</item>
         <item>1.9x</item>
         <item>2.0x</item>
+        <item>2.5x</item>
+        <item>3.0x</item>
+        <item>3.5x</item>
+        <item>4.0x</item>
+        <item>5.0x</item>
+        <item>6.0x</item>
+        <item>7.0x</item>
+        <item>8.0x</item>
     </string-array>
 
     <string-array name="pref_appearance_fontscale_return">
@@ -193,6 +326,14 @@
         <item>1.8</item>
         <item>1.9</item>
         <item>2.0</item>
+        <item>2.5</item>
+        <item>3.0</item>
+        <item>3.5</item>
+        <item>4.0</item>
+        <item>5.0</item>
+        <item>6.0</item>
+        <item>7.0</item>
+        <item>8.0</item>
     </string-array>
 
     <string-array name="pref_menus_post_context_items">
@@ -493,6 +634,19 @@
 		<item>internal_list</item>
 		<item>internal_browser</item>
 		<item>external_browser</item>
+	</string-array>
+
+	<string-array name="mainmenu_custom_destination_type">
+		<item>@string/mainmenu_custom_destination_subreddit</item>
+		<item>@string/mainmenu_custom_destination_user</item>
+		<item>@string/mainmenu_custom_destination_url</item>
+	</string-array>
+
+	<!-- Constants. Do not change. -->
+	<string-array name="mainmenu_custom_destination_type_return">
+		<item>subreddit</item>
+		<item>user</item>
+		<item>url</item>
 	</string-array>
 
 </resources>

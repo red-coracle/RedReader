@@ -18,8 +18,6 @@
 
 <resources>
 
-    <string name="app_name">RedReader Beta</string>
-
     <!-- First Run Dialog -->
 
     <string name="firstrun_login_title">Iniciar sesión</string>
@@ -491,12 +489,6 @@
     <string name="pref_appearance_langforce_title">Idioma</string>
 
     <string name="lang_auto">Automático</string>
-    <string name="lang_en">Inglés</string>
-    <string name="lang_da">Danés</string>
-    <string name="lang_de">Alemán</string>
-    <string name="lang_fr">Francés</string>
-    <string name="lang_ar">Árabe</string>
-    <string name="lang_es">Español</string>
 
     <!-- 2013-06-25 -->
 
@@ -612,9 +604,6 @@
   <string name="webview_https_unknownprotocol">Protocolo desconocido, esperaba \'http://\'</string>
   <string name="webview_use_https">Usar HTTPS</string>
   
-   <!-- 2015-01-16 -->
-    <string name="lang_it">Italiano</string>
-
     <!-- 2015-01-26 -->
     <string name="sort_posts_relevance">Relevancia</string>
     <string name="sort_posts_comments">Comentarios</string>
@@ -747,7 +736,180 @@
     <string name="pref_behaviour_comment_min_title">Votos mínimos de comentarios</string>
     <string name="pref_behaviour_comment_min_dialog_title">Oculta los comentarios si sus votos son menores (en blanco muestra todos)</string>
 
-    <!-- 2016-03-20 -->
-    <string name="lang_se">Sueco</string>
+    <!-- 2016-04-02 -->
+    <string name="open_with">Abrir con</string>
+    <string name="pref_network_tor_title">Usar TOR (experimental)</string>
+    <string name="pref_network_tor_key">pref_network_tor</string>
+
+    <!-- 2016-04-03 -->
+    <string name="error_tor_not_installed">Tor no funcionará a no ser que Orbot esté instalado. ¿Instalar ahora?</string>
+    <string name="error_tor_setting_failed">Fallo al establecer el proxy.</string>
+
+    <!-- 2016-04-10 -->
+    <string name="error_parse_imgur_title">Error al procesar</string>
+    <string name="error_parse_imgur_message">Imgur ha enviado ciertos datos que no he podido entender.</string>
+
+    <string name="error_upload_fail_imgur_title">Fallo al subir la imagen</string>
+    <string name="error_upload_fail_imgur_message">La subida ha sido rechazada por Imgur por alguna extraña razón.</string>
+
+    <string name="upload_to_imgur">Subir a Imgur</string>
+    <string name="no_file_selected">Ningún archivo seleccionado</string>
+    <string name="button_upload">Subir</string>
+    <string name="button_browse">Navegar…</string>
+
+    <string name="error_file_too_big_title">Archivo demasiado grande</string>
+    <string name="error_file_too_big_message">El tamaño del archivo (%1$s) es mayor que el límite de subida (%2$s).</string>
+
+    <string name="error_file_open_failed_title">Error al abrir la imagen</string>
+    <string name="error_file_open_failed_message">Un error ha ocurrido mientras se intentaba abrir el archivo.</string>
+
+    <string name="image_selected_summary">Imagen seleccionada: %1$dx%2$d, %3$s</string>
+
+	<!-- 2016-06-10 -->
+	<string name="submit_post_specify_subreddit">Especifica el subreddit</string>
+	<string name="submit_post_title_empty">El título no puede quedar vacío</string>
+	<string name="submit_post_url_empty">Introduce el enlace URL</string>
+	<string name="submit_post_self_text_hint">Texto</string>
+	<string name="submit_post_url_hint">URL</string>
+
+	<!-- 2016-06-24 -->
+	<string name="save_image_permission_denied">Permiso denegado: no se puedo guardar la imagen.</string>
+	
+	<!-- 2016-06-25 -->
+	<string name="pref_behaviour_imageview_mode_title">Visor de imágenes</string>
+	<string name="pref_behaviour_imageview_mode_key">pref_behaviour_imageview_mode</string>
+
+	<string name="pref_behaviour_imageview_mode_internal_opengl">Visor interno (OpenGL)</string>
+
+	<string name="pref_behaviour_albumview_mode_title">Visor de álbumes</string>
+	<string name="pref_behaviour_albumview_mode_key">pref_behaviour_albumview_mode</string>
+
+	<string name="pref_behaviour_albumview_mode_internal_list">Visor interno (lista)</string>
+
+	<string name="error_tor_start_failed">Orbot ha fallado al inicarse. Tor no funcionará correctamente.</string>
+
+	<!-- 2016-06-30 -->
+	<string name="inbox_unread_only">Sólo mensajes sin leer</string>
+	
+	<!-- 2016-07-02 -->
+	<string name="pref_behaviour_actions_comment_longclick_key">pref_behaviour_actions_comment_longclick</string>
+	<string name="pref_behaviour_actions_comment_longclick_title">Acción al dejar pulsado un comentario</string>
+
+	<string name="no_comments_yet">Aún sin comentarios.</string>
+
+	<!-- 2016-07-09 -->
+	<string name="pm_send_hint_recipient">Receptor</string>
+	<string name="pm_send_hint_subject">Asunto</string>
+	<string name="pm_send_hint_message_text">Cuerpo del mensaje</string>
+
+	<string name="pm_send_done">Mensaje enviado.</string>
+
+	<string name="userprofile_pm">Enviar mensaje</string>
+
+	<string name="error_too_long_title">Demasiado largo</string>
+	<string name="error_too_long_message">Reddit dice que el texto que has escrito es demasiado largo.</string>
+
+	<string name="pm_send_actionbar">Enviar Mensaje</string>
+	<string name="submit_post_actionbar">Enviar publicación</string>
+	<string name="submit_comment_actionbar">Enviar Comentario</string>
+	<string name="edit_comment_actionbar">Editar Comentario</string>
+	
+	<!-- 2016-07-16 -->
+	<string name="pref_behaviour_fling_comment_left_key">pref_behaviour_fling_comment_left</string>
+	<string name="pref_behaviour_fling_comment_left_title">Acción al desplazar comentario a la izquierda</string>
+
+	<string name="pref_behaviour_fling_comment_right_key">pref_behaviour_fling_comment_right</string>
+	<string name="pref_behaviour_fling_comment_right_title">Acción al desplazar comentario a la izquierda</string>
+
+	<!-- 2016-07-17 -->
+	<string name="comment_header_search_thread_title">Estás viendo los resultados de búsqueda para un hilo de comentarios.</string>
+	<string name="no_search_results">No hay resultados de búsqueda.</string>
+
+	<!-- 2016-07-24 -->
+	<string name="action_search_comments">Buscar comentarios</string>
+
+	<!-- 2016-07-29 -->
+	<string name="pref_appearance_navbar_color_key">pref_appearance_navbar_color</string>
+	<string name="pref_appearance_navbar_color_title">Color de la barra de navegación</string>
+
+	<string name="pref_appearance_navbar_color_option_black">Negro</string>
+	<string name="pref_appearance_navbar_color_option_primary">Primario (claro)</string>
+	<string name="pref_appearance_navbar_color_option_primarydark">Primario (oscuro)</string>
+
+	<string name="pref_not_supported_before_lollipop">No soportado en versiones anteriores a Lollipop.</string>
+
+	<!-- 2016-08-03 -->
+	<string name="action_copy_text">Copiar texto</string>
+	<string name="action_copy_link">Copiar enlace</string>
+
+	<string name="pref_behaviour_postsort_key">pref_behaviour_postsort</string>
+	<string name="pref_behaviour_postsort">Orden de publicaciones por defecto</string>
+
+	<!-- 2016-08-06 -->
+	<string name="mainmenu_custom_destination">Ubicación personalizada</string>
+	<string name="mainmenu_custom_destination_subreddit">Subreddit</string>
+	<string name="mainmenu_custom_destination_user">Usuario</string>
+	<string name="mainmenu_custom_destination_url">URL</string>
+
+	<string name="mainmenu_header_multireddits">Multireddits</string>
+
+	<string name="pref_behaviour_share_permalink_key">pref_behaviour_share_permalink</string>
+	<string name="pref_behaviour_share_permalink_title">Compartir como permalink</string>
+
+	<!-- 2016-08-10 -->
+	<string name="pref_cache_general_header">General</string>
+
+	<string name="pref_cache_location_key">pref_cache_location</string>
+	<string name="pref_cache_location_title">Ubicación de almacenamiento de caché</string>
+
+	<string name="error_cache_dir_does_not_exist_title">El directorio de caché no existe</string>
+	<string name="error_cache_dir_does_not_exist_message">No se pudo acceder al directorio de caché. Por favor elige una ubicación diferente en los ajustes de caché.</string>
+
+	<!-- 2016-08-15 -->
+	<string name="pref_behaviour_pinned_subredditsort_key">pref_behaviour_pinned_subreddit_sort</string>
+	<string name="pref_behaviour_pinned_subredditsort">Orden de subreddits fijos</string>
+	<string name="sort_pinned_subreddit_name">Por nombre</string>
+	<string name="sort_pinned_subreddit_date">Por fecha de adición</string>
+
+	<!-- 2016-09-01 -->
+	<string name="load_more_comments_failed_unknown_url_type">No se pueden cargar más comentarios: tipo de URL desconocido.</string>
+
+	<!-- 2016-09-04 -->
+	<string name="pref_appearance_image_viewer_header">Visor de imágenes</string>
+
+	<string name="pref_appearance_image_viewer_show_floating_toolbar_title">Mostrar barra flotante sobre la imagen</string>
+	<string name="pref_appearance_image_viewer_show_floating_toolbar_key">pref_appearance_image_viewer_show_floating_toolbar</string>
+
+	<string name="pref_appearance_link_text_clickable_title">Permitir clic sobre el texto de enlaces</string>
+	<string name="pref_appearance_link_text_clickable_key">pref_appearance_link_text_clickable</string>
+
+	<!-- 2016-09-07 -->
+	<string name="pref_appearance_hide_android_status_title">Ocultar la barra de estado de Android</string>
+	<string name="pref_appearance_hide_android_status_key">pref_appearance_hide_android_status</string>
+
+	<!-- 2016-09-08 -->
+	<string name="pref_behaviour_enable_swipe_refresh_title">Deslizar hacia abajo para actualizar</string>
+	<string name="pref_behaviour_enable_swipe_refresh_key">pref_behaviour_enable_swipe_refresh</string>
+
+	<!-- 2016-09-10 -->
+	<string name="mainmenu_header_subreddits_blocked">Subreddits bloqueados</string>
+	<string name="pref_behaviour_blocked_subredditsort_key">pref_behaviour_blocked_subreddit_sort</string>
+	<string name="pref_behaviour_blocked_subredditsort">Orden de subreddits bloqueados</string>
+	<string name="sort_blocked_subreddit_name">Por nombre</string>
+	<string name="sort_blocked_subreddit_date">Por fecha de adición</string>
+
+	<!-- 2016-09-21 -->
+	<string name="pref_appearance_show_blocked_subreddits_main_menu_key">pref_appearance_show_blocked_subreddits_main_menu</string>
+	<string name="pref_appearance_show_blocked_subreddits_main_menu_title">Mostrar subreddits bloqueados en el menú principal</string>
+
+	<!-- 2016-10-02 -->
+	<string name="pref_cache_rerequest_postlist_age_key">pref_cache_rerequest_postlist_age</string>
+	<string name="pref_cache_rerequest_postlist_age_title">Actualizar publicaciones si la cache tiene más de</string>
+
+	<string name="time_2hr">2 horas</string>
+	<string name="time_3hr">3 horas</string>
+
+	<!-- 2016-10-08 -->
+	<string name="time_every_time">Siempre</string>
 
 </resources>

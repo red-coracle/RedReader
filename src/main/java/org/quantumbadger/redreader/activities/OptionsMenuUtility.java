@@ -26,12 +26,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
-
 import org.quantumbadger.redreader.R;
+import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.UnexpectedInternalStateException;
 import org.quantumbadger.redreader.fragments.AccountListDialog;
-import org.quantumbadger.redreader.listingcontrollers.PostListingController;
+import org.quantumbadger.redreader.reddit.PostSort;
 import org.quantumbadger.redreader.reddit.api.RedditSubredditSubscriptionManager;
 import org.quantumbadger.redreader.reddit.url.PostCommentListingURL;
 import org.quantumbadger.redreader.settings.SettingsActivity;
@@ -50,6 +50,7 @@ public final class OptionsMenuUtility {
 		CLOSE_ALL,
 		SUBMIT_POST,
 		SEARCH,
+		SEARCH_COMMENTS,
 		REFRESH_SUBREDDITS,
 		REFRESH_POSTS,
 		REFRESH_COMMENTS,
@@ -121,6 +122,7 @@ public final class OptionsMenuUtility {
 		} else if(!subredditsVisible && !postsVisible && commentsVisible) {
 			if(commentsSortable) addAllCommentSorts(activity, menu, true);
 			add(activity, menu, Option.REFRESH_COMMENTS, false);
+			if(optionsMenuItemsPrefs.contains(OptionsMenuItemsPref.SEARCH)) add(activity, menu, Option.SEARCH, false);
 			if(pastCommentsSupported) {
 				if(optionsMenuItemsPrefs.contains(OptionsMenuItemsPref.PAST)) add(activity, menu, Option.PAST_COMMENTS, false);
 			}
@@ -148,6 +150,7 @@ public final class OptionsMenuUtility {
 						add(activity, pastMenu, Option.PAST_COMMENTS, true);
 					}
 				}
+				if(optionsMenuItemsPrefs.contains(OptionsMenuItemsPref.SEARCH)) add(activity, menu, Option.SEARCH_COMMENTS, false);
 
 			} else if(postsVisible) {
 				if(postsSortable) {
@@ -262,7 +265,7 @@ public final class OptionsMenuUtility {
 
 						int selectedPos = -1;
 						for(int i = 0; i < themeValues.length; i++) {
-							if(PrefsUtility.AppearanceTheme.valueOf(themeValues[i].toUpperCase()).equals(currentTheme)) {
+							if(PrefsUtility.AppearanceTheme.valueOf(General.asciiUppercase(themeValues[i])).equals(currentTheme)) {
 								selectedPos = i;
 								break;
 							}
@@ -328,14 +331,35 @@ public final class OptionsMenuUtility {
 				break;
 
 			case SEARCH:
-				menu.add(activity.getString(R.string.action_search))
+				menu.add(Menu.NONE, Menu.NONE, 1, activity.getString(R.string.action_search))
 						.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 							public boolean onMenuItemClick(final MenuItem item) {
-								((OptionsMenuPostsListener) activity).onSearchPosts();
-								return true;
+								if (activity instanceof OptionsMenuPostsListener) {
+									((OptionsMenuPostsListener) activity).onSearchPosts();
+									return true;
+								} else if (activity instanceof OptionsMenuCommentsListener) {
+									((OptionsMenuCommentsListener) activity).onSearchComments();
+									return true;
+								} else {
+									return false;
+								}
 							}
 						});
 
+				break;
+
+			case SEARCH_COMMENTS:
+				menu.add(Menu.NONE, Menu.NONE, 1, activity.getString(R.string.action_search_comments))
+						.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+							@Override
+							public boolean onMenuItemClick(MenuItem item) {
+								if (activity instanceof OptionsMenuCommentsListener) {
+									((OptionsMenuCommentsListener) activity).onSearchComments();
+									return true;
+								}
+								return false;
+							}
+						});
 				break;
 
 			case REFRESH_COMMENTS:
@@ -461,19 +485,19 @@ public final class OptionsMenuUtility {
 			sortPosts.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 		}
 
-		addSort(activity, sortPosts, R.string.sort_posts_hot, PostListingController.Sort.HOT);
-		addSort(activity, sortPosts, R.string.sort_posts_new, PostListingController.Sort.NEW);
-		addSort(activity, sortPosts, R.string.sort_posts_rising, PostListingController.Sort.RISING);
-		addSort(activity, sortPosts, R.string.sort_posts_controversial, PostListingController.Sort.CONTROVERSIAL);
+		addSort(activity, sortPosts, R.string.sort_posts_hot, PostSort.HOT);
+		addSort(activity, sortPosts, R.string.sort_posts_new, PostSort.NEW);
+		addSort(activity, sortPosts, R.string.sort_posts_rising, PostSort.RISING);
+		addSort(activity, sortPosts, R.string.sort_posts_controversial, PostSort.CONTROVERSIAL);
 
 		final SubMenu sortPostsTop = sortPosts.addSubMenu(R.string.sort_posts_top);
 
-		addSort(activity, sortPostsTop, R.string.sort_posts_top_hour, PostListingController.Sort.TOP_HOUR);
-		addSort(activity, sortPostsTop, R.string.sort_posts_top_today, PostListingController.Sort.TOP_DAY);
-		addSort(activity, sortPostsTop, R.string.sort_posts_top_week, PostListingController.Sort.TOP_WEEK);
-		addSort(activity, sortPostsTop, R.string.sort_posts_top_month, PostListingController.Sort.TOP_MONTH);
-		addSort(activity, sortPostsTop, R.string.sort_posts_top_year, PostListingController.Sort.TOP_YEAR);
-		addSort(activity, sortPostsTop, R.string.sort_posts_top_all, PostListingController.Sort.TOP_ALL);
+		addSort(activity, sortPostsTop, R.string.sort_posts_top_hour, PostSort.TOP_HOUR);
+		addSort(activity, sortPostsTop, R.string.sort_posts_top_today, PostSort.TOP_DAY);
+		addSort(activity, sortPostsTop, R.string.sort_posts_top_week, PostSort.TOP_WEEK);
+		addSort(activity, sortPostsTop, R.string.sort_posts_top_month, PostSort.TOP_MONTH);
+		addSort(activity, sortPostsTop, R.string.sort_posts_top_year, PostSort.TOP_YEAR);
+		addSort(activity, sortPostsTop, R.string.sort_posts_top_all, PostSort.TOP_ALL);
 	}
 
 	private static void addAllSearchSorts(final AppCompatActivity activity, final Menu menu, final boolean icon) {
@@ -485,14 +509,14 @@ public final class OptionsMenuUtility {
 			sortPosts.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 		}
 
-		addSort(activity, sortPosts, R.string.sort_posts_relevance, PostListingController.Sort.RELEVANCE);
-		addSort(activity, sortPosts, R.string.sort_posts_new, PostListingController.Sort.NEW);
-		addSort(activity, sortPosts, R.string.sort_posts_hot, PostListingController.Sort.HOT);
-		addSort(activity, sortPosts, R.string.sort_posts_top, PostListingController.Sort.TOP);
-		addSort(activity, sortPosts, R.string.sort_posts_comments, PostListingController.Sort.COMMENTS);
+		addSort(activity, sortPosts, R.string.sort_posts_relevance, PostSort.RELEVANCE);
+		addSort(activity, sortPosts, R.string.sort_posts_new, PostSort.NEW);
+		addSort(activity, sortPosts, R.string.sort_posts_hot, PostSort.HOT);
+		addSort(activity, sortPosts, R.string.sort_posts_top, PostSort.TOP);
+		addSort(activity, sortPosts, R.string.sort_posts_comments, PostSort.COMMENTS);
 	}
 
-	private static void addSort(final AppCompatActivity activity, final Menu menu, final int name, final PostListingController.Sort order) {
+	private static void addSort(final AppCompatActivity activity, final Menu menu, final int name, final PostSort order) {
 
 		menu.add(activity.getString(name)).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			public boolean onMenuItemClick(final MenuItem item) {
@@ -544,7 +568,7 @@ public final class OptionsMenuUtility {
 
 		void onSubmitPost();
 
-		void onSortSelected(PostListingController.Sort order);
+		void onSortSelected(PostSort order);
 
 		void onSearchPosts();
 
@@ -569,5 +593,7 @@ public final class OptionsMenuUtility {
 		void onPastComments();
 
 		void onSortSelected(PostCommentListingURL.Sort order);
+
+		void onSearchComments();
 	}
 }

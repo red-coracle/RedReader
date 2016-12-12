@@ -19,9 +19,9 @@ package org.quantumbadger.redreader.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,7 +29,7 @@ import android.widget.FrameLayout;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountChangeListener;
 import org.quantumbadger.redreader.account.RedditAccountManager;
-import org.quantumbadger.redreader.cache.CacheRequest;
+import org.quantumbadger.redreader.common.DialogUtils;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
@@ -46,6 +46,8 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 		OptionsMenuUtility.OptionsMenuCommentsListener,
 		RedditPostView.PostSelectionListener {
 
+	private static final String EXTRA_SEARCH_STRING = "mcla_search_string";
+
 	private SharedPreferences sharedPreferences;
 	private final ArrayList<RedditURLParser.RedditURL> mUrls = new ArrayList<>(32);
 
@@ -53,15 +55,15 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 
 	private FrameLayout mPane;
 
+	private String mSearchString = null;
+
 	public void onCreate(final Bundle savedInstanceState) {
 
 		PrefsUtility.applyTheme(this);
 
 		super.onCreate(savedInstanceState);
 
-		getSupportActionBar().setHomeButtonEnabled(true);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		getSupportActionBar().setTitle(R.string.app_name);
+		setTitle(R.string.app_name);
 
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -76,14 +78,13 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 		if(getIntent() != null) {
 
 			final Intent intent = getIntent();
+			mSearchString = intent.getStringExtra(EXTRA_SEARCH_STRING);
 
-			final ArrayList<String> urls = intent.getStringArrayListExtra("urls");
+			final ArrayList<String> commentIds = intent.getStringArrayListExtra("commentIds");
+			final String postId = intent.getStringExtra("postId");
 
-			for(final String url : urls) {
-				final RedditURLParser.RedditURL redditURL = RedditURLParser.parseProbableCommentListing(Uri.parse(url));
-				if(redditURL != null) {
-					mUrls.add(redditURL);
-				}
+			for(final String commentId : commentIds) {
+				mUrls.add(PostCommentListingURL.forPostId(postId).commentId(commentId));
 			}
 
 			doRefresh(RefreshableFragment.COMMENTS, false, null);
@@ -122,11 +123,16 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 				savedInstanceState,
 				mUrls,
 				null,
-				force ? CacheRequest.DOWNLOAD_FORCE : CacheRequest.DOWNLOAD_IF_NECESSARY);
+				mSearchString,
+				force);
 
 		mPane.removeAllViews();
-		mPane.addView(mFragment.getView());
-		getSupportActionBar().setTitle("More Comments");
+
+		final View view = mFragment.getView();
+		mPane.addView(view);
+		General.setLayoutMatchParent(view);
+
+		setTitle("More Comments");
 	}
 
 	public void onRefreshComments() {
@@ -140,19 +146,27 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 	public void onSortSelected(final PostCommentListingURL.Sort order) {}
 
 	@Override
+	public void onSearchComments() {
+		DialogUtils.showSearchDialog(this, new DialogUtils.OnSearchListener() {
+			@Override
+			public void onSearch(@Nullable String query) {
+				Intent searchIntent = getIntent();
+				searchIntent.putExtra(EXTRA_SEARCH_STRING, query);
+				startActivity(searchIntent);
+			}
+		});
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		if(mFragment != null) {
-			mFragment.onOptionsItemSelected(item);
+			if(mFragment.onOptionsItemSelected(item)) {
+				return true;
+			}
 		}
 
-		switch(item.getItemId()) {
-			case android.R.id.home:
-				finish();
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
-		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	public void onPostSelected(final RedditPreparedPost post) {

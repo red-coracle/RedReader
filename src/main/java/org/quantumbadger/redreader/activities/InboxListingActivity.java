@@ -36,6 +36,7 @@ import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.adapters.GroupedRecyclerViewAdapter;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
+import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyAlways;
 import org.quantumbadger.redreader.common.AndroidApi;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
@@ -149,10 +150,6 @@ public final class InboxListingActivity extends BaseActivity {
 				RedditAccountManager.getInstance(this).getDefaultAccount());
 
 		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-		getSupportActionBar().setHomeButtonEnabled(true);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
 		final String title;
 
 		isModmail = getIntent() != null && getIntent().getBooleanExtra("modmail", false);
@@ -164,7 +161,7 @@ public final class InboxListingActivity extends BaseActivity {
 			title = getString(R.string.mainmenu_modmail);
 		}
 
-		getSupportActionBar().setTitle(title);
+		setTitle(title);
 
 		final LinearLayout outer = new LinearLayout(this);
 		outer.setOrientation(android.widget.LinearLayout.VERTICAL);
@@ -212,7 +209,7 @@ public final class InboxListingActivity extends BaseActivity {
 
 		// TODO parameterise limit
 		request = new CacheRequest(url, user, null, Constants.Priority.API_INBOX_LIST, 0,
-				CacheRequest.DOWNLOAD_FORCE, Constants.FileType.INBOX_LIST,
+				DownloadStrategyAlways.INSTANCE, Constants.FileType.INBOX_LIST,
 				CacheRequest.DOWNLOAD_QUEUE_REDDIT_API, true, true, context) {
 
 			@Override
@@ -414,9 +411,6 @@ public final class InboxListingActivity extends BaseActivity {
 				return true;
 			}
 
-			case android.R.id.home:
-				finish();
-				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}

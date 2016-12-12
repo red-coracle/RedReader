@@ -18,27 +18,26 @@
 package org.quantumbadger.redreader.activities;
 
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
-import android.view.MenuItem;
-import android.view.WindowManager;
-import android.widget.EditText;
+import android.view.View;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountChangeListener;
 import org.quantumbadger.redreader.account.RedditAccountManager;
+import org.quantumbadger.redreader.common.DialogUtils;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.fragments.PostListingFragment;
 import org.quantumbadger.redreader.fragments.SessionListDialog;
 import org.quantumbadger.redreader.listingcontrollers.PostListingController;
+import org.quantumbadger.redreader.reddit.PostSort;
 import org.quantumbadger.redreader.reddit.api.RedditSubredditSubscriptionManager;
 import org.quantumbadger.redreader.reddit.prepared.RedditPreparedPost;
 import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
@@ -48,6 +47,7 @@ import org.quantumbadger.redreader.reddit.url.RedditURLParser;
 import org.quantumbadger.redreader.reddit.url.SearchPostListURL;
 import org.quantumbadger.redreader.views.RedditPostView;
 
+import java.util.Locale;
 import java.util.UUID;
 
 public class PostListingActivity extends RefreshableActivity
@@ -70,9 +70,6 @@ public class PostListingActivity extends RefreshableActivity
 
 		super.onCreate(savedInstanceState);
 
-		getSupportActionBar().setHomeButtonEnabled(true);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
 		getWindow().setBackgroundDrawable(new ColorDrawable(obtainStyledAttributes(new int[] {R.attr.rrListBackgroundCol}).getColor(0,0)));
 
 		RedditAccountManager.getInstance(this).addUpdateListener(this);
@@ -84,10 +81,10 @@ public class PostListingActivity extends RefreshableActivity
 			final RedditURLParser.RedditURL url = RedditURLParser.parseProbablePostListing(intent.getData());
 
 			if(!(url instanceof PostListingURL)) {
-				throw new RuntimeException(String.format("'%s' is not a post listing URL!", url.generateJsonUri()));
+				throw new RuntimeException(String.format(Locale.US, "'%s' is not a post listing URL!", url.generateJsonUri()));
 			}
 
-			controller = new PostListingController((PostListingURL)url);
+			controller = new PostListingController((PostListingURL)url, this);
 
 			Bundle fragmentSavedInstanceState = null;
 
@@ -98,7 +95,7 @@ public class PostListingActivity extends RefreshableActivity
 				}
 
 				if(savedInstanceState.containsKey(SAVEDSTATE_SORT)) {
-					controller.setSort(PostListingController.Sort.valueOf(
+					controller.setSort(PostSort.valueOf(
 							savedInstanceState.getString(SAVEDSTATE_SORT)));
 				}
 
@@ -107,7 +104,7 @@ public class PostListingActivity extends RefreshableActivity
 				}
 			}
 
-			getSupportActionBar().setTitle(url.humanReadableName(this, false));
+			setTitle(url.humanReadableName(this, false));
 
 			setBaseActivityContentView(R.layout.main_single);
 			doRefresh(RefreshableFragment.POSTS, false, fragmentSavedInstanceState);
@@ -128,7 +125,7 @@ public class PostListingActivity extends RefreshableActivity
 			outState.putString(SAVEDSTATE_SESSION, session.toString());
 		}
 
-		final PostListingController.Sort sort = controller.getSort();
+		final PostSort sort = controller.getSort();
 		if(sort != null) {
 			outState.putString(SAVEDSTATE_SORT, sort.name());
 		}
@@ -219,7 +216,10 @@ public class PostListingActivity extends RefreshableActivity
 	protected void doRefresh(final RefreshableFragment which, final boolean force, final Bundle savedInstanceState) {
 		if(fragment != null) fragment.cancel();
 		fragment = controller.get(this, force, savedInstanceState);
-		setBaseActivityContentView(fragment.getView());
+
+		final View view = fragment.getView();
+		setBaseActivityContentView(view);
+		General.setLayoutMatchParent(view);
 	}
 
 	public void onPostSelected(final RedditPreparedPost post) {
@@ -248,7 +248,7 @@ public class PostListingActivity extends RefreshableActivity
 		startActivity(intent);
 	}
 
-	public void onSortSelected(final PostListingController.Sort order) {
+	public void onSortSelected(final PostSort order) {
 		controller.setSort(order);
 		requestRefresh(RefreshableFragment.POSTS, false);
 	}
@@ -260,17 +260,10 @@ public class PostListingActivity extends RefreshableActivity
 
 	public static void onSearchPosts(final PostListingController controller, final AppCompatActivity activity) {
 
-		final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(activity);
-		final EditText editText = (EditText) activity.getLayoutInflater().inflate(R.layout.dialog_editbox, null);
-
-		alertBuilder.setView(editText);
-		alertBuilder.setTitle(R.string.action_search);
-
-		alertBuilder.setPositiveButton(R.string.action_search, new DialogInterface.OnClickListener() {
+		DialogUtils.showSearchDialog(activity, new DialogUtils.OnSearchListener() {
 			@Override
-			public void onClick(DialogInterface dialog, int which) {
-
-				final String query = editText.getText().toString().toLowerCase().trim();
+			public void onSearch(@Nullable String query) {
+				if (query == null)	return;
 
 				final SearchPostListURL url;
 
@@ -285,12 +278,6 @@ public class PostListingActivity extends RefreshableActivity
 				activity.startActivity(intent);
 			}
 		});
-
-		alertBuilder.setNegativeButton(R.string.dialog_cancel, null);
-
-		final AlertDialog alertDialog = alertBuilder.create();
-		alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-		alertDialog.show();
 	}
 
 	@Override
@@ -307,7 +294,7 @@ public class PostListingActivity extends RefreshableActivity
 	public void onSidebar() {
 		final Intent intent = new Intent(this, HtmlViewActivity.class);
 		intent.putExtra("html", fragment.getSubreddit().getSidebarHtml(PrefsUtility.isNightMode(this)));
-		intent.putExtra("title", String.format("%s: %s",
+		intent.putExtra("title", String.format(Locale.US, "%s: %s",
 				getString(R.string.sidebar_activity_title),
 				fragment.getSubreddit().url));
 		startActivityForResult(intent, 1);
@@ -381,17 +368,6 @@ public class PostListingActivity extends RefreshableActivity
 		}
 
 		invalidateOptionsMenu();
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(final MenuItem item) {
-		switch(item.getItemId()) {
-			case android.R.id.home:
-				finish();
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
-		}
 	}
 
 	public void onSessionSelected(UUID session, SessionChangeType type) {

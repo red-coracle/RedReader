@@ -36,7 +36,7 @@ public final class Constants {
 	public static final class Mime {
 
 		public static boolean isImage(String mimetype) {
-			return mimetype.toLowerCase().startsWith("image/");
+			return General.asciiLowercase(mimetype).startsWith("image/");
 		}
 
 		public static boolean isImageGif(String mimetype) {
@@ -106,6 +106,7 @@ public final class Constants {
 		public static final String
 				SCHEME_HTTPS = "https",
 				DOMAIN_HTTPS = "oauth.reddit.com",
+				DOMAIN_HTTPS_HUMAN = "reddit.com",
 				PATH_VOTE = "/api/vote",
 				PATH_SAVE = "/api/save",
 				PATH_HIDE = "/api/hide",
@@ -117,6 +118,7 @@ public final class Constants {
 				PATH_SUBREDDITS_MINE_SUBSCRIBER = "/subreddits/mine/subscriber.json?limit=100",
 				PATH_SUBREDDITS_MINE_MODERATOR = "/subreddits/mine/moderator.json?limit=100",
 				PATH_SUBREDDITS_POPULAR = "/subreddits/popular.json",
+				PATH_MULTIREDDITS_MINE = "/api/multi/mine.json",
 				PATH_COMMENTS = "/comments/",
 				PATH_ME = "/api/v1/me";
 
@@ -126,6 +128,10 @@ public final class Constants {
 
 		public static String getDomain() {
 			return DOMAIN_HTTPS;
+		}
+
+		public static String getHumanReadableDomain() {
+			return DOMAIN_HTTPS_HUMAN;
 		}
 
 		public static URI getUri(final String path) {
@@ -176,6 +182,7 @@ public final class Constants {
 		public static final int
 				CAPTCHA = -600,
 				API_ACTION = -500,
+				API_MULTIREDDIT_LIST = -200,
 				API_SUBREDDIT_LIST = -100,
 				API_SUBREDDIT_INVIDIVUAL = -250,
 				API_POST_LIST = -200,
@@ -192,6 +199,7 @@ public final class Constants {
 		public static final int NOCACHE = -1,
 				SUBREDDIT_LIST = 100,
 				SUBREDDIT_ABOUT = 101,
+				MULTIREDDIT_LIST = 102,
 				POST_LIST = 110,
 				COMMENT_LIST = 120,
 				USER_ABOUT = 130,

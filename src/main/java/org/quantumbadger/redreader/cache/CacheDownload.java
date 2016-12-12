@@ -53,7 +53,7 @@ public final class CacheDownload extends PrioritisedCachedThreadPool.Task {
 		this.mQueue = queue;
 
 		if(!initiator.setDownload(this)) {
-			cancel();
+			mCancelled = true;
 		}
 
 		if(initiator.requestSession != null) {
@@ -74,8 +74,10 @@ public final class CacheDownload extends PrioritisedCachedThreadPool.Task {
 		new Thread() {
 			@Override
 			public void run() {
-				mRequest.cancel();
-				mInitiator.notifyFailure(CacheRequest.REQUEST_FAILURE_CANCELLED, null, null, "Cancelled");
+				if(mRequest != null) {
+					mRequest.cancel();
+					mInitiator.notifyFailure(CacheRequest.REQUEST_FAILURE_CANCELLED, null, null, "Cancelled");
+				}
 			}
 		}.start();
 	}
@@ -160,8 +162,23 @@ public final class CacheDownload extends PrioritisedCachedThreadPool.Task {
 						cacheFile = manager.openNewCacheFile(mInitiator, session, mimetype);
 						cacheOs = cacheFile.getOutputStream();
 					} catch (IOException e) {
+
 						e.printStackTrace();
-						mInitiator.notifyFailure(CacheRequest.REQUEST_FAILURE_STORAGE, e, null, "Could not access the local cache");
+
+						final int failureType;
+
+						if(manager.getPreferredCacheLocation().exists()) {
+							failureType = CacheRequest.REQUEST_FAILURE_STORAGE;
+						} else {
+							failureType = CacheRequest.REQUEST_FAILURE_CACHE_DIR_DOES_NOT_EXIST;
+						}
+
+						mInitiator.notifyFailure(
+								failureType,
+								e,
+								null,
+								"Could not access the local cache");
+
 						return;
 					}
 				} else {
