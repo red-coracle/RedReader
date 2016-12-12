@@ -21,7 +21,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +56,6 @@ public class LoadMoreCommentsView extends LinearLayout {
 		setOrientation(VERTICAL);
 
 		final View divider = new View(context);
-		divider.setBackgroundColor(Color.argb(128, 128, 128, 128)); // TODO better
 		addView(divider);
 
 		divider.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -74,10 +72,23 @@ public class LoadMoreCommentsView extends LinearLayout {
 		layout.addView(mIndentView);
 		mIndentView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
 
-		final TypedArray appearance = context.obtainStyledAttributes(new int[]{R.attr.rrIconForward});
-		final ImageView icon = new ImageView(context);
-		icon.setImageDrawable(appearance.getDrawable(0));
-		appearance.recycle();
+		final ImageView icon;
+
+		{
+			final TypedArray appearance = context.obtainStyledAttributes(new int[]{
+					R.attr.rrIconForward,
+					R.attr.rrListItemBackgroundCol,
+					R.attr.rrListDividerCol});
+
+			icon = new ImageView(context);
+			icon.setImageDrawable(appearance.getDrawable(0));
+
+			layout.setBackgroundColor(appearance.getColor(1, General.COLOR_INVALID));
+
+			divider.setBackgroundColor(appearance.getColor(2, General.COLOR_INVALID));
+
+			appearance.recycle();
+		}
 
 		if(AndroidApi.isGreaterThanOrEqualTo(11)) {
 			icon.setScaleX(0.75f);

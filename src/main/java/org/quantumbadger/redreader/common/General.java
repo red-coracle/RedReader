@@ -167,10 +167,10 @@ public final class General {
 			result = input / (long) Math.pow(1024, ++i);
 
 		switch (i) {
-		default: return result + " B";
 		case 1: return result + " KiB";
 		case 2: return result + " MiB";
 		case 3: return result + " GiB";
+		default: return result + " B";
 		}
 	}
 
@@ -401,7 +401,12 @@ public final class General {
 	private static final Pattern urlPattern = Pattern.compile("^(https?)://([^/]+)/+([^\\?#]+)((?:\\?[^#]+)?)((?:#.+)?)$");
 
 	public static String filenameFromString(String url) {
-		return uriFromString(url).getPath().replace(File.separator, "");
+		String filename = uriFromString(url).getPath().replace(File.separator, "");
+		String[] parts = filename.substring(1).split("\\.", 2);
+		if(parts.length < 2)
+			filename += ".jpg";
+
+		return filename;
 	}
 
 	public static URI uriFromString(String url) {

@@ -45,7 +45,8 @@ import android.widget.MediaController;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Created by vishna on 22/07/15.
@@ -60,7 +61,7 @@ public class MediaVideoView extends SurfaceView
 	private static final int STATE_PLAYING = 3;
 	private static final int STATE_PAUSED = 4;
 	private static final int STATE_PLAYBACK_COMPLETED = 5;
-	private String TAG = "VideoView";
+	private static final String TAG = "VideoView";
 	// settable by the client
 	private Uri mUri;
 	private Map<String, String> mHeaders;
@@ -162,8 +163,8 @@ public class MediaVideoView extends SurfaceView
 			}
 		}
 	};
-	private Vector<Pair<InputStream, MediaFormat>> mPendingSubtitleTracks;
-	private MediaPlayer.OnCompletionListener mCompletionListener =
+	private List<Pair<InputStream, MediaFormat>> mPendingSubtitleTracks;
+	private final MediaPlayer.OnCompletionListener mCompletionListener =
 			new MediaPlayer.OnCompletionListener() {
 				public void onCompletion(MediaPlayer mp) {
 					mCurrentState = STATE_PLAYBACK_COMPLETED;
@@ -176,7 +177,7 @@ public class MediaVideoView extends SurfaceView
 					}
 				}
 			};
-	private MediaPlayer.OnInfoListener mInfoListener =
+	private final MediaPlayer.OnInfoListener mInfoListener =
 			new MediaPlayer.OnInfoListener() {
 				public boolean onInfo(MediaPlayer mp, int arg1, int arg2) {
 					if (mOnInfoListener != null) {
@@ -185,7 +186,7 @@ public class MediaVideoView extends SurfaceView
 					return true;
 				}
 			};
-	private MediaPlayer.OnErrorListener mErrorListener =
+	private final MediaPlayer.OnErrorListener mErrorListener =
 			new MediaPlayer.OnErrorListener() {
 				public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
 					Log.d(TAG, "Error: " + framework_err + "," + impl_err);
@@ -236,7 +237,7 @@ public class MediaVideoView extends SurfaceView
 					return true;
 				}
 			};
-	private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
+	private final MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
 			new MediaPlayer.OnBufferingUpdateListener() {
 				public void onBufferingUpdate(MediaPlayer mp, int percent) {
 					mCurrentBufferPercentage = percent;
@@ -379,7 +380,7 @@ public class MediaVideoView extends SurfaceView
 		setFocusable(true);
 		setFocusableInTouchMode(true);
 		requestFocus();
-		mPendingSubtitleTracks = new Vector<>();
+		mPendingSubtitleTracks = new ArrayList<>();
 		mCurrentState = STATE_IDLE;
 		mTargetState = STATE_IDLE;
 	}
@@ -446,7 +447,7 @@ public class MediaVideoView extends SurfaceView
 			mMediaPlayer = new MediaPlayer();
 			// TODO: create SubtitleController in MediaPlayer, but we need
 			// a context for the subtitle renderers
-			final Context context = getContext();
+			// final Context context = getContext();
 
 			if (mAudioSession != 0) {
 				mMediaPlayer.setAudioSessionId(mAudioSession);

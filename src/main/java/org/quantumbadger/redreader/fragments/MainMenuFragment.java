@@ -18,11 +18,14 @@
 package org.quantumbadger.redreader.fragments;
 
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.adapters.MainMenuListingManager;
@@ -94,6 +97,16 @@ public class MainMenuFragment extends RRFragment
 		recyclerView.setPadding(paddingPx, 0, paddingPx, 0);
 		recyclerView.setClipToPadding(false);
 
+		{
+			final TypedArray appearance = context.obtainStyledAttributes(new int[]{
+					R.attr.rrListItemBackgroundCol});
+
+			getActivity().getWindow().setBackgroundDrawable(
+					new ColorDrawable(appearance.getColor(0, General.COLOR_INVALID)));
+
+			appearance.recycle();
+		}
+
 		final RedditMultiredditSubscriptionManager multiredditSubscriptionManager
 				= RedditMultiredditSubscriptionManager.getSingleton(context, user);
 
@@ -129,8 +142,8 @@ public class MainMenuFragment extends RRFragment
 
 		} else {
 
-			multiredditSubscriptionManager.addListener(MainMenuFragment.this);
-			subredditSubscriptionManager.addListener(MainMenuFragment.this);
+			multiredditSubscriptionManager.addListener(this);
+			subredditSubscriptionManager.addListener(this);
 
 			if(multiredditSubscriptionManager.areSubscriptionsReady()) {
 				onMultiredditSubscriptionsChanged(multiredditSubscriptionManager.getSubscriptionList());
