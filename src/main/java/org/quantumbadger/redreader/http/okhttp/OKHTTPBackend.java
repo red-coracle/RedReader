@@ -139,6 +139,7 @@ public class OKHTTPBackend implements HTTPBackend {
 					} else {
 						listener.onError(CacheRequest.REQUEST_FAILURE_REQUEST, null, status);
 					}
+					response.body().close();
 
 				} catch(Throwable t) {
 					listener.onError(CacheRequest.REQUEST_FAILURE_CONNECTION, t, null);
