@@ -26,6 +26,7 @@ import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.OptionsMenuUtility;
+import org.quantumbadger.redreader.adapters.MainMenuListingManager;
 import org.quantumbadger.redreader.fragments.MainMenuFragment;
 import org.quantumbadger.redreader.io.WritableHashSet;
 import org.quantumbadger.redreader.reddit.PostSort;
@@ -90,7 +91,10 @@ public final class PrefsUtility {
 				|| context.getString(R.string.pref_appearance_langforce_key).equals(key)
 				|| context.getString(R.string.pref_behaviour_bezel_toolbar_swipezone_key).equals(key)
 				|| context.getString(R.string.pref_appearance_hide_username_main_menu_key).equals(key)
+				|| context.getString(R.string.pref_menus_show_popular_main_menu_key).equals(key)
+				|| context.getString(R.string.pref_menus_show_random_main_menu_key).equals(key)
 				|| context.getString(R.string.pref_appearance_hide_android_status_key).equals(key)
+				|| context.getString(R.string.pref_appearance_comments_show_floating_toolbar_key).equals(key)
 				|| context.getString(R.string.pref_behaviour_enable_swipe_refresh_key).equals(key);
 	}
 
@@ -100,7 +104,7 @@ public final class PrefsUtility {
 
 	// pref_appearance_twopane
 
-	public static enum AppearanceTwopane {
+	public enum AppearanceTwopane {
 		NEVER, AUTO, FORCE
 	}
 
@@ -202,7 +206,15 @@ public final class PrefsUtility {
 			final android.content.res.Configuration conf = res.getConfiguration();
 
 			if(!lang.equals("auto")) {
-				conf.locale = new Locale(lang);
+
+				if(lang.contains("-r")) {
+					final String[] split = lang.split("-r");
+					conf.locale = new Locale(split[0], split[1]);
+
+				} else {
+					conf.locale = new Locale(lang);
+				}
+
 			} else {
 				conf.locale = Locale.getDefault();
 			}
@@ -211,7 +223,7 @@ public final class PrefsUtility {
 		}
 	}
 
-	public static enum AppearanceThumbnailsShow {
+	public enum AppearanceThumbnailsShow {
 		NEVER, WIFIONLY, ALWAYS
 	}
 
@@ -246,6 +258,14 @@ public final class PrefsUtility {
 		return getBoolean(R.string.pref_appearance_hide_username_main_menu_key, false, context, sharedPreferences);
 	}
 
+	public static boolean pref_show_popular_main_menu(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_menus_show_popular_main_menu_key, false, context, sharedPreferences);
+	}
+
+	public static boolean pref_show_random_main_menu(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_menus_show_random_main_menu_key, false, context, sharedPreferences);
+	}
+
 	public static boolean pref_appearance_show_blocked_subreddits_main_menu(final Context context, final SharedPreferences sharedPreferences) {
 		return getBoolean(R.string.pref_appearance_show_blocked_subreddits_main_menu_key, false, context, sharedPreferences);
 	}
@@ -266,11 +286,15 @@ public final class PrefsUtility {
 		return getBoolean(R.string.pref_appearance_image_viewer_show_floating_toolbar_key, true, context, sharedPreferences);
 	}
 
+	public static boolean pref_appearance_comments_show_floating_toolbar(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_appearance_comments_show_floating_toolbar_key, true, context, sharedPreferences);
+	}
+
 	public static boolean pref_appearance_indentlines(final Context context, final SharedPreferences sharedPreferences) {
 		return getBoolean(R.string.pref_appearance_indentlines_key, false, context, sharedPreferences);
 	}
 
-	public static enum AppearanceCommentHeaderItem {
+	public enum AppearanceCommentHeaderItem {
 		AUTHOR, FLAIR, SCORE, AGE, GOLD
 	}
 
@@ -311,6 +335,10 @@ public final class PrefsUtility {
 
 	public static boolean pref_behaviour_enable_swipe_refresh(final Context context, final SharedPreferences sharedPreferences) {
 		return getBoolean(R.string.pref_behaviour_enable_swipe_refresh_key, true, context, sharedPreferences);
+	}
+
+	public static boolean pref_behaviour_video_playback_controls(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_behaviour_video_playback_controls_key, false, context, sharedPreferences);
 	}
 
 	public static int pref_behaviour_bezel_toolbar_swipezone_dp(final Context context, final SharedPreferences sharedPreferences) {
@@ -419,7 +447,7 @@ public final class PrefsUtility {
 	// pref_behaviour_fling_post
 
 	public enum PostFlingAction {
-		UPVOTE, DOWNVOTE, SAVE, HIDE, COMMENTS, LINK, ACTION_MENU, BROWSER, DISABLED
+		UPVOTE, DOWNVOTE, SAVE, HIDE, COMMENTS, LINK, ACTION_MENU, BROWSER, BACK, DISABLED
 	}
 
 	public static PostFlingAction pref_behaviour_fling_post_left(final Context context, final SharedPreferences sharedPreferences) {
@@ -430,10 +458,18 @@ public final class PrefsUtility {
 		return PostFlingAction.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_fling_post_right_key, "upvote", context, sharedPreferences)));
 	}
 
+	public enum SelfpostAction {
+		COLLAPSE, NOTHING
+	}
+
+	public static SelfpostAction pref_behaviour_self_post_tap_actions(final Context context, final SharedPreferences sharedPreferences) {
+		return SelfpostAction.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_self_post_tap_actions_key, "collapse", context, sharedPreferences)));
+	}
+
 	// pref_behaviour_fling_comment
 
 	public enum CommentFlingAction {
-		UPVOTE, DOWNVOTE, SAVE, REPLY, USER_PROFILE, COLLAPSE, ACTION_MENU, PROPERTIES, DISABLED
+		UPVOTE, DOWNVOTE, SAVE, REPLY, USER_PROFILE, COLLAPSE, ACTION_MENU, PROPERTIES, BACK, DISABLED
 	}
 
 	public static CommentFlingAction pref_behaviour_fling_comment_left(final Context context, final SharedPreferences sharedPreferences) {
@@ -454,6 +490,10 @@ public final class PrefsUtility {
 
 	public static CommentAction pref_behaviour_actions_comment_longclick(final Context context, final SharedPreferences sharedPreferences) {
 		return CommentAction.valueOf(General.asciiUppercase(getString(R.string.pref_behaviour_actions_comment_longclick_key, "action_menu", context, sharedPreferences)));
+	}
+
+	public static boolean pref_behaviour_comment_share_text(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_behaviour_comment_share_text_key, true, context, sharedPreferences);
 	}
 
 	public static PostSort pref_behaviour_postsort(final Context context, final SharedPreferences sharedPreferences) {
@@ -496,7 +536,7 @@ public final class PrefsUtility {
 		return PostCount.valueOf(getString(R.string.pref_behaviour_postcount_key, "ALL", context, sharedPreferences));
 	}
 
-	public static enum ScreenOrientation {
+	public enum ScreenOrientation {
 		AUTO, PORTRAIT, LANDSCAPE
 	}
 
@@ -566,7 +606,7 @@ public final class PrefsUtility {
 
 	// pref_cache_precache_images
 
-	public static enum CachePrecacheImages {
+	public enum CachePrecacheImages {
 		NEVER, WIFIONLY, ALWAYS
 	}
 
@@ -587,7 +627,7 @@ public final class PrefsUtility {
 
 	// pref_cache_precache_comments
 
-	public static enum CachePrecacheComments {
+	public enum CachePrecacheComments {
 		NEVER, WIFIONLY, ALWAYS
 	}
 
@@ -630,6 +670,26 @@ public final class PrefsUtility {
 
 		final EnumSet<RedditPreparedPost.Action> result = EnumSet.noneOf(RedditPreparedPost.Action.class);
 		for(String s : strings) result.add(RedditPreparedPost.Action.valueOf(General.asciiUppercase(s)));
+
+		return result;
+	}
+
+	public static EnumSet<LinkHandler.LinkAction> pref_menus_link_context_items(final Context context, final SharedPreferences sharedPreferences) {
+
+		final Set<String> strings = getStringSet(R.string.pref_menus_link_context_items_key, R.array.pref_menus_link_context_items_return, context, sharedPreferences);
+
+		final EnumSet<LinkHandler.LinkAction> result = EnumSet.noneOf(LinkHandler.LinkAction.class);
+		for(String s : strings) result.add(LinkHandler.LinkAction.valueOf(General.asciiUppercase(s)));
+
+		return result;
+	}
+
+	public static EnumSet<MainMenuListingManager.SubredditAction> pref_menus_subreddit_context_items(final Context context, final SharedPreferences sharedPreferences) {
+
+		final Set<String> strings = getStringSet(R.string.pref_menus_subreddit_context_items_key, R.array.pref_menus_subreddit_context_items_return, context, sharedPreferences);
+
+		final EnumSet<MainMenuListingManager.SubredditAction> result = EnumSet.noneOf(MainMenuListingManager.SubredditAction.class);
+		for(String s : strings) result.add(MainMenuListingManager.SubredditAction.valueOf(General.asciiUppercase(s)));
 
 		return result;
 	}

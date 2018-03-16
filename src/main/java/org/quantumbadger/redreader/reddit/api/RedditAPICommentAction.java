@@ -21,6 +21,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.ClipboardManager;
 import android.widget.Toast;
@@ -32,9 +33,10 @@ import org.quantumbadger.redreader.activities.CommentEditActivity;
 import org.quantumbadger.redreader.activities.CommentReplyActivity;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
-import org.quantumbadger.redreader.common.AndroidApi;
+import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
+import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.RRError;
 import org.quantumbadger.redreader.common.RRTime;
 import org.quantumbadger.redreader.fragments.CommentListingFragment;
@@ -71,7 +73,8 @@ public class RedditAPICommentAction {
 		PROPERTIES,
 		CONTEXT,
 		GO_TO_COMMENT,
-		ACTION_MENU
+		ACTION_MENU,
+		BACK
 	}
 
 	private static class RCVMenuItem {
@@ -284,12 +287,17 @@ public class RedditAPICommentAction {
 				final Intent mailer = new Intent(Intent.ACTION_SEND);
 				mailer.setType("text/plain");
 				mailer.putExtra(Intent.EXTRA_SUBJECT, "Comment by " + comment.author + " on Reddit");
+				String body = "";
 
-				// TODO this currently just dumps the markdown
-				mailer.putExtra(Intent.EXTRA_TEXT,
-						StringEscapeUtils.unescapeHtml4(comment.body)
-								+ "\r\n\r\n"
-								+ comment.getContextUrl().generateNonJsonUri().toString());
+				// TODO this currently just dumps the markdown (only if sharing text is enabled)
+				if (PrefsUtility.pref_behaviour_comment_share_text(activity,
+						PreferenceManager.getDefaultSharedPreferences(activity))) {
+					body = StringEscapeUtils.unescapeHtml4(comment.body)
+							+ "\r\n\r\n";
+				}
+
+				body += comment.getContextUrl().generateNonJsonUri().toString();
+				mailer.putExtra(Intent.EXTRA_TEXT, body);
 
 				activity.startActivityForResult(Intent.createChooser(mailer, activity.getString(R.string.action_share)), 1);
 
@@ -340,6 +348,10 @@ public class RedditAPICommentAction {
 						changeDataManager,
 						comment.isArchived());
 				break;
+
+			case BACK:
+				activity.onBackPressed();
+				break;
 		}
 	}
 
@@ -352,7 +364,7 @@ public class RedditAPICommentAction {
 		final RedditAccount user = RedditAccountManager.getInstance(activity).getDefaultAccount();
 
 		if(user.isAnonymous()) {
-			General.quickToast(activity, "You must be logged in to do that.");
+			General.quickToast(activity, activity.getString(R.string.error_toast_notloggedin));
 			return;
 		}
 
@@ -402,7 +414,7 @@ public class RedditAPICommentAction {
 						if(t != null) t.printStackTrace();
 
 						final RRError error = General.getGeneralErrorForFailure(context, type, t, status, null);
-						AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+						AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 							@Override
 							public void run() {
 								General.showResultDialog(activity, error);
@@ -415,7 +427,7 @@ public class RedditAPICommentAction {
 						revertOnFailure();
 
 						final RRError error = General.getGeneralErrorForFailure(context, type);
-						AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+						AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 							@Override
 							public void run() {
 								General.showResultDialog(activity, error);

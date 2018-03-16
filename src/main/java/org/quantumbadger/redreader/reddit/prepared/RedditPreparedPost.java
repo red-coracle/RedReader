@@ -27,7 +27,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.ClipboardManager;
@@ -41,29 +40,18 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
-import org.quantumbadger.redreader.activities.BaseActivity;
-import org.quantumbadger.redreader.activities.BugReportActivity;
-import org.quantumbadger.redreader.activities.CommentReplyActivity;
-import org.quantumbadger.redreader.activities.MainActivity;
-import org.quantumbadger.redreader.activities.PostListingActivity;
-import org.quantumbadger.redreader.activities.WebViewActivity;
+import org.quantumbadger.redreader.activities.*;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfNotCached;
-import org.quantumbadger.redreader.common.AndroidApi;
-import org.quantumbadger.redreader.common.BetterSSB;
-import org.quantumbadger.redreader.common.Constants;
-import org.quantumbadger.redreader.common.General;
-import org.quantumbadger.redreader.common.LinkHandler;
-import org.quantumbadger.redreader.common.PrefsUtility;
-import org.quantumbadger.redreader.common.RRError;
-import org.quantumbadger.redreader.common.RRTime;
+import org.quantumbadger.redreader.common.*;
 import org.quantumbadger.redreader.fragments.PostPropertiesDialog;
-import org.quantumbadger.redreader.image.GetImageInfoListener;
-import org.quantumbadger.redreader.image.ImageInfo;
+import org.quantumbadger.redreader.image.SaveImageCallback;
+import org.quantumbadger.redreader.image.ShareImageCallback;
 import org.quantumbadger.redreader.image.ThumbnailScaler;
 import org.quantumbadger.redreader.reddit.APIResponseHandler;
 import org.quantumbadger.redreader.reddit.RedditAPI;
+import org.quantumbadger.redreader.reddit.api.RedditSubredditSubscriptionManager;
 import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
 import org.quantumbadger.redreader.reddit.url.SubredditPostListURL;
 import org.quantumbadger.redreader.reddit.url.UserProfileURL;
@@ -71,15 +59,8 @@ import org.quantumbadger.redreader.views.RedditPostView;
 import org.quantumbadger.redreader.views.bezelmenu.SideToolbarOverlay;
 import org.quantumbadger.redreader.views.bezelmenu.VerticalToolbar;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.*;
 
 public final class RedditPreparedPost {
 
@@ -114,6 +95,7 @@ public final class RedditPreparedPost {
 		HIDE(R.string.action_hide),
 		UNSAVE(R.string.action_unsave),
 		UNHIDE(R.string.action_unhide),
+		EDIT(R.string.action_edit),
 		DELETE(R.string.action_delete),
 		REPORT(R.string.action_report),
 		SHARE(R.string.action_share),
@@ -131,7 +113,14 @@ public final class RedditPreparedPost {
 		ACTION_MENU(R.string.action_actionmenu),
 		SAVE_IMAGE(R.string.action_save_image),
 		COPY(R.string.action_copy),
-		SELFTEXT_LINKS(R.string.action_selftext_links);
+		SELFTEXT_LINKS(R.string.action_selftext_links),
+		BACK(R.string.action_back),
+		BLOCK(R.string.action_block_subreddit),
+		UNBLOCK(R.string.action_unblock_subreddit),
+		PIN(R.string.action_pin_subreddit),
+		UNPIN(R.string.action_unpin_subreddit),
+		SUBSCRIBE(R.string.action_subscribe_subreddit),
+		UNSUBSCRIBE(R.string.action_unsubscribe_subreddit);
 
 		public final int descriptionResId;
 
@@ -222,6 +211,10 @@ public final class RedditPreparedPost {
 				}
 			}
 
+			if(itemPref.contains(Action.EDIT) && post.isSelf() && user.username.equalsIgnoreCase(post.src.getAuthor())){
+				menu.add(new RPVMenuItem(activity, R.string.action_edit, Action.EDIT));
+			}
+
 			if(itemPref.contains(Action.DELETE) && user.username.equalsIgnoreCase(post.src.getAuthor())) {
 				menu.add(new RPVMenuItem(activity, R.string.action_delete, Action.DELETE));
 			}
@@ -233,12 +226,59 @@ public final class RedditPreparedPost {
 		if(itemPref.contains(Action.SELFTEXT_LINKS) && post.src.getRawSelfText() != null && post.src.getRawSelfText().length() > 1) menu.add(new RPVMenuItem(activity, R.string.action_selftext_links, Action.SELFTEXT_LINKS));
 		if(itemPref.contains(Action.SAVE_IMAGE) && post.mIsProbablyAnImage) menu.add(new RPVMenuItem(activity, R.string.action_save_image, Action.SAVE_IMAGE));
 		if(itemPref.contains(Action.GOTO_SUBREDDIT)) menu.add(new RPVMenuItem(activity, R.string.action_gotosubreddit, Action.GOTO_SUBREDDIT));
+		if (post.showSubreddit){
+			try {
+				String subredditCanonicalName = RedditSubreddit.getCanonicalName(post.src.getSubreddit());
+
+				if (itemPref.contains(Action.BLOCK) && post.showSubreddit) {
+					final List<String> blockedSubreddits = PrefsUtility.pref_blocked_subreddits(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+
+					if (blockedSubreddits.contains(subredditCanonicalName)) {
+						menu.add(new RPVMenuItem(activity, R.string.action_unblock_subreddit, Action.UNBLOCK));
+					} else {
+						menu.add(new RPVMenuItem(activity, R.string.action_block_subreddit, Action.BLOCK));
+					}
+				}
+
+				if (itemPref.contains(Action.PIN) && post.showSubreddit) {
+					List<String> pinnedSubreddits = PrefsUtility.pref_pinned_subreddits(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+					if (pinnedSubreddits.contains(subredditCanonicalName)) {
+						menu.add(new RPVMenuItem(activity, R.string.action_unpin_subreddit, Action.UNPIN));
+					} else {
+						menu.add(new RPVMenuItem(activity, R.string.action_pin_subreddit, Action.PIN));
+					}
+				}
+
+				if (!RedditAccountManager.getInstance(activity).getDefaultAccount().isAnonymous()) {
+					if (itemPref.contains(Action.SUBSCRIBE)) {
+
+						final RedditSubredditSubscriptionManager subscriptionManager = RedditSubredditSubscriptionManager
+								.getSingleton(activity, RedditAccountManager.getInstance(activity).getDefaultAccount());
+
+						if(subscriptionManager.areSubscriptionsReady()) {
+
+							if(subscriptionManager.getSubscriptionState(subredditCanonicalName)
+									== RedditSubredditSubscriptionManager.SubredditSubscriptionState.SUBSCRIBED) {
+								menu.add(new RPVMenuItem(activity, R.string.action_unsubscribe_subreddit, Action.UNSUBSCRIBE));
+							} else {
+								menu.add(new RPVMenuItem(activity, R.string.action_subscribe_subreddit, Action.SUBSCRIBE));
+							}
+						}
+					}
+				}
+
+			} catch (RedditSubreddit.InvalidSubredditNameException ex){
+				throw new RuntimeException(ex);
+			}
+		}
+
 		if(itemPref.contains(Action.SHARE)) menu.add(new RPVMenuItem(activity, R.string.action_share, Action.SHARE));
 		if(itemPref.contains(Action.SHARE_COMMENTS)) menu.add(new RPVMenuItem(activity, R.string.action_share_comments, Action.SHARE_COMMENTS));
 		if(itemPref.contains(Action.SHARE_IMAGE) && post.mIsProbablyAnImage) menu.add(new RPVMenuItem(activity, R.string.action_share_image, Action.SHARE_IMAGE));
 		if(itemPref.contains(Action.COPY)) menu.add(new RPVMenuItem(activity, R.string.action_copy, Action.COPY));
 		if(itemPref.contains(Action.USER_PROFILE)) menu.add(new RPVMenuItem(activity, R.string.action_user_profile, Action.USER_PROFILE));
 		if(itemPref.contains(Action.PROPERTIES)) menu.add(new RPVMenuItem(activity, R.string.action_properties, Action.PROPERTIES));
+
 
 		final String[] menuText = new String[menu.size()];
 
@@ -293,6 +333,14 @@ public final class RedditPreparedPost {
 			case UNHIDE:
 				post.action(activity, RedditAPI.ACTION_UNHIDE);
 				break;
+			case EDIT:
+				final Intent editIntent = new Intent(activity, CommentEditActivity.class);
+				editIntent.putExtra("commentIdAndType", post.src.getIdAndType());
+				editIntent.putExtra("commentText", StringEscapeUtils.unescapeHtml4(post.src.getRawSelfText()));
+				editIntent.putExtra("isSelfPost", true);
+				activity.startActivity(editIntent);
+				break;
+
 
 			case DELETE:
 				new AlertDialog.Builder(activity)
@@ -367,128 +415,7 @@ public final class RedditPreparedPost {
 
 			case SAVE_IMAGE: {
 
-				((BaseActivity)activity).requestPermissionWithCallback(Manifest.permission.WRITE_EXTERNAL_STORAGE, new BaseActivity.PermissionCallback() {
-					@Override
-					public void onPermissionGranted() {
-
-						final RedditAccount anon = RedditAccountManager.getAnon();
-
-						LinkHandler.getImageInfo(activity, post.src.getUrl(), Constants.Priority.IMAGE_VIEW, 0, new GetImageInfoListener() {
-
-							@Override
-							public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
-								final RRError error = General.getGeneralErrorForFailure(activity, type, t, status, post.src.getUrl());
-								General.showResultDialog(activity, error);
-							}
-
-							@Override
-							public void onSuccess(final ImageInfo info) {
-
-								CacheManager.getInstance(activity).makeRequest(new CacheRequest(
-										General.uriFromString(info.urlOriginal),
-										anon,
-										null,
-										Constants.Priority.IMAGE_VIEW,
-										0,
-										DownloadStrategyIfNotCached.INSTANCE,
-										Constants.FileType.IMAGE,
-										CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
-										false,
-										false,
-										activity) {
-
-									@Override
-									protected void onCallbackException(Throwable t) {
-										BugReportActivity.handleGlobalError(context, t);
-									}
-
-									@Override
-									protected void onDownloadNecessary() {
-										General.quickToast(context, R.string.download_downloading);
-									}
-
-									@Override
-									protected void onDownloadStarted() {
-									}
-
-									@Override
-									protected void onFailure(
-												@CacheRequest.RequestFailureType int type,
-												Throwable t,
-												Integer status,
-												String readableMessage) {
-
-										final RRError error = General.getGeneralErrorForFailure(context, type, t, status, url.toString());
-										General.showResultDialog(activity, error);
-									}
-
-									@Override
-									protected void onProgress(
-											boolean authorizationInProgress,
-											long bytesRead,
-											long totalBytes) {
-									}
-
-									@Override
-									protected void onSuccess(
-											CacheManager.ReadableCacheFile cacheFile,
-											long timestamp,
-											UUID session,
-											boolean fromCache,
-											String mimetype) {
-
-										String filename = General.filenameFromString(info.urlOriginal);
-										File dst = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), filename);
-
-										if(dst.exists()) {
-											int count = 0;
-
-											while(dst.exists()) {
-												count++;
-												dst = new File(
-													Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-													count + "_" + filename.substring(1));
-											}
-										}
-
-										try {
-											final InputStream cacheFileInputStream = cacheFile.getInputStream();
-
-											if(cacheFileInputStream == null) {
-												notifyFailure(CacheRequest.REQUEST_FAILURE_CACHE_MISS, null, null, "Could not find cached image");
-												return;
-											}
-
-											General.copyFile(cacheFileInputStream, dst);
-
-										} catch(IOException e) {
-											notifyFailure(CacheRequest.REQUEST_FAILURE_STORAGE, e, null, "Could not copy file");
-											return;
-										}
-
-										activity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-											Uri.parse("file://" + dst.getAbsolutePath()))
-										);
-
-										General.quickToast(context, context.getString(R.string.action_save_image_success) + " " + dst.getAbsolutePath());
-									}
-								});
-
-							}
-
-							@Override
-							public void onNotAnImage() {
-								General.quickToast(activity, R.string.selected_link_is_not_image);
-							}
-						});
-					}
-
-					@Override
-					public void onPermissionDenied() {
-						General.quickToast(activity, R.string.save_image_permission_denied);
-					}
-				});
-
+				((BaseActivity)activity).requestPermissionWithCallback(Manifest.permission.WRITE_EXTERNAL_STORAGE, new SaveImageCallback(activity, post.src.getUrl()));
 				break;
 			}
 
@@ -520,133 +447,8 @@ public final class RedditPreparedPost {
 
 			case SHARE_IMAGE: {
 
-				((BaseActivity)activity).requestPermissionWithCallback(Manifest.permission.WRITE_EXTERNAL_STORAGE, new BaseActivity.PermissionCallback() {
-					@Override
-					public void onPermissionGranted() {
+				((BaseActivity)activity).requestPermissionWithCallback(Manifest.permission.WRITE_EXTERNAL_STORAGE, new ShareImageCallback(activity, post.src.getUrl()));
 
-						final RedditAccount anon = RedditAccountManager.getAnon();
-
-						LinkHandler.getImageInfo(activity, post.src.getUrl(), Constants.Priority.IMAGE_VIEW, 0, new GetImageInfoListener() {
-
-							@Override
-							public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
-								final RRError error = General.getGeneralErrorForFailure(activity, type, t, status, post.src.getUrl());
-								General.showResultDialog(activity, error);
-							}
-
-							@Override
-							public void onSuccess(final ImageInfo info) {
-
-								CacheManager.getInstance(activity).makeRequest(new CacheRequest(
-										General.uriFromString(info.urlOriginal),
-										anon,
-										null,
-										Constants.Priority.IMAGE_VIEW,
-										0,
-										DownloadStrategyIfNotCached.INSTANCE,
-										Constants.FileType.IMAGE,
-										CacheRequest.DOWNLOAD_QUEUE_IMMEDIATE,
-										false,
-										false,
-										activity) {
-
-									@Override
-									protected void onCallbackException(Throwable t) {
-										BugReportActivity.handleGlobalError(context, t);
-									}
-
-									@Override
-									protected void onDownloadNecessary() {
-										General.quickToast(context, R.string.download_downloading);
-									}
-
-									@Override
-									protected void onDownloadStarted() {
-									}
-
-									@Override
-									protected void onFailure(
-											@CacheRequest.RequestFailureType int type,
-											Throwable t,
-											Integer status,
-											String readableMessage) {
-
-										final RRError error = General.getGeneralErrorForFailure(context, type, t, status, url.toString());
-										General.showResultDialog(activity, error);
-									}
-
-									@Override
-									protected void onProgress(
-											boolean authorizationInProgress,
-											long bytesRead,
-											long totalBytes) {
-									}
-
-									@Override
-									protected void onSuccess(
-											CacheManager.ReadableCacheFile cacheFile,
-											long timestamp,
-											UUID session,
-											boolean fromCache,
-											String mimetype) {
-
-										String filename = General.filenameFromString(info.urlOriginal);
-										File dst = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), filename);
-
-										if(dst.exists()) {
-											int count = 0;
-
-											while(dst.exists()) {
-												count++;
-												dst = new File(
-														Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-														count + "_" + filename.substring(1));
-											}
-										}
-
-										try {
-											final InputStream cacheFileInputStream = cacheFile.getInputStream();
-
-											if(cacheFileInputStream == null) {
-												notifyFailure(CacheRequest.REQUEST_FAILURE_CACHE_MISS, null, null, "Could not find cached image");
-												return;
-											}
-
-											General.copyFile(cacheFileInputStream, dst);
-
-											Intent shareIntent = new Intent();
-											shareIntent.setAction(Intent.ACTION_SEND);
-											shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + dst.getAbsolutePath()));
-											shareIntent.setType(mimetype);
-											activity.startActivity(Intent.createChooser(shareIntent, activity.getString(R.string.action_share_image)));
-
-										} catch(IOException e) {
-											notifyFailure(CacheRequest.REQUEST_FAILURE_STORAGE, e, null, "Could not copy file");
-											return;
-										}
-
-										activity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-												Uri.parse("file://" + dst.getAbsolutePath()))
-										);
-
-										General.quickToast(context, context.getString(R.string.action_save_image_success) + " " + dst.getAbsolutePath());
-									}
-								});
-
-							}
-
-							@Override
-							public void onNotAnImage() {
-								General.quickToast(activity, R.string.selected_link_is_not_image);
-							}
-						});
-					}
-
-					@Override
-					public void onPermissionDenied() {
-						General.quickToast(activity, R.string.save_image_permission_denied);
-					}
-				});
 
 				break;
 			}
@@ -715,6 +517,118 @@ public final class RedditPreparedPost {
 				intent.putExtra(CommentReplyActivity.PARENT_ID_AND_TYPE_KEY, post.src.getIdAndType());
 				intent.putExtra(CommentReplyActivity.PARENT_MARKDOWN_KEY, post.src.getUnescapedSelfText());
 				activity.startActivity(intent);
+				break;
+
+			case BACK:
+				activity.onBackPressed();
+				break;
+
+			case PIN:
+
+				try {
+					String subredditCanonicalName = RedditSubreddit.getCanonicalName(post.src.getSubreddit());
+					List<String> pinnedSubreddits = PrefsUtility.pref_pinned_subreddits(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+					if (!pinnedSubreddits.contains(subredditCanonicalName)){
+						PrefsUtility.pref_pinned_subreddits_add(
+								activity,
+								PreferenceManager.getDefaultSharedPreferences(activity),
+								subredditCanonicalName);
+					} else {
+						Toast.makeText(activity, R.string.mainmenu_toast_pinned, Toast.LENGTH_SHORT).show();
+					}
+				} catch (RedditSubreddit.InvalidSubredditNameException e) {
+					throw new RuntimeException(e);
+				}
+
+				break;
+
+			case UNPIN:
+
+				try {
+					String subredditCanonicalName = RedditSubreddit.getCanonicalName(post.src.getSubreddit());
+					List<String> pinnedSubreddits = PrefsUtility.pref_pinned_subreddits(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+					if (pinnedSubreddits.contains(subredditCanonicalName)) {
+						PrefsUtility.pref_pinned_subreddits_remove(
+								activity,
+								PreferenceManager.getDefaultSharedPreferences(activity),
+								subredditCanonicalName);
+					} else {
+						Toast.makeText(activity, R.string.mainmenu_toast_not_pinned, Toast.LENGTH_SHORT).show();
+					}
+				} catch (RedditSubreddit.InvalidSubredditNameException e){
+					throw new RuntimeException(e);
+				}
+				break;
+
+			case BLOCK:
+
+				try {
+					String subredditCanonicalName = RedditSubreddit.getCanonicalName(post.src.getSubreddit());
+					List<String> blockedSubreddits = PrefsUtility.pref_blocked_subreddits(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+					if (!blockedSubreddits.contains(subredditCanonicalName)) {
+						PrefsUtility.pref_blocked_subreddits_add(
+								activity,
+								PreferenceManager.getDefaultSharedPreferences(activity),
+								subredditCanonicalName);
+					} else {
+						Toast.makeText(activity, R.string.mainmenu_toast_blocked, Toast.LENGTH_SHORT).show();
+					}
+				} catch (RedditSubreddit.InvalidSubredditNameException e){
+					throw new RuntimeException(e);
+				}
+				break;
+
+			case UNBLOCK:
+
+				try {
+					String subredditCanonicalName = RedditSubreddit.getCanonicalName(post.src.getSubreddit());
+					List<String> blockedSubreddits = PrefsUtility.pref_blocked_subreddits(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+					if (blockedSubreddits.contains(subredditCanonicalName)) {
+						PrefsUtility.pref_blocked_subreddits_remove(
+								activity,
+								PreferenceManager.getDefaultSharedPreferences(activity),
+								subredditCanonicalName);
+					} else {
+						Toast.makeText(activity, R.string.mainmenu_toast_not_blocked, Toast.LENGTH_SHORT).show();
+					}
+				} catch (RedditSubreddit.InvalidSubredditNameException e){
+					throw new RuntimeException(e);
+				}
+				break;
+
+			case SUBSCRIBE:
+
+				try {
+					String subredditCanonicalName = RedditSubreddit.getCanonicalName(post.src.getSubreddit());
+					RedditSubredditSubscriptionManager subMan = RedditSubredditSubscriptionManager
+							.getSingleton(activity, RedditAccountManager.getInstance(activity).getDefaultAccount());
+
+					if (subMan.getSubscriptionState(subredditCanonicalName) == RedditSubredditSubscriptionManager.SubredditSubscriptionState.NOT_SUBSCRIBED) {
+						subMan.subscribe(subredditCanonicalName, activity);
+						Toast.makeText(activity, R.string.options_subscribing, Toast.LENGTH_SHORT).show();
+					} else {
+						Toast.makeText(activity, R.string.mainmenu_toast_subscribed, Toast.LENGTH_SHORT).show();
+					}
+				} catch (RedditSubreddit.InvalidSubredditNameException e) {
+					throw new RuntimeException(e);
+				}
+				break;
+
+			case UNSUBSCRIBE:
+
+				try {
+					String subredditCanonicalName = RedditSubreddit.getCanonicalName(post.src.getSubreddit());
+					RedditSubredditSubscriptionManager subMan = RedditSubredditSubscriptionManager
+							.getSingleton(activity, RedditAccountManager.getInstance(activity).getDefaultAccount());
+					if (subMan.getSubscriptionState(subredditCanonicalName) == RedditSubredditSubscriptionManager.SubredditSubscriptionState.SUBSCRIBED) {
+						subMan.unsubscribe(subredditCanonicalName, activity);
+						Toast.makeText(activity, R.string.options_unsubscribing, Toast.LENGTH_SHORT).show();
+					} else {
+						Toast.makeText(activity, R.string.mainmenu_toast_not_subscribed, Toast.LENGTH_SHORT).show();
+					}
+				} catch (RedditSubreddit.InvalidSubredditNameException e) {
+					throw new RuntimeException(e);
+				}
 				break;
 		}
 	}
@@ -786,7 +700,7 @@ public final class RedditPreparedPost {
 		}
 
 		if(src.getFlairText() != null) {
-			postListDescSb.append(" " + src.getFlairText() + " ", BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR | BetterSSB.BACKGROUND_COLOR,
+			postListDescSb.append(" " + src.getFlairText() + "\u200E ", BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR | BetterSSB.BACKGROUND_COLOR,
 					rrFlairTextCol, rrFlairBackCol, 1f);
 			postListDescSb.append("  ", 0);
 		}
@@ -925,7 +839,7 @@ public final class RedditPreparedPost {
 	}
 
 	public void refreshView(final Context context) {
-		AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+		AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 			@Override
 			public void run() {
 				rebuildSubtitle(context);
@@ -942,10 +856,10 @@ public final class RedditPreparedPost {
 
 		if(user.isAnonymous()) {
 
-			AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+			AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 				@Override
 				public void run() {
-					Toast.makeText(activity, "You must be logged in to do that.", Toast.LENGTH_SHORT).show();
+					Toast.makeText(activity, activity.getString(R.string.error_toast_notloggedin), Toast.LENGTH_SHORT).show();
 				}
 			});
 
@@ -1024,7 +938,7 @@ public final class RedditPreparedPost {
 
 						final RRError error = General.getGeneralErrorForFailure(context, type, t, status,
 								"Reddit API action code: " + action + " " + src.getIdAndType());
-						AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+						AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 							@Override
 							public void run() {
 								General.showResultDialog(activity, error);
@@ -1037,7 +951,7 @@ public final class RedditPreparedPost {
 						revertOnFailure();
 
 						final RRError error = General.getGeneralErrorForFailure(context, type);
-						AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+						AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 							@Override
 							public void run() {
 								General.showResultDialog(activity, error);

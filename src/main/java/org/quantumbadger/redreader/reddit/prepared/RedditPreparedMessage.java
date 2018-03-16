@@ -20,12 +20,15 @@ package org.quantumbadger.redreader.reddit.prepared;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
+import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableStringBuilder;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.quantumbadger.redreader.R;
-import org.quantumbadger.redreader.activities.PMSendActivity;
+import org.quantumbadger.redreader.activities.CommentReplyActivity;
 import org.quantumbadger.redreader.common.BetterSSB;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.RRThemeAttributes;
@@ -65,7 +68,7 @@ public final class RedditPreparedMessage implements RedditRenderableInboxItem {
 			appearance.recycle();
 		}
 
-		body = MarkdownParser.parse(StringEscapeUtils.unescapeHtml4(message.body).toCharArray());
+		body = MarkdownParser.parse(message.getUnescapedBodyMarkdown().toCharArray());
 
 		idAndType = message.name;
 
@@ -92,9 +95,11 @@ public final class RedditPreparedMessage implements RedditRenderableInboxItem {
 	}
 
 	private void openReplyActivity(final AppCompatActivity activity) {
-		final Intent intent = new Intent(activity, PMSendActivity.class);
-		intent.putExtra(PMSendActivity.EXTRA_RECIPIENT, src.author);
-		intent.putExtra(PMSendActivity.EXTRA_SUBJECT, src.subject);
+
+		final Intent intent = new Intent(activity, CommentReplyActivity.class);
+		intent.putExtra(CommentReplyActivity.PARENT_ID_AND_TYPE_KEY, idAndType);
+		intent.putExtra(CommentReplyActivity.PARENT_MARKDOWN_KEY, src.getUnescapedBodyMarkdown());
+		intent.putExtra(CommentReplyActivity.PARENT_TYPE, CommentReplyActivity.PARENT_TYPE_MESSAGE);
 		activity.startActivity(intent);
 	}
 
@@ -114,6 +119,19 @@ public final class RedditPreparedMessage implements RedditRenderableInboxItem {
 
 	@Override
 	public View getBody(final AppCompatActivity activity, final Integer textColor, final Float textSize, final boolean showLinkButtons) {
-		return body.buildView(activity, textColor, textSize, showLinkButtons);
+
+		final LinearLayout subjectLayout = new LinearLayout(activity);
+		subjectLayout.setOrientation(LinearLayout.VERTICAL);
+
+		final TextView subjectText = new TextView(activity);
+		subjectText.setText(StringEscapeUtils.unescapeHtml4(src.subject != null ? src.subject : "(no subject)"));
+		subjectText.setTextColor(textColor);
+		subjectText.setTextSize(textSize);
+		subjectText.setTypeface(null, Typeface.BOLD);
+
+		subjectLayout.addView(subjectText);
+		subjectLayout.addView(body.buildView(activity, textColor, textSize, showLinkButtons));
+
+		return subjectLayout;
 	}
 }

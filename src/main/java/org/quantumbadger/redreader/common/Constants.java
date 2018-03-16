@@ -19,6 +19,7 @@ package org.quantumbadger.redreader.common;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+
 import org.quantumbadger.redreader.RedReader;
 
 import java.net.URI;

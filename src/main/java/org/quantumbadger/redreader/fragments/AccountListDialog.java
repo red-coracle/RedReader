@@ -36,7 +36,7 @@ import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountChangeListener;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.adapters.AccountListAdapter;
-import org.quantumbadger.redreader.common.AndroidApi;
+import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.RRError;
 import org.quantumbadger.redreader.reddit.api.RedditOAuth;
@@ -69,7 +69,7 @@ public class AccountListDialog extends AppCompatDialogFragment
 				@Override
 				public void onCancel(final DialogInterface dialogInterface) {
 					cancelled.set(true);
-					progressDialog.dismiss();
+					General.safeDismissDialog(progressDialog);
 				}
 			});
 
@@ -78,7 +78,7 @@ public class AccountListDialog extends AppCompatDialogFragment
 				public boolean onKey(final DialogInterface dialogInterface, final int keyCode, final KeyEvent keyEvent) {
 					if (keyCode == KeyEvent.KEYCODE_BACK) {
 						cancelled.set(true);
-						progressDialog.dismiss();
+						General.safeDismissDialog(progressDialog);
 					}
 					return true;
 				}
@@ -93,10 +93,10 @@ public class AccountListDialog extends AppCompatDialogFragment
 				new RedditOAuth.LoginListener() {
 					@Override
 					public void onLoginSuccess(final RedditAccount account) {
-						AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+						AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 							@Override
 							public void run() {
-								progressDialog.dismiss();
+								General.safeDismissDialog(progressDialog);
 								if (cancelled.get()) return;
 
 								final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(mActivity);
@@ -118,10 +118,10 @@ public class AccountListDialog extends AppCompatDialogFragment
 
 					@Override
 					public void onLoginFailure(final RedditOAuth.LoginError error, final RRError details) {
-						AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+						AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 							@Override
 							public void run() {
-								progressDialog.dismiss();
+								General.safeDismissDialog(progressDialog);
 								if (!cancelled.get()) General.showResultDialog(mActivity, details);
 							}
 						});
@@ -159,7 +159,7 @@ public class AccountListDialog extends AppCompatDialogFragment
 
 	@Override
 	public void onRedditAccountChanged() {
-		AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+		AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 			@Override
 			public void run() {
 				rv.setAdapter(new AccountListAdapter(mActivity, AccountListDialog.this));

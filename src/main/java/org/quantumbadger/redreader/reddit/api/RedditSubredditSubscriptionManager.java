@@ -24,7 +24,7 @@ import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.activities.BugReportActivity;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
-import org.quantumbadger.redreader.common.AndroidApi;
+import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.RRError;
 import org.quantumbadger.redreader.common.TimestampBound;
@@ -85,7 +85,7 @@ public class RedditSubredditSubscriptionManager {
 		subscriptions = db.getById(user.getCanonicalUsername());
 
 		if(subscriptions != null) {
-			addToHistory(subscriptions.toHashset());
+			addToHistory(user, subscriptions.toHashset());
 		}
 	}
 
@@ -133,13 +133,13 @@ public class RedditSubredditSubscriptionManager {
 		listeners.map(notifier, SubredditSubscriptionChangeType.LIST_UPDATED);
 	}
 
-	private static void addToHistory(final HashSet<String> newSubscriptions)
+	private static void addToHistory(final RedditAccount account, final HashSet<String> newSubscriptions)
 	{
 		for(final String sub : newSubscriptions)
 		{
 			try
 			{
-				RedditSubredditHistory.addSubreddit(sub);
+				RedditSubredditHistory.addSubreddit(account, sub);
 			}
 			catch(RedditSubreddit.InvalidSubredditNameException e)
 			{
@@ -158,7 +158,7 @@ public class RedditSubredditSubscriptionManager {
 		// TODO threaded? or already threaded due to cache manager
 		db.put(subscriptions);
 
-		addToHistory(newSubscriptions);
+		addToHistory(user, newSubscriptions);
 
 		listeners.map(notifier, SubredditSubscriptionChangeType.LIST_UPDATED);
 	}
@@ -264,7 +264,7 @@ public class RedditSubredditSubscriptionManager {
 			if(t != null) t.printStackTrace();
 
 			final RRError error = General.getGeneralErrorForFailure(context, type, t, status, null);
-			AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+			AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 				@Override
 				public void run() {
 					General.showResultDialog(activity, error);
@@ -276,7 +276,7 @@ public class RedditSubredditSubscriptionManager {
 		protected void onFailure(APIFailureType type) {
 			onSubscriptionChangeAttemptFailed(canonicalName);
 			final RRError error = General.getGeneralErrorForFailure(context, type);
-			AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+			AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 				@Override
 				public void run() {
 					General.showResultDialog(activity, error);

@@ -17,8 +17,11 @@
 
 package org.quantumbadger.redreader.common;
 
+import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
@@ -27,26 +30,20 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.ClipboardManager;
 import android.util.Log;
 import org.quantumbadger.redreader.R;
-import org.quantumbadger.redreader.activities.AlbumListingActivity;
-import org.quantumbadger.redreader.activities.CommentListingActivity;
-import org.quantumbadger.redreader.activities.ImageViewActivity;
-import org.quantumbadger.redreader.activities.PostListingActivity;
-import org.quantumbadger.redreader.activities.WebViewActivity;
+import org.quantumbadger.redreader.activities.*;
 import org.quantumbadger.redreader.cache.CacheRequest;
 import org.quantumbadger.redreader.fragments.UserProfileDialog;
-import org.quantumbadger.redreader.image.GetAlbumInfoListener;
-import org.quantumbadger.redreader.image.GetImageInfoListener;
-import org.quantumbadger.redreader.image.GfycatAPI;
-import org.quantumbadger.redreader.image.ImageInfo;
-import org.quantumbadger.redreader.image.ImgurAPI;
-import org.quantumbadger.redreader.image.ImgurAPIV3;
-import org.quantumbadger.redreader.image.StreamableAPI;
+import org.quantumbadger.redreader.image.*;
 import org.quantumbadger.redreader.reddit.things.RedditPost;
 import org.quantumbadger.redreader.reddit.url.RedditURLParser;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,6 +55,19 @@ public class LinkHandler {
 			vimeoPattern = Pattern.compile("^https?://[\\.\\w]*vimeo\\.\\w+/.*"),
 			googlePlayPattern = Pattern.compile("^https?://[\\.\\w]*play\\.google\\.\\w+/.*");
 
+	public enum LinkAction {
+		SHARE(R.string.action_share),
+		COPY_URL(R.string.action_copy_link),
+		SHARE_IMAGE(R.string.action_share_image),
+		SAVE_IMAGE(R.string.action_save),
+		EXTERNAL(R.string.action_external);
+
+		public final int descriptionResId;
+
+		LinkAction(final int descriptionResId){
+			this.descriptionResId = descriptionResId;
+		}
+	}
 	public static void onLinkClicked(AppCompatActivity activity, String url) {
 		onLinkClicked(activity, url, false);
 	}
@@ -234,6 +244,92 @@ public class LinkHandler {
 		activity.startActivity(intent);
 	}
 
+	public static void onLinkLongClicked(AppCompatActivity activity, String uri){
+		onLinkLongClicked(activity, uri, false);
+	}
+
+	public static void onLinkLongClicked(final AppCompatActivity activity,
+	                                        final String uri,
+	                                        final boolean forceNoImage) {
+		if (uri == null){
+			return;
+		}
+
+		final EnumSet<LinkHandler.LinkAction> itemPref = PrefsUtility.pref_menus_link_context_items(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+
+		if (itemPref.isEmpty()) {
+			return;
+		}
+
+		final ArrayList<LinkMenuItem> menu = new ArrayList<>();
+
+		if (itemPref.contains(LinkAction.COPY_URL)) {
+			menu.add(new LinkMenuItem(activity, R.string.action_copy_link, LinkAction.COPY_URL));
+		}
+		if (itemPref.contains(LinkAction.EXTERNAL)) {
+			menu.add(new LinkMenuItem(activity, R.string.action_external, LinkAction.EXTERNAL));
+		}
+		if (itemPref.contains(LinkAction.SAVE_IMAGE) && isProbablyAnImage(uri) && !forceNoImage) {
+			menu.add(new LinkMenuItem(activity, R.string.action_save_image, LinkAction.SAVE_IMAGE));
+		}
+		if (itemPref.contains(LinkAction.SHARE)) {
+			menu.add(new LinkMenuItem(activity, R.string.action_share, LinkAction.SHARE));
+		}
+		if (itemPref.contains(LinkAction.SHARE_IMAGE) && isProbablyAnImage(uri) && !forceNoImage) {
+			menu.add(new LinkMenuItem(activity, R.string.action_share_image, LinkAction.SHARE_IMAGE));
+		}
+		final String[] menuText = new String[menu.size()];
+
+		for (int i = 0; i < menuText.length; i++) {
+			menuText[i] = menu.get(i).title;
+		}
+
+		final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+		builder.setItems(menuText, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				onActionMenuItemSelected(uri, activity, menu.get(which).action);
+			}
+		});
+
+		//builder.setNeutralButton(R.string.dialog_cancel, null);
+
+		final AlertDialog alert = builder.create();
+		alert.setCanceledOnTouchOutside(true);
+		alert.show();
+	}
+
+	public static void onActionMenuItemSelected(String uri, AppCompatActivity activity, LinkAction action){
+		switch (action){
+			case SHARE:
+				final Intent mailer = new Intent(Intent.ACTION_SEND);
+				mailer.setType("text/plain");
+				mailer.putExtra(Intent.EXTRA_TEXT, uri);
+				activity.startActivity(Intent.createChooser(mailer, activity.getString(R.string.action_share)));
+				break;
+			case COPY_URL:
+				ClipboardManager manager = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+				manager.setText(uri);
+				break;
+
+			case EXTERNAL:
+				try {
+					final Intent intent = new Intent(Intent.ACTION_VIEW);
+					intent.setData(Uri.parse(uri));
+					activity.startActivity(intent);
+				} catch(final ActivityNotFoundException e) {
+					General.quickToast(activity, R.string.error_no_suitable_apps_available);
+				}
+				break;
+			case SHARE_IMAGE:
+				((BaseActivity)activity).requestPermissionWithCallback(Manifest.permission.WRITE_EXTERNAL_STORAGE, new ShareImageCallback(activity, uri));
+				break;
+			case SAVE_IMAGE:
+				((BaseActivity)activity).requestPermissionWithCallback(Manifest.permission.WRITE_EXTERNAL_STORAGE, new SaveImageCallback(activity, uri));
+				break;
+		}
+	}
 	public static boolean openWebBrowser(AppCompatActivity activity, Uri uri, final boolean fromExternalIntent) {
 
 		if(!fromExternalIntent) {
@@ -292,9 +388,10 @@ public class LinkHandler {
 			qkmePattern1 = Pattern.compile(".*[^A-Za-z]qkme\\.me/(\\w+).*"),
 			qkmePattern2 = Pattern.compile(".*[^A-Za-z]quickmeme\\.com/meme/(\\w+).*"),
 			lvmePattern = Pattern.compile(".*[^A-Za-z]livememe\\.com/(\\w+).*"),
-			gfycatPattern = Pattern.compile(".*[^A-Za-z]gfycat\\.com/(\\w+).*"),
+			gfycatPattern = Pattern.compile(".*[^A-Za-z]gfycat\\.com/(?:gifs/detail/)?(\\w+).*"),
 			streamablePattern = Pattern.compile(".*[^A-Za-z]streamable\\.com/(\\w+).*"),
 			reddituploadsPattern = Pattern.compile(".*[^A-Za-z]i\\.reddituploads\\.com/(\\w+).*"),
+			redditVideosPattern = Pattern.compile(".*[^A-Za-z]v.redd.it/(\\w+).*"),
 			imgflipPattern = Pattern.compile(".*[^A-Za-z]imgflip\\.com/i/(\\w+).*"),
 			makeamemePattern = Pattern.compile(".*[^A-Za-z]makeameme\\.org/meme/([\\w\\-]+).*");
 
@@ -529,44 +626,6 @@ public class LinkHandler {
 			}
 		}
 
-		{
-			final Matcher matchRedditUploads = reddituploadsPattern.matcher(url);
-
-			if(matchRedditUploads.find()) {
-				final String imgId = matchRedditUploads.group(1);
-				if(imgId.length() > 10) {
-					listener.onSuccess(new ImageInfo(url, ImageInfo.MediaType.IMAGE));
-					return;
-				}
-			}
-		}
-
-		{
-			final Matcher matchImgflip = imgflipPattern.matcher(url);
-
-			if(matchImgflip.find()) {
-				final String imgId = matchImgflip.group(1);
-				if(imgId.length() > 3) {
-					final String imageUrl = "https://i.imgflip.com/" + imgId + ".jpg";
-					listener.onSuccess(new ImageInfo(imageUrl, ImageInfo.MediaType.IMAGE));
-					return;
-				}
-			}
-		}
-
-		{
-			final Matcher matchMakeameme = makeamemePattern.matcher(url);
-
-			if(matchMakeameme.find()) {
-				final String imgId = matchMakeameme.group(1);
-				if(imgId.length() > 3) {
-					final String imageUrl = "https://media.makeameme.org/created/" + imgId + ".jpg";
-					listener.onSuccess(new ImageInfo(imageUrl, ImageInfo.MediaType.IMAGE));
-					return;
-				}
-			}
-		}
-
 		final ImageInfo imageUrlPatternMatch = getImageUrlPatternMatch(url);
 
 		if(imageUrlPatternMatch != null) {
@@ -580,10 +639,61 @@ public class LinkHandler {
 
 		final String urlLower = General.asciiLowercase(url);
 
+		{
+			final Matcher matchRedditUploads = reddituploadsPattern.matcher(url);
+
+			if(matchRedditUploads.find()) {
+				final String imgId = matchRedditUploads.group(1);
+				if(imgId.length() > 10) {
+					return new ImageInfo(url, ImageInfo.MediaType.IMAGE);
+				}
+			}
+		}
+
+		{
+			final Matcher matchImgflip = imgflipPattern.matcher(url);
+
+			if(matchImgflip.find()) {
+				final String imgId = matchImgflip.group(1);
+				if(imgId.length() > 3) {
+					final String imageUrl = "https://i.imgflip.com/" + imgId + ".jpg";
+					return new ImageInfo(imageUrl, ImageInfo.MediaType.IMAGE);
+				}
+			}
+		}
+
+		{
+			final Matcher matchMakeameme = makeamemePattern.matcher(url);
+
+			if(matchMakeameme.find()) {
+				final String imgId = matchMakeameme.group(1);
+				if(imgId.length() > 3) {
+					final String imageUrl = "https://media.makeameme.org/created/" + imgId + ".jpg";
+					return new ImageInfo(imageUrl, ImageInfo.MediaType.IMAGE);
+				}
+			}
+		}
+
+		{
+			final Matcher match = redditVideosPattern.matcher(url);
+
+			if(match.find()) {
+				final String imgId = match.group(1);
+				if(imgId.length() > 3) {
+
+					if(url.contains("DASH")) {
+						return new ImageInfo(url, ImageInfo.MediaType.IMAGE);
+					}
+
+					final String imageUrl = "https://v.redd.it/" + imgId + "/DASH_600_K";
+					return new ImageInfo(imageUrl, ImageInfo.MediaType.IMAGE);
+				}
+			}
+		}
+
 		final String[] imageExtensions = {".jpg", ".jpeg", ".png"};
 
 		final String[] videoExtensions = {".webm", ".mp4", ".h264", ".gifv", ".mkv", ".3gp"};
-
 
 		for(final String ext: imageExtensions) {
 			if(urlLower.endsWith(ext)) {
@@ -684,5 +794,14 @@ public class LinkHandler {
 		}
 
 		return result;
+	}
+	private static class LinkMenuItem {
+		public final String title;
+		public final LinkAction action;
+
+		private LinkMenuItem(Context context, int titleRes, LinkAction action) {
+			this.title = context.getString(titleRes);
+			this.action = action;
+		}
 	}
 }

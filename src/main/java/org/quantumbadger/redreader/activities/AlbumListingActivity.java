@@ -25,7 +25,7 @@ import android.widget.ProgressBar;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.adapters.AlbumAdapter;
 import org.quantumbadger.redreader.cache.CacheRequest;
-import org.quantumbadger.redreader.common.AndroidApi;
+import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
@@ -123,7 +123,7 @@ public class AlbumListingActivity extends BaseActivity {
 			public void onSuccess(final ImgurAPI.AlbumInfo info) {
 				Log.i("AlbumListingActivity", "Got album, " + info.images.size() + " image(s)");
 
-				AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+				AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 					@Override
 					public void run() {
 
@@ -176,7 +176,7 @@ public class AlbumListingActivity extends BaseActivity {
 		if(General.isThisUIThread()) {
 			r.run();
 		} else {
-			AndroidApi.UI_THREAD_HANDLER.post(r);
+			AndroidCommon.UI_THREAD_HANDLER.post(r);
 		}
 	}
 }

@@ -29,19 +29,19 @@ import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfNotCached;
-import org.quantumbadger.redreader.common.AndroidApi;
+import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.image.ImageInfo;
 import org.quantumbadger.redreader.image.ImgurAPI;
-import org.quantumbadger.redreader.viewholders.VH2TextIcon;
+import org.quantumbadger.redreader.viewholders.VH3TextIcon;
 
 import java.io.IOException;
 import java.util.UUID;
 
-public class AlbumAdapter extends RecyclerView.Adapter<VH2TextIcon> {
+public class AlbumAdapter extends RecyclerView.Adapter<VH3TextIcon> {
 
 	private final AppCompatActivity activity;
 	private final ImgurAPI.AlbumInfo albumInfo;
@@ -52,14 +52,14 @@ public class AlbumAdapter extends RecyclerView.Adapter<VH2TextIcon> {
 	}
 
 	@Override
-	public VH2TextIcon onCreateViewHolder(ViewGroup parent, int viewType) {
+	public VH3TextIcon onCreateViewHolder(ViewGroup parent, int viewType) {
 		View v = LayoutInflater.from(parent.getContext())
-			.inflate(R.layout.list_item_2_text_icon, parent, false);
-		return new VH2TextIcon(v);
+			.inflate(R.layout.list_item_3_text_icon, parent, false);
+		return new VH3TextIcon(v);
 	}
 
 	@Override
-	public void onBindViewHolder(final VH2TextIcon vh, final int position) {
+	public void onBindViewHolder(final VH3TextIcon vh, final int position) {
 
 		final long bindingId = ++vh.bindingId;
 
@@ -93,9 +93,17 @@ public class AlbumAdapter extends RecyclerView.Adapter<VH2TextIcon> {
 			}
 		}
 
+
 		vh.text2.setVisibility(subtitle.isEmpty() ? View.GONE : View.VISIBLE);
 
 		vh.text2.setText(subtitle);
+
+		if (imageInfo.caption != null && imageInfo.caption.length() > 0) {
+			vh.text3.setText(imageInfo.caption);
+			vh.text3.setVisibility(View.VISIBLE);
+		} else {
+			vh.text3.setVisibility(View.GONE);
+		}
 
 		vh.icon.setImageBitmap(null);
 
@@ -149,7 +157,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<VH2TextIcon> {
 				@Override
 				protected void onSuccess(final CacheManager.ReadableCacheFile cacheFile, final long timestamp, final UUID session, final boolean fromCache, final String mimetype) {
 					// TODO post message rather than runnable
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
 							try {
@@ -172,6 +180,14 @@ public class AlbumAdapter extends RecyclerView.Adapter<VH2TextIcon> {
 					albumInfo, vh.getAdapterPosition());
 			}
 		});
+		vh.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				LinkHandler.onLinkLongClicked(activity, imageInfo.urlOriginal, false);
+				return true;
+			}
+		});
+
 	}
 
 	@Override

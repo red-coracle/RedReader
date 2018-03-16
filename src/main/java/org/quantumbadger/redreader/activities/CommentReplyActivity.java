@@ -24,18 +24,22 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
-import org.quantumbadger.redreader.common.AndroidApi;
+import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.RRError;
@@ -47,12 +51,24 @@ import java.util.ArrayList;
 
 public class CommentReplyActivity extends BaseActivity {
 
+	private enum ParentType {
+		MESSAGE, COMMENT_OR_POST
+	}
+
 	private Spinner usernameSpinner;
 	private EditText textEdit;
+	private CheckBox inboxReplies;
+
+	private boolean sendRepliesToInbox = true;
 
 	private String parentIdAndType = null;
 
+	private ParentType mParentType;
+
 	private static String lastText, lastParentIdAndType;
+
+	public static final String PARENT_TYPE = "parentType";
+	public static final String PARENT_TYPE_MESSAGE = "parentTypeMessage";
 
 	public static final String PARENT_ID_AND_TYPE_KEY = "parentIdAndType";
 	public static final String PARENT_MARKDOWN_KEY = "parent_markdown";
@@ -67,12 +83,27 @@ public class CommentReplyActivity extends BaseActivity {
 
 		final Intent intent = getIntent();
 
-		setTitle(R.string.submit_comment_actionbar);
+		if(intent != null
+				&& intent.hasExtra(PARENT_TYPE)
+				&& intent.getStringExtra(PARENT_TYPE).equals(PARENT_TYPE_MESSAGE)) {
+
+			mParentType = ParentType.MESSAGE;
+			setTitle(R.string.submit_pmreply_actionbar);
+
+		} else {
+			mParentType = ParentType.COMMENT_OR_POST;
+			setTitle(R.string.submit_comment_actionbar);
+		}
 
 		final LinearLayout layout = (LinearLayout) getLayoutInflater().inflate(R.layout.comment_reply, null);
 
 		usernameSpinner = (Spinner)layout.findViewById(R.id.comment_reply_username);
+		inboxReplies = (CheckBox)layout.findViewById(R.id.comment_reply_inbox);
 		textEdit = (EditText)layout.findViewById(R.id.comment_reply_text);
+
+		if (mParentType == ParentType.COMMENT_OR_POST){
+			inboxReplies.setVisibility(View.VISIBLE);
+		}
 
 		if(intent != null && intent.hasExtra(PARENT_ID_AND_TYPE_KEY)) {
 			parentIdAndType = intent.getStringExtra(PARENT_ID_AND_TYPE_KEY);
@@ -115,7 +146,7 @@ public class CommentReplyActivity extends BaseActivity {
 		}
 
 		if(usernames.size() == 0) {
-			General.quickToast(this, "You must be logged in to do that.");
+			General.quickToast(this, getString(R.string.error_toast_notloggedin));
 			finish();
 		}
 
@@ -160,7 +191,7 @@ public class CommentReplyActivity extends BaseActivity {
 			progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
 				public void onCancel(final DialogInterface dialogInterface) {
 					General.quickToast(CommentReplyActivity.this, getString(R.string.comment_reply_oncancel));
-					progressDialog.dismiss();
+					General.safeDismissDialog(progressDialog);
 				}
 			});
 
@@ -169,7 +200,7 @@ public class CommentReplyActivity extends BaseActivity {
 
 					if(keyCode == KeyEvent.KEYCODE_BACK) {
 						General.quickToast(CommentReplyActivity.this, getString(R.string.comment_reply_oncancel));
-						progressDialog.dismiss();
+						General.safeDismissDialog(progressDialog);
 					}
 
 					return true;
@@ -179,11 +210,17 @@ public class CommentReplyActivity extends BaseActivity {
 			final APIResponseHandler.ActionResponseHandler handler = new APIResponseHandler.ActionResponseHandler(this) {
 				@Override
 				protected void onSuccess() {
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
-							if(progressDialog.isShowing()) progressDialog.dismiss();
-							General.quickToast(CommentReplyActivity.this, getString(R.string.comment_reply_done));
+							General.safeDismissDialog(progressDialog);
+
+							if(mParentType == ParentType.MESSAGE) {
+								General.quickToast(CommentReplyActivity.this, getString(R.string.pm_reply_done));
+							} else {
+								General.quickToast(CommentReplyActivity.this, getString(R.string.comment_reply_done));
+							}
+
 							lastText = null;
 							lastParentIdAndType = null;
 							finish();
@@ -201,11 +238,11 @@ public class CommentReplyActivity extends BaseActivity {
 
 					final RRError error = General.getGeneralErrorForFailure(context, type, t, status, null);
 
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
 							General.showResultDialog(CommentReplyActivity.this, error);
-							if(progressDialog.isShowing()) progressDialog.dismiss();
+							General.safeDismissDialog(progressDialog);
 						}
 					});
 				}
@@ -215,13 +252,35 @@ public class CommentReplyActivity extends BaseActivity {
 
 					final RRError error = General.getGeneralErrorForFailure(context, type);
 
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
 							General.showResultDialog(CommentReplyActivity.this, error);
-							if(progressDialog.isShowing()) progressDialog.dismiss();
+							General.safeDismissDialog(progressDialog);
 						}
 					});
+				}
+			};
+
+			final APIResponseHandler.ActionResponseHandler inboxHandler = new APIResponseHandler.ActionResponseHandler(this) {
+				@Override
+				protected void onSuccess() {
+					// Do nothing (result expected)
+				}
+
+				@Override
+				protected void onCallbackException(Throwable t) {
+					BugReportActivity.handleGlobalError(CommentReplyActivity.this, t);
+				}
+
+				@Override
+				protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+					Toast.makeText(context, getString(R.string.disable_replies_to_infobox_failed), Toast.LENGTH_SHORT).show();
+				}
+
+				@Override
+				protected void onFailure(final APIFailureType type) {
+					Toast.makeText(context, getString(R.string.disable_replies_to_infobox_failed), Toast.LENGTH_SHORT).show();
 				}
 			};
 
@@ -236,8 +295,12 @@ public class CommentReplyActivity extends BaseActivity {
 					break;
 				}
 			}
-
-			RedditAPI.comment(cm, handler, selectedAccount, parentIdAndType, textEdit.getText().toString(), this);
+			if (mParentType == ParentType.COMMENT_OR_POST) {
+				sendRepliesToInbox = inboxReplies.isChecked();
+			} else {
+				sendRepliesToInbox = true;
+			}
+			RedditAPI.comment(cm, handler, inboxHandler, selectedAccount, parentIdAndType, textEdit.getText().toString(), sendRepliesToInbox, this);
 
 			progressDialog.show();
 

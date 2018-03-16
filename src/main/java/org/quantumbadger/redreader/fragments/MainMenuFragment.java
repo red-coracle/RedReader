@@ -62,11 +62,14 @@ public class MainMenuFragment extends RRFragment
 	public static final int MENU_MENU_ACTION_HIDDEN = 8;
 	public static final int MENU_MENU_ACTION_CUSTOM = 9;
 	public static final int MENU_MENU_ACTION_ALL = 10;
+	public static final int MENU_MENU_ACTION_POPULAR = 11;
+	public static final int MENU_MENU_ACTION_RANDOM = 12;
 
 	@IntDef({MENU_MENU_ACTION_FRONTPAGE, MENU_MENU_ACTION_PROFILE, MENU_MENU_ACTION_INBOX,
 		MENU_MENU_ACTION_SUBMITTED, MENU_MENU_ACTION_UPVOTED, MENU_MENU_ACTION_DOWNVOTED,
 		MENU_MENU_ACTION_SAVED, MENU_MENU_ACTION_MODMAIL, MENU_MENU_ACTION_HIDDEN,
-		MENU_MENU_ACTION_CUSTOM, MENU_MENU_ACTION_ALL})
+		MENU_MENU_ACTION_CUSTOM, MENU_MENU_ACTION_ALL, MENU_MENU_ACTION_POPULAR,
+		MENU_MENU_ACTION_RANDOM})
 	@Retention(RetentionPolicy.SOURCE)
 	public @interface MainMenuAction {}
 
@@ -89,7 +92,7 @@ public class MainMenuFragment extends RRFragment
 		mOuter = recyclerViewManager.getOuterView();
 		final RecyclerView recyclerView = recyclerViewManager.getRecyclerView();
 
-		mManager = new MainMenuListingManager(context, this, user);
+		mManager = new MainMenuListingManager(getActivity(), this, user);
 
 		recyclerView.setAdapter(mManager.getAdapter());
 

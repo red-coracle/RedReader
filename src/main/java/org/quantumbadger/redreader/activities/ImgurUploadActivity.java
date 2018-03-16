@@ -38,7 +38,7 @@ import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyAlways;
-import org.quantumbadger.redreader.common.AndroidApi;
+import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.PrefsUtility;
@@ -229,7 +229,7 @@ public class ImgurUploadActivity extends BaseActivity {
 
 					final String base64String = new String(byteOutput.toByteArray());
 
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
 							mBase64Data = base64String;
@@ -252,7 +252,7 @@ public class ImgurUploadActivity extends BaseActivity {
 									getString(R.string.error_file_open_failed_message),
 									e));
 
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
 							mBase64Data = null;
@@ -313,7 +313,7 @@ public class ImgurUploadActivity extends BaseActivity {
 						httpStatus,
 						url.toString()));
 
-				AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+				AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 					@Override
 					public void run() {
 						hideLoadingOverlay();
@@ -354,7 +354,7 @@ public class ImgurUploadActivity extends BaseActivity {
 					return;
 				}
 
-				AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+				AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 					@Override
 					public void run() {
 

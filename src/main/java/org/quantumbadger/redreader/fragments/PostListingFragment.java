@@ -49,7 +49,7 @@ import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyAlways
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfNotCached;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfTimestampOutsideBounds;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyNever;
-import org.quantumbadger.redreader.common.AndroidApi;
+import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
@@ -99,7 +99,7 @@ public class PostListingFragment extends RRFragment
 
 	private static final String SAVEDSTATE_FIRST_VISIBLE_POS = "firstVisiblePosition";
 
-	private final PostListingURL mPostListingURL;
+	private PostListingURL mPostListingURL;
 
 	private RedditSubreddit mSubreddit;
 
@@ -264,10 +264,12 @@ public class PostListingFragment extends RRFragment
 					case ALL:
 					case SUBREDDIT_COMBINATION:
 					case ALL_SUBTRACTION:
+					case POPULAR:
 						setHeader(mPostListingURL.humanReadableName(getActivity(), true), mPostListingURL.humanReadableUrl());
 						CacheManager.getInstance(context).makeRequest(mRequest);
 						break;
 
+					case RANDOM:
 					case SUBREDDIT: {
 
 						// Request the subreddit data
@@ -277,7 +279,7 @@ public class PostListingFragment extends RRFragment
 							@Override
 							public void onRequestFailed(SubredditRequestFailure failureReason) {
 								// Ignore
-								AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+								AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 									@Override
 									public void run() {
 										CacheManager.getInstance(context).makeRequest(mRequest);
@@ -287,7 +289,7 @@ public class PostListingFragment extends RRFragment
 
 							@Override
 							public void onRequestSuccess(final RedditSubreddit result, final long timeCached) {
-								AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+								AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 									@Override
 									public void run() {
 										mSubreddit = result;
@@ -347,6 +349,20 @@ public class PostListingFragment extends RRFragment
 
 	private void onSubredditReceived() {
 
+		if (mPostListingURL.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL
+				&& mPostListingURL.asSubredditPostListURL().type == SubredditPostListURL.Type.RANDOM) {
+			try {
+				mPostListingURL = mPostListingURL.asSubredditPostListURL().changeSubreddit(RedditSubreddit.stripRPrefix(mSubreddit.url));
+				mRequest = new PostListingRequest(
+						mPostListingURL.generateJsonUri(),
+						RedditAccountManager.getInstance(getContext()).getDefaultAccount(),
+						mSession,
+						mRequest.downloadStrategy,
+						true);
+			} catch (RedditSubreddit.InvalidSubredditNameException e) {
+				throw new RuntimeException(e);
+			}
+		}
 		final String subtitle;
 
 		if(mPostListingURL.getOrder() == null || mPostListingURL.getOrder() == PostSort.HOT) {
@@ -532,7 +548,7 @@ public class PostListingFragment extends RRFragment
 		@Override
 		protected void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
 
-			AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+			AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 				@Override
 				public void run() {
 
@@ -568,7 +584,7 @@ public class PostListingFragment extends RRFragment
 
 			// TODO pref (currently 10 mins)
 			if(firstDownload && fromCache && RRTime.since(timestamp) > 10 * 60 * 1000) {
-				AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+				AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 					@Override
 					public void run() {
 
@@ -630,10 +646,11 @@ public class PostListingFragment extends RRFragment
 				final PrefsUtility.VideoViewMode videoViewMode
 						= PrefsUtility.pref_behaviour_videoview_mode(activity, mSharedPreferences);
 
-				final boolean isAll =
+				final boolean subredditFilteringEnabled =
 						mPostListingURL.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL
 						&& (mPostListingURL.asSubredditPostListURL().type == SubredditPostListURL.Type.ALL
-								|| mPostListingURL.asSubredditPostListURL().type == SubredditPostListURL.Type.ALL_SUBTRACTION);
+								|| mPostListingURL.asSubredditPostListURL().type == SubredditPostListURL.Type.ALL_SUBTRACTION
+								|| mPostListingURL.asSubredditPostListURL().type == SubredditPostListURL.Type.POPULAR);
 
 				final List<String> blockedSubreddits = PrefsUtility.pref_blocked_subreddits(activity, mSharedPreferences); // Grab this so we don't have to pull from the prefs every post
 
@@ -659,7 +676,7 @@ public class PostListingFragment extends RRFragment
 
 					mAfter = post.name;
 
-					final boolean isPostBlocked = getIsPostBlocked(isAll, blockedSubreddits, post);
+					final boolean isPostBlocked = subredditFilteringEnabled && getIsPostBlocked(blockedSubreddits, post);
 
 					if(!isPostBlocked
 							&& (!post.over_18 || isNsfwAllowed)
@@ -736,7 +753,7 @@ public class PostListingFragment extends RRFragment
 								// Don't precache huge images
 								if(info.size != null && info.size > 15 * 1024 * 1024) {
 									Log.i(TAG, String.format(
-											"Not precaching '%s': too big (%d kB)", post.url, info.size / 1024));
+											"Not precaching '%s': too big (%d kB)", post.getUrl(), info.size / 1024));
 									return;
 								}
 
@@ -745,7 +762,7 @@ public class PostListingFragment extends RRFragment
 										&& !gifViewMode.downloadInApp) {
 
 									Log.i(TAG, String.format(
-											"Not precaching '%s': GIFs are opened externally", post.url));
+											"Not precaching '%s': GIFs are opened externally", post.getUrl()));
 									return;
 								}
 
@@ -754,7 +771,7 @@ public class PostListingFragment extends RRFragment
 										&& !imageViewMode.downloadInApp) {
 
 									Log.i(TAG, String.format(
-											"Not precaching '%s': images are opened externally", post.url));
+											"Not precaching '%s': images are opened externally", post.getUrl()));
 									return;
 								}
 
@@ -764,14 +781,14 @@ public class PostListingFragment extends RRFragment
 										&& !videoViewMode.downloadInApp) {
 
 									Log.i(TAG, String.format(
-											"Not precaching '%s': videos are opened externally", post.url));
+											"Not precaching '%s': videos are opened externally", post.getUrl()));
 									return;
 								}
 
 								final URI uri = General.uriFromString(info.urlOriginal);
 								if(uri == null) {
 									Log.i(TAG, String.format(
-											"Not precaching '%s': failed to parse URL", post.url));
+											"Not precaching '%s': failed to parse URL", post.getUrl()));
 									return;
 								}
 
@@ -822,7 +839,7 @@ public class PostListingFragment extends RRFragment
 					}
 				}
 
-				AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+				AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 					@Override
 					public void run() {
 
@@ -843,15 +860,14 @@ public class PostListingFragment extends RRFragment
 	}
 
 	private boolean getIsPostBlocked(
-			final boolean isAll,
 			@NonNull final List<String> blockedSubreddits,
 			@NonNull final RedditPost post) throws RedditSubreddit.InvalidSubredditNameException {
 
-		if (isAll) {
-			for (String blockedSubredditName : blockedSubreddits) {
-				if (blockedSubredditName.equalsIgnoreCase(RedditSubreddit.getCanonicalName(post.subreddit))) {
-					return true;
-				}
+		final String canonicalName = RedditSubreddit.getCanonicalName(post.subreddit);
+
+		for (String blockedSubredditName : blockedSubreddits) {
+			if (blockedSubredditName.equalsIgnoreCase(canonicalName)) {
+				return true;
 			}
 		}
 

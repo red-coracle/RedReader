@@ -30,7 +30,7 @@ import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
-import org.quantumbadger.redreader.common.AndroidApi;
+import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.RRError;
@@ -43,6 +43,7 @@ public class CommentEditActivity extends BaseActivity {
 	private EditText textEdit;
 
 	private String commentIdAndType = null;
+	private boolean isSelfPost = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +52,13 @@ public class CommentEditActivity extends BaseActivity {
 
 		super.onCreate(savedInstanceState);
 
-		setTitle(R.string.edit_comment_actionbar);
-
+		if (getIntent() != null && getIntent().hasExtra("isSelfPost")
+				&& getIntent().getBooleanExtra("isSelfPost", false)){
+			setTitle(R.string.edit_post_actionbar);
+			isSelfPost = true;
+		} else {
+			setTitle(R.string.edit_comment_actionbar);
+		}
 		textEdit = (EditText) getLayoutInflater().inflate(R.layout.comment_edit, null);
 
 		if(getIntent() != null && getIntent().hasExtra("commentIdAndType")) {
@@ -103,7 +109,7 @@ public class CommentEditActivity extends BaseActivity {
 			progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
 				public void onCancel(final DialogInterface dialogInterface) {
 					General.quickToast(CommentEditActivity.this, R.string.comment_reply_oncancel);
-					progressDialog.dismiss();
+					General.safeDismissDialog(progressDialog);
 				}
 			});
 
@@ -112,7 +118,7 @@ public class CommentEditActivity extends BaseActivity {
 
 					if(keyCode == KeyEvent.KEYCODE_BACK) {
 						General.quickToast(CommentEditActivity.this, R.string.comment_reply_oncancel);
-						progressDialog.dismiss();
+						General.safeDismissDialog(progressDialog);
 					}
 
 					return true;
@@ -122,11 +128,18 @@ public class CommentEditActivity extends BaseActivity {
 			final APIResponseHandler.ActionResponseHandler handler = new APIResponseHandler.ActionResponseHandler(this) {
 				@Override
 				protected void onSuccess() {
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
-							if(progressDialog.isShowing()) progressDialog.dismiss();
-							General.quickToast(CommentEditActivity.this, R.string.comment_edit_done);
+
+							General.safeDismissDialog(progressDialog);
+
+							if (isSelfPost){
+								General.quickToast(CommentEditActivity.this, R.string.post_edit_done);
+							} else {
+								General.quickToast(CommentEditActivity.this, R.string.comment_edit_done);
+							}
+
 							finish();
 						}
 					});
@@ -142,11 +155,11 @@ public class CommentEditActivity extends BaseActivity {
 
 					final RRError error = General.getGeneralErrorForFailure(context, type, t, status, null);
 
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
 							General.showResultDialog(CommentEditActivity.this, error);
-							if(progressDialog.isShowing()) progressDialog.dismiss();
+							General.safeDismissDialog(progressDialog);
 						}
 					});
 				}
@@ -156,11 +169,11 @@ public class CommentEditActivity extends BaseActivity {
 
 					final RRError error = General.getGeneralErrorForFailure(context, type);
 
-					AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
 						public void run() {
 							General.showResultDialog(CommentEditActivity.this, error);
-							if(progressDialog.isShowing()) progressDialog.dismiss();
+							General.safeDismissDialog(progressDialog);
 						}
 					});
 				}

@@ -18,6 +18,7 @@
 package org.quantumbadger.redreader.common;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -195,7 +196,7 @@ public final class General {
 	}
 
 	public static void quickToast(final Context context, final String text) {
-		AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+		AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 			@Override
 			public void run() {
 				Toast.makeText(context, text, Toast.LENGTH_LONG).show();
@@ -204,7 +205,7 @@ public final class General {
 	}
 
 	public static void quickToast(final Context context, final String text, final int duration) {
-		AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+		AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 			@Override
 			public void run() {
 				Toast.makeText(context, text, duration).show();
@@ -402,7 +403,7 @@ public final class General {
 
 	// TODO add button to show more detail
 	public static void showResultDialog(final AppCompatActivity context, final RRError error) {
-		AndroidApi.UI_THREAD_HANDLER.post(new Runnable() {
+		AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -616,5 +617,13 @@ public final class General {
 
 	public static long hoursToMs(final long hours) {
 		return hours * 60L * 60L * 1000L;
+	}
+
+	public static void safeDismissDialog(final Dialog dialog) {
+		try {
+			if(dialog.isShowing()) dialog.dismiss();
+		} catch(final Exception e) {
+			Log.e("safeDismissDialog", "Caught exception while dismissing dialog", e);
+		}
 	}
 }

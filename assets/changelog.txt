@@ -1,3 +1,71 @@
+83/1.9.8.4
+Preference to add "Random Subreddit" item to main menu (thanks to Andrew Philipchik)
+Fixed handling of /r/random (thanks to Andrew Philipchik)
+Ability to disable inbox replies when commenting (thanks to Clubfan22)
+Fix for fullscreen video in internal browser (thanks to Clubfan22)
+Preference to exclude text when sharing comment (thanks to Clubfan22)
+Scroll to top when collapsing self post (thanks to ajgoda90)
+Disable sending replies to inbox for comments (thanks to Clubfan22)
+Added Finnish translation (thanks to Janne-Pekka Mustonen and Jussi Kuokkanen)
+Added Burmese translation (thanks to BannerCoe)
+Added Norwegian Bokmål translation (thanks to Allan Nordhøy)
+Added Russian translation (thanks to Vladislav Glinsky)
+Added Ukrainian translation (thanks to Vladislav Glinsky)
+Added Simplified Chinese translation (thanks to gensitu)
+Updated French translation (thanks to Toover)
+Updated Danish translation (thanks to Jan Madsen)
+Updated Esperanto translation (thanks to Verdulo)
+Updated Dutch translation (thanks to wb9688)
+Updated Romanian translation (thanks to Gaman Gabriel)
+Updated Polish translation (thanks to Verdulo and Piotr Strebski)
+
+82/1.9.8.3
+Fix for some Gfycat links (thanks to Mark Lee)
+Workaround for app state sometimes being lost when launching from homescreen
+Fix for floating toolbar repeatedly bouncing (thanks to ajgoda90)
+Spanish typo fix (thanks to badcrc)
+
+81/1.9.8.2.1
+Support for v.redd.it links
+Preference to enable video playback controls (thanks to ahomphophone)
+Perform temporary file pruning in the background
+Fix for links ending in parentheses
+Crash fixes
+Translation updates (thanks to verdulo)
+
+79/1.9.8.1
+Preference to add /r/popular to the main menu (thanks to ahomphophone)
+Download links now handled correctly by internal browser (thanks to Sarbajit Saha)
+Preference to change self-post tap action (thanks to Clubfan22)
+Code refactoring (thanks to Mario Kosmiskas and awells111)
+Fix for when user pages appear in subscription list
+Translation updates (thanks to verdulo and Andrés Hernández)
+Added Indonesian translation (thanks to much-doge)
+
+78/1.9.8
+Added buttons to skip between top-level comments
+Added ability to edit self-posts (thanks to Clubfan22)
+Added long-click menu for links and album list items (thanks to Clubfan22)
+Image captions are now shown in the album list view (thanks to Clubfan22)
+Tapping self-posts now collapses them (thanks to Clubfan22)
+Added long-click menu for subreddits in main menu (thanks to Clubfan22)
+Added share/open option to internal browser (thanks to Clubfan22)
+Added block/subscribe/pin subreddit to post context menu (thanks to Clubfan22)
+Added post/comment fling action preference for "go back"
+Subject is now shown for private messages
+Private message replies are now part of the original conversion, rather than starting a new one
+Support keyboard Go-action in custom location dialog (thanks to gaudecker)
+Enable sorting for users' submitted posts/comments (thanks to gaudecker)
+Show subreddit names in /r/popular
+Subreddit autocomplete is now account-specific (thanks to Clubfan22)
+Markdown parsing improvements (thanks to Clubfan22)
+Various build improvements (thanks to mvdan)
+Translation fix (thanks to philipwhiuk)
+Updated German translation (thanks to Clubfan22)
+Added Esperanto translation (thanks to verdulo)
+Added Polish translation (thanks to verdulo)
+Added Portuguese translation (thanks to Anderson Fernandes)
+
 77/1.9.7
 Support for new post spoiler tag
 Added low-contrast night theme

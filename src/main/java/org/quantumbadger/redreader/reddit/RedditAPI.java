@@ -20,6 +20,7 @@ package org.quantumbadger.redreader.reddit;
 import android.content.Context;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
+
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.activities.BugReportActivity;
 import org.quantumbadger.redreader.cache.CacheManager;
@@ -28,7 +29,6 @@ import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategy;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyAlways;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.TimestampBound;
-import org.quantumbadger.redreader.http.HTTPBackend;
 import org.quantumbadger.redreader.io.RequestResponseHandler;
 import org.quantumbadger.redreader.jsonwrap.JsonBufferedArray;
 import org.quantumbadger.redreader.jsonwrap.JsonValue;
@@ -37,6 +37,7 @@ import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
 import org.quantumbadger.redreader.reddit.things.RedditThing;
 import org.quantumbadger.redreader.reddit.things.RedditUser;
 
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.URI;
@@ -180,9 +181,11 @@ public final class RedditAPI {
 
 	public static void comment(final CacheManager cm,
 							   final APIResponseHandler.ActionResponseHandler responseHandler,
+							   final APIResponseHandler.ActionResponseHandler inboxResponseHandler,
 							   final RedditAccount user,
 							   final String parentIdAndType,
 							   final String markdown,
+							   final boolean sendRepliesToInbox,
 							   final Context context) {
 
 		final LinkedList<PostField> postFields = new LinkedList<>();
@@ -196,10 +199,16 @@ public final class RedditAPI {
 
 				try {
 					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
-
 					if(failureType != null) {
 						responseHandler.notifyFailure(failureType);
 						return;
+					}
+					// sending replies to inbox is the default behaviour
+					if (!sendRepliesToInbox) {
+						String commentFullname = findThingIdFromCommentResponse(result);
+						if (commentFullname != null && commentFullname.length() > 0) {
+							sendReplies(cm, inboxResponseHandler, user, commentFullname, false, context);
+						}
 					}
 
 				} catch(Throwable t) {
@@ -504,6 +513,63 @@ public final class RedditAPI {
 		});
 	}
 
+	public static void sendReplies(final CacheManager cm,
+							   final APIResponseHandler.ActionResponseHandler responseHandler,
+							   final RedditAccount user,
+							   final String fullname,
+							   final boolean state,
+							   final Context context) {
+
+		final LinkedList<PostField> postFields = new LinkedList<>();
+		postFields.add(new PostField("id", fullname));
+		postFields.add(new PostField("state", String.valueOf(state)));
+		cm.makeRequest(new APIPostRequest(Constants.Reddit.getUri("/api/sendreplies"), user, postFields, context) {
+
+			@Override
+			public void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache) {
+
+				try {
+					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
+
+					if(failureType != null) {
+						responseHandler.notifyFailure(failureType);
+						return;
+					}
+				} catch(Throwable t) {
+					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
+				}
+
+				responseHandler.notifySuccess();
+			}
+
+			@Override
+			protected void onCallbackException(Throwable t) {
+				BugReportActivity.handleGlobalError(context, t);
+			}
+
+			@Override
+			protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+				responseHandler.notifyFailure(type, t, status, readableMessage);
+			}
+		});
+	}
+
+	private static String findThingIdFromCommentResponse(final JsonValue response) {
+		// Returns either the correct value or null
+		try {
+			return "t1_" + response.asObject().getArray("jquery").getArray(30)
+					.getArray(3).getArray(0).getObject(0)
+					.getObject("data").getString("id");
+		} catch (NullPointerException e) {
+			// Do noting
+		} catch (InterruptedException e) {
+			// Do nothing
+		} catch (IOException e) {
+			// Do nothing
+		}
+		return null;
+	}
+
 	// lol, reddit api
 	private static APIResponseHandler.APIFailureType findFailureType(final JsonValue response) {
 
@@ -585,7 +651,7 @@ public final class RedditAPI {
 		@Override
 		protected void onDownloadStarted() {}
 
-		public APIPostRequest(final URI url, final RedditAccount user, final List<HTTPBackend.PostField> postFields, final Context context) {
+		public APIPostRequest(final URI url, final RedditAccount user, final List<PostField> postFields, final Context context) {
 			super(url, user, null, Constants.Priority.API_ACTION, 0,
 					DownloadStrategyAlways.INSTANCE, Constants.FileType.NOCACHE, DOWNLOAD_QUEUE_REDDIT_API, true, postFields, false, false, context);
 		}

@@ -45,6 +45,7 @@ import org.quantumbadger.redreader.reddit.url.PostCommentListingURL;
 import org.quantumbadger.redreader.reddit.url.PostListingURL;
 import org.quantumbadger.redreader.reddit.url.RedditURLParser;
 import org.quantumbadger.redreader.reddit.url.SearchPostListURL;
+import org.quantumbadger.redreader.reddit.url.SubredditPostListURL;
 import org.quantumbadger.redreader.views.RedditPostView;
 
 import java.util.Locale;
@@ -189,7 +190,8 @@ public class PostListingActivity extends RefreshableActivity
 				true,
 				false,
 				controller.isSearchResults(),
-				controller.isSortable(),
+				controller.isUserPostListing(),
+				false, controller.isSortable(),
 				true,
 				subredditSubscriptionState,
 				subredditDescription != null && subredditDescription.length() > 0,
@@ -197,6 +199,18 @@ public class PostListingActivity extends RefreshableActivity
 				subredditPinState,
 				subredditBlockedState);
 
+		if (fragment != null && controller.isRandomSubreddit() && fragment.getSubreddit() != null) {
+			SubredditPostListURL url = SubredditPostListURL.parse(controller.getUri());
+			if (url != null && url.type == SubredditPostListURL.Type.RANDOM) {
+				try {
+					String newSubreddit = RedditSubreddit.stripRPrefix(fragment.getSubreddit().url);
+					url = url.changeSubreddit(newSubreddit);
+					controller = new PostListingController(url, this);
+				} catch (RedditSubreddit.InvalidSubredditNameException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
 		return true;
 	}
 
@@ -292,12 +306,14 @@ public class PostListingActivity extends RefreshableActivity
 
 	@Override
 	public void onSidebar() {
-		final Intent intent = new Intent(this, HtmlViewActivity.class);
-		intent.putExtra("html", fragment.getSubreddit().getSidebarHtml(PrefsUtility.isNightMode(this)));
-		intent.putExtra("title", String.format(Locale.US, "%s: %s",
-				getString(R.string.sidebar_activity_title),
-				fragment.getSubreddit().url));
-		startActivityForResult(intent, 1);
+		if(fragment.getSubreddit() != null) {
+			final Intent intent = new Intent(this, HtmlViewActivity.class);
+			intent.putExtra("html", fragment.getSubreddit().getSidebarHtml(PrefsUtility.isNightMode(this)));
+			intent.putExtra("title", String.format(Locale.US, "%s: %s",
+					getString(R.string.sidebar_activity_title),
+					fragment.getSubreddit().url));
+			startActivityForResult(intent, 1);
+		}
 	}
 
 	@Override

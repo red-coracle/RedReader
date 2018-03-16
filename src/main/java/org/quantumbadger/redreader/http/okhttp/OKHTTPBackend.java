@@ -20,6 +20,7 @@ package org.quantumbadger.redreader.http.okhttp;
 import android.content.Context;
 import okhttp3.CacheControl;
 import okhttp3.Call;
+import okhttp3.ConnectionPool;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
@@ -38,28 +39,31 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class OKHTTPBackend implements HTTPBackend {
+public class OKHTTPBackend extends HTTPBackend {
 
 	private final OkHttpClient mClient;
 	private static HTTPBackend httpBackend;
 
 	private OKHTTPBackend() {
 
-		mClient = new OkHttpClient();
+		final OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
 		if(TorCommon.isTorEnabled()) {
 			Proxy tor = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8118));
 			//SOCKS appears to be broken for now, Relevant: https://github.com/square/okhttp/issues/2315
-			mClient.newBuilder().proxy(tor);
 		}
 
-		mClient.newBuilder()
-			.followRedirects(true)
-			.followSslRedirects(true)
-			.connectTimeout(15000, TimeUnit.SECONDS)
-			.readTimeout(10000, TimeUnit.SECONDS)
-			.retryOnConnectionFailure(true)
-			.build();
+		builder.followRedirects(true);
+		builder.followSslRedirects(true);
+
+		builder.connectTimeout(15000, TimeUnit.SECONDS);
+		builder.readTimeout(10000, TimeUnit.SECONDS);
+
+		builder.connectionPool(new ConnectionPool(1, 5, TimeUnit.SECONDS));
+
+		builder.retryOnConnectionFailure(true);
+
+		mClient = builder.build();
 	}
 
 	public static synchronized HTTPBackend getHttpBackend() {
@@ -69,7 +73,8 @@ public class OKHTTPBackend implements HTTPBackend {
 		return httpBackend;
 	}
 
-	public static synchronized void recreateHttpBackend() {
+	@Override
+	public synchronized void recreateHttpBackend() {
 		httpBackend = new OKHTTPBackend();
 	}
 

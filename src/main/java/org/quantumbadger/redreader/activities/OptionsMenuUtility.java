@@ -34,6 +34,7 @@ import org.quantumbadger.redreader.fragments.AccountListDialog;
 import org.quantumbadger.redreader.reddit.PostSort;
 import org.quantumbadger.redreader.reddit.api.RedditSubredditSubscriptionManager;
 import org.quantumbadger.redreader.reddit.url.PostCommentListingURL;
+import org.quantumbadger.redreader.reddit.url.UserCommentListingURL;
 import org.quantumbadger.redreader.settings.SettingsActivity;
 
 import java.util.EnumSet;
@@ -44,7 +45,7 @@ public final class OptionsMenuUtility {
 		ACCOUNTS, THEME, CLOSE_ALL, PAST, SUBMIT_POST, SEARCH, REPLY, PIN, BLOCK
 	}
 
-	private static enum Option {
+	private enum Option {
 		ACCOUNTS,
 		SETTINGS,
 		CLOSE_ALL,
@@ -71,8 +72,8 @@ public final class OptionsMenuUtility {
 	public static <E extends BaseActivity & OptionsMenuListener> void prepare(
 			final E activity, final Menu menu,
 			final boolean subredditsVisible, final boolean postsVisible, final boolean commentsVisible,
-			final boolean areSearchResults,
-			final boolean postsSortable, final boolean commentsSortable,
+			final boolean areSearchResults, final boolean isUserPostListing,
+			final boolean isUserCommentListing, final boolean postsSortable, final boolean commentsSortable,
 			final RedditSubredditSubscriptionManager.SubredditSubscriptionState subredditSubscriptionState,
 			final boolean subredditHasSidebar,
 			final boolean pastCommentsSupported,
@@ -89,8 +90,10 @@ public final class OptionsMenuUtility {
 			if(postsSortable) {
 				if (areSearchResults)
 					addAllSearchSorts(activity, menu, true);
+				else if(isUserPostListing)
+					addAllPostSorts(activity, menu, true, false);
 				else
-					addAllPostSorts(activity, menu, true);
+					addAllPostSorts(activity, menu, true, true);
 			}
 			add(activity, menu, Option.REFRESH_POSTS, false);
 			if(optionsMenuItemsPrefs.contains(OptionsMenuItemsPref.PAST)) add(activity, menu, Option.PAST_POSTS, false);
@@ -120,7 +123,10 @@ public final class OptionsMenuUtility {
 			if(subredditHasSidebar) add(activity, menu, Option.SIDEBAR, false);
 
 		} else if(!subredditsVisible && !postsVisible && commentsVisible) {
-			if(commentsSortable) addAllCommentSorts(activity, menu, true);
+			if(commentsSortable && !isUserCommentListing)
+				addAllCommentSorts(activity, menu, true);
+			else if(commentsSortable && isUserCommentListing)
+				addAllUserCommentSorts(activity, menu, true);
 			add(activity, menu, Option.REFRESH_COMMENTS, false);
 			if(optionsMenuItemsPrefs.contains(OptionsMenuItemsPref.SEARCH)) add(activity, menu, Option.SEARCH, false);
 			if(pastCommentsSupported) {
@@ -139,7 +145,7 @@ public final class OptionsMenuUtility {
 					if (areSearchResults)
 						addAllSearchSorts(activity, sortMenu, false);
 					else
-						addAllPostSorts(activity, sortMenu, false);
+						addAllPostSorts(activity, sortMenu, false, true);
 				}
 				if(commentsSortable) addAllCommentSorts(activity, sortMenu, false);
 
@@ -157,7 +163,7 @@ public final class OptionsMenuUtility {
 					if (areSearchResults)
 						addAllSearchSorts(activity, menu, true);
 					else
-						addAllPostSorts(activity, menu, true);
+						addAllPostSorts(activity, menu, true, true);
 				}
 				add(activity, menu, Option.PAST_POSTS, false);
 			}
@@ -476,7 +482,7 @@ public final class OptionsMenuUtility {
 		}
 	}
 
-	private static void addAllPostSorts(final AppCompatActivity activity, final Menu menu, final boolean icon) {
+	private static void addAllPostSorts(final AppCompatActivity activity, final Menu menu, final boolean icon, final boolean includeRising) {
 
 		final SubMenu sortPosts = menu.addSubMenu(R.string.options_sort_posts);
 
@@ -487,7 +493,8 @@ public final class OptionsMenuUtility {
 
 		addSort(activity, sortPosts, R.string.sort_posts_hot, PostSort.HOT);
 		addSort(activity, sortPosts, R.string.sort_posts_new, PostSort.NEW);
-		addSort(activity, sortPosts, R.string.sort_posts_rising, PostSort.RISING);
+		if(includeRising)
+			addSort(activity, sortPosts, R.string.sort_posts_rising, PostSort.RISING);
 		addSort(activity, sortPosts, R.string.sort_posts_controversial, PostSort.CONTROVERSIAL);
 
 		final SubMenu sortPostsTop = sortPosts.addSubMenu(R.string.sort_posts_top);
@@ -554,6 +561,40 @@ public final class OptionsMenuUtility {
 		});
 	}
 
+	private static void addAllUserCommentSorts(final AppCompatActivity activity, final Menu menu, final boolean icon) {
+
+		final SubMenu sortComments = menu.addSubMenu(R.string.options_sort_comments);
+
+		if(icon) {
+			sortComments.getItem().setIcon(R.drawable.ic_sort_dark);
+			sortComments.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+		}
+
+		addSort(activity, sortComments, R.string.sort_comments_hot, UserCommentListingURL.Sort.HOT);
+		addSort(activity, sortComments, R.string.sort_comments_new, UserCommentListingURL.Sort.NEW);
+		addSort(activity, sortComments, R.string.sort_comments_controversial, UserCommentListingURL.Sort.CONTROVERSIAL);
+
+		final SubMenu sortCommentsTop = sortComments.addSubMenu(R.string.sort_comments_top);
+
+		addSort(activity, sortCommentsTop, R.string.sort_posts_top_hour, UserCommentListingURL.Sort.TOP_HOUR);
+		addSort(activity, sortCommentsTop, R.string.sort_posts_top_today, UserCommentListingURL.Sort.TOP_DAY);
+		addSort(activity, sortCommentsTop, R.string.sort_posts_top_week, UserCommentListingURL.Sort.TOP_WEEK);
+		addSort(activity, sortCommentsTop, R.string.sort_posts_top_month, UserCommentListingURL.Sort.TOP_MONTH);
+		addSort(activity, sortCommentsTop, R.string.sort_posts_top_year, UserCommentListingURL.Sort.TOP_YEAR);
+		addSort(activity, sortCommentsTop, R.string.sort_posts_top_all, UserCommentListingURL.Sort.TOP_ALL);
+	}
+
+	private static void addSort(final AppCompatActivity activity, final Menu menu, final int name, final UserCommentListingURL.Sort order) {
+
+		menu.add(activity.getString(name)).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				((OptionsMenuCommentsListener)activity).onSortSelected(order);
+				return true;
+			}
+		});
+	}
+
 	private interface OptionsMenuListener {
 	}
 
@@ -593,6 +634,8 @@ public final class OptionsMenuUtility {
 		void onPastComments();
 
 		void onSortSelected(PostCommentListingURL.Sort order);
+
+		void onSortSelected(UserCommentListingURL.Sort order);
 
 		void onSearchComments();
 	}
