@@ -626,6 +626,7 @@ public class PostListingFragment extends RRFragment
 				final JsonBufferedArray posts = listing.getArray("children");
 
 				final boolean isNsfwAllowed = PrefsUtility.pref_behaviour_nsfw(activity, mSharedPreferences);
+				final boolean isSpoilerAllowed = PrefsUtility.pref_behaviour_spoiler(activity, mSharedPreferences);
 				final boolean isConnectionWifi = General.isConnectionWifi(activity);
 
 				final PrefsUtility.AppearanceThumbnailsShow thumbnailsPref = PrefsUtility.appearance_thumbnails_show(
@@ -691,6 +692,7 @@ public class PostListingFragment extends RRFragment
 
 					if(!isPostBlocked
 							&& (!post.over_18 || isNsfwAllowed)
+							&& (!post.spoiler || isSpoilerAllowed)
 							&& mPostIds.add(post.getIdAlone())) {
 
 						final boolean downloadThisThumbnail = downloadThumbnails && (!post.over_18 || showNsfwThumbnails);

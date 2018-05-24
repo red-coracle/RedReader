@@ -79,6 +79,7 @@ public final class PrefsUtility {
 				|| key.equals(context.getString(R.string.pref_behaviour_fling_post_left_key))
 				|| key.equals(context.getString(R.string.pref_behaviour_fling_post_right_key))
 				|| key.equals(context.getString(R.string.pref_behaviour_nsfw_key))
+				|| key.equals(context.getString(R.string.pref_behaviour_spoiler_key))
 				|| key.equals(context.getString(R.string.pref_behaviour_postcount_key))
 				|| key.equals(context.getString(R.string.pref_behaviour_comment_min_key))
 				|| key.equals(context.getString(R.string.pref_behaviour_pinned_subredditsort_key))
@@ -526,6 +527,10 @@ public final class PrefsUtility {
 
 	public static boolean pref_behaviour_nsfw(final Context context, final SharedPreferences sharedPreferences) {
 		return getBoolean(R.string.pref_behaviour_nsfw_key, false, context, sharedPreferences);
+	}
+
+	public static boolean pref_behaviour_spoiler(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_behaviour_spoiler_key, false, context, sharedPreferences);
 	}
 
 	public static boolean pref_behaviour_share_permalink(final Context context, final SharedPreferences sharedPreferences) {
