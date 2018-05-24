@@ -93,6 +93,9 @@
     <string name="pref_behaviour_nsfw_key" translatable="false">pref_behaviour_nsfw</string>
     <string name="pref_behaviour_nsfw_title">Show NSFW content</string>
 
+    <string name="pref_behaviour_spoiler_key" translatable="false">pref_behaviour_spoiler</string>
+    <string name="pref_behaviour_spoiler_title">Show spoiler posts</string>
+
     <!-- Cache Prefs -->
 
     <string name="pref_cache_pruning">Cache Pruning</string>
