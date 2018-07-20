@@ -20,7 +20,8 @@ package org.quantumbadger.redreader.reddit;
 import android.content.Context;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
-
+import android.support.annotation.Nullable;
+import android.util.Log;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.activities.BugReportActivity;
 import org.quantumbadger.redreader.cache.CacheManager;
@@ -37,7 +38,6 @@ import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
 import org.quantumbadger.redreader.reddit.things.RedditThing;
 import org.quantumbadger.redreader.reddit.things.RedditUser;
 
-import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.URI;
@@ -49,6 +49,8 @@ import java.util.UUID;
 import static org.quantumbadger.redreader.http.HTTPBackend.PostField;
 
 public final class RedditAPI {
+
+	private static final String TAG = "RedditAPI";
 
 	public static final int ACTION_UPVOTE = 0;
 	public static final int ACTION_UNVOTE = 1;
@@ -81,12 +83,16 @@ public final class RedditAPI {
 			final String title,
 			final String body,
 			final boolean sendRepliesToInbox,
+			final boolean markAsNsfw,
+			final boolean markAsSpoiler,
 			final Context context)
 	{
 
 		final LinkedList<PostField> postFields = new LinkedList<>();
 		postFields.add(new PostField("kind", is_self ? "self" : "link"));
 		postFields.add(new PostField("sendreplies", sendRepliesToInbox ? "true" : "false"));
+		postFields.add(new PostField("nsfw", markAsNsfw ? "true" : "false"));
+		postFields.add(new PostField("spoiler", markAsSpoiler ? "true" : "false"));
 		postFields.add(new PostField("sr", subreddit));
 		postFields.add(new PostField("title", title));
 
@@ -115,7 +121,7 @@ public final class RedditAPI {
 					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
 				}
 
-				responseHandler.notifySuccess();
+				responseHandler.notifySuccess(findRedirectUrl(result));
 			}
 
 			@Override
@@ -164,7 +170,7 @@ public final class RedditAPI {
 					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
 				}
 
-				responseHandler.notifySuccess();
+				responseHandler.notifySuccess(null);
 			}
 
 			@Override
@@ -197,6 +203,8 @@ public final class RedditAPI {
 			@Override
 			public void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache) {
 
+				System.out.println(result.toString());
+
 				try {
 					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
 					if(failureType != null) {
@@ -215,7 +223,13 @@ public final class RedditAPI {
 					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
 				}
 
-				responseHandler.notifySuccess();
+				@Nullable String permalink = findStringValue(result, "permalink");
+
+				if(permalink != null && !permalink.contains("?")) {
+					permalink += "?context=1";
+				}
+
+				responseHandler.notifySuccess(permalink);
 			}
 
 			@Override
@@ -255,7 +269,7 @@ public final class RedditAPI {
 					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
 				}
 
-				responseHandler.notifySuccess();
+				responseHandler.notifySuccess(null);
 			}
 
 			@Override
@@ -298,7 +312,7 @@ public final class RedditAPI {
 					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
 				}
 
-				responseHandler.notifySuccess();
+				responseHandler.notifySuccess(null);
 			}
 
 			@Override
@@ -352,7 +366,7 @@ public final class RedditAPI {
 					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
 				}
 
-				responseHandler.notifySuccess();
+				responseHandler.notifySuccess(null);
 			}
 		});
 	}
@@ -441,7 +455,7 @@ public final class RedditAPI {
 									notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
 								}
 
-								responseHandler.notifySuccess();
+								responseHandler.notifySuccess(null);
 							}
 						});
 					}
@@ -539,7 +553,7 @@ public final class RedditAPI {
 					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
 				}
 
-				responseHandler.notifySuccess();
+				responseHandler.notifySuccess(null);
 			}
 
 			@Override
@@ -560,13 +574,88 @@ public final class RedditAPI {
 			return "t1_" + response.asObject().getArray("jquery").getArray(30)
 					.getArray(3).getArray(0).getObject(0)
 					.getObject("data").getString("id");
-		} catch (NullPointerException e) {
-			// Do noting
-		} catch (InterruptedException e) {
-			// Do nothing
-		} catch (IOException e) {
-			// Do nothing
+		} catch (final Exception e) {
+			Log.e(TAG, "Failed to find comment thing ID", e);
 		}
+		return null;
+	}
+
+	private static String findRedirectUrl(final JsonValue response) {
+		// Returns either the correct value or null
+		try {
+
+			String lastAttr = null;
+
+			for(final JsonValue elem : response.asObject().getArray("jquery")) {
+
+				if(elem.getType() != JsonValue.TYPE_ARRAY) {
+					continue;
+				}
+
+				final JsonBufferedArray arr = elem.asArray();
+
+				if("attr".equals(arr.getString(2))) {
+					lastAttr = arr.getString(3);
+
+				} else if("call".equals(arr.getString(2))
+						&& "redirect".equals(lastAttr)) {
+
+					return arr.getArray(3).getString(0);
+				}
+			}
+		} catch(final Exception e) {
+			Log.e(TAG, "Failed to find redirect URL", e);
+		}
+		return null;
+	}
+
+	@Nullable
+	private static String findStringValue(
+			final JsonValue response,
+			final String key) {
+
+		if(response == null) {
+			return null;
+		}
+
+		switch(response.getType()) {
+
+			case JsonValue.TYPE_OBJECT:
+
+				for(final Map.Entry<String, JsonValue> v : response.asObject()) {
+
+					if(key.equalsIgnoreCase(v.getKey())
+							&& v.getValue().getType() == JsonValue.TYPE_STRING) {
+
+						return v.getValue().asString();
+					}
+
+					final String result = findStringValue(v.getValue(), key);
+
+					if(result != null) {
+						return result;
+					}
+				}
+
+				break;
+
+			case JsonValue.TYPE_ARRAY:
+
+				for(final JsonValue v : response.asArray()) {
+
+					final String result = findStringValue(v, key);
+
+					if(result != null) {
+						return result;
+					}
+				}
+
+				break;
+
+			default:
+				// Ignore
+		}
+
 		return null;
 	}
 
@@ -575,13 +664,33 @@ public final class RedditAPI {
 
 		// TODO handle 403 forbidden
 
+		if(response == null) {
+			return null;
+		}
+
+		boolean unknownError = false;
+
 		switch(response.getType()) {
 
 			case JsonValue.TYPE_OBJECT:
 
 				for(final Map.Entry<String, JsonValue> v : response.asObject()) {
+
+					if("success".equals(v.getKey())
+							&& v.getValue().getType() == JsonValue.TYPE_BOOLEAN
+							&& Boolean.FALSE.equals(v.getValue().asBoolean())) {
+
+						unknownError = true;
+					}
+
 					final APIResponseHandler.APIFailureType failureType = findFailureType(v.getValue());
-					if(failureType != null) return failureType;
+
+					if(failureType == APIResponseHandler.APIFailureType.UNKNOWN) {
+						unknownError = true;
+
+					} else if(failureType != null) {
+						return failureType;
+					}
 				}
 
 				try {
@@ -592,7 +701,7 @@ public final class RedditAPI {
 						errors.join();
 
 						if(errors.getCurrentItemCount() > 0) {
-							return APIResponseHandler.APIFailureType.UNKNOWN;
+							unknownError = true;
 						}
 					}
 
@@ -606,33 +715,47 @@ public final class RedditAPI {
 
 				for(final JsonValue v : response.asArray()) {
 					final APIResponseHandler.APIFailureType failureType = findFailureType(v);
-					if(failureType != null) return failureType;
+
+					if(failureType == APIResponseHandler.APIFailureType.UNKNOWN) {
+						unknownError = true;
+
+					} else if(failureType != null) {
+						return failureType;
+					}
 				}
 
 				break;
 
 			case JsonValue.TYPE_STRING:
 
-				if(Constants.Reddit.isApiErrorUser(response.asString()))
+				final String responseAsString = response.asString();
+
+				if(Constants.Reddit.isApiErrorUser(responseAsString))
 					return APIResponseHandler.APIFailureType.INVALID_USER;
 
-				if(Constants.Reddit.isApiErrorCaptcha(response.asString()))
+				if(Constants.Reddit.isApiErrorCaptcha(responseAsString))
 					return APIResponseHandler.APIFailureType.BAD_CAPTCHA;
 
-				if(Constants.Reddit.isApiErrorNotAllowed(response.asString()))
+				if(Constants.Reddit.isApiErrorNotAllowed(responseAsString))
 					return APIResponseHandler.APIFailureType.NOTALLOWED;
 
-				if(Constants.Reddit.isApiErrorSubredditRequired(response.asString()))
+				if(Constants.Reddit.isApiErrorSubredditRequired(responseAsString))
 					return APIResponseHandler.APIFailureType.SUBREDDIT_REQUIRED;
 
-				if(Constants.Reddit.isApiErrorURLRequired(response.asString()))
+				if(Constants.Reddit.isApiErrorURLRequired(responseAsString))
 					return APIResponseHandler.APIFailureType.URL_REQUIRED;
 
-				if(Constants.Reddit.isApiTooFast(response.asString()))
+				if(Constants.Reddit.isApiTooFast(responseAsString))
 					return APIResponseHandler.APIFailureType.TOO_FAST;
 
-				if(Constants.Reddit.isApiTooLong(response.asString()))
+				if(Constants.Reddit.isApiTooLong(responseAsString))
 					return APIResponseHandler.APIFailureType.TOO_LONG;
+
+				if(Constants.Reddit.isApiAlreadySubmitted(responseAsString))
+					return APIResponseHandler.APIFailureType.ALREADY_SUBMITTED;
+
+				if(Constants.Reddit.isApiError(responseAsString))
+					unknownError = true;
 
 				break;
 
@@ -640,7 +763,7 @@ public final class RedditAPI {
 				// Ignore
 		}
 
-		return null;
+		return unknownError ? APIResponseHandler.APIFailureType.UNKNOWN : null;
 	}
 
 	private static abstract class APIPostRequest extends CacheRequest {

@@ -658,6 +658,9 @@ public class PostListingFragment extends RRFragment
 				final PrefsUtility.VideoViewMode videoViewMode
 						= PrefsUtility.pref_behaviour_videoview_mode(activity, mSharedPreferences);
 
+				final boolean leftHandedMode
+						= PrefsUtility.pref_appearance_left_handed(activity, mSharedPreferences);
+
 				final boolean subredditFilteringEnabled =
 						mPostListingURL.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL
 						&& (mPostListingURL.asSubredditPostListURL().type == SubredditPostListURL.Type.ALL
@@ -845,7 +848,7 @@ public class PostListingFragment extends RRFragment
 								preparedPost,
 								PostListingFragment.this,
 								activity,
-								mPostListingURL));
+								leftHandedMode));
 
 						mPostCount++;
 						mPostRefreshCount.decrementAndGet();
