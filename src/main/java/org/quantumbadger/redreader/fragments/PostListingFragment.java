@@ -439,8 +439,7 @@ public class PostListingFragment extends RRFragment
 
 			final LinearLayoutManager layoutManager = (LinearLayoutManager)mRecyclerView.getLayoutManager();
 
-			if(mPostListingManager.getPostCount() > 0
-					&& (layoutManager.getItemCount() - layoutManager.findLastVisibleItemPosition() < 20
+			if((layoutManager.getItemCount() - layoutManager.findLastVisibleItemPosition() < 20
 					&& (mPostCountLimit <= 0 || mPostRefreshCount.get() > 0)
 					|| (mPreviousFirstVisibleItemPosition != null
 							&& layoutManager.getItemCount() <= mPreviousFirstVisibleItemPosition))) {
@@ -627,6 +626,7 @@ public class PostListingFragment extends RRFragment
 
 				final boolean isNsfwAllowed = PrefsUtility.pref_behaviour_nsfw(activity, mSharedPreferences);
 				final boolean isSpoilerAllowed = PrefsUtility.pref_behaviour_spoiler(activity, mSharedPreferences);
+				final boolean hideReadPosts = PrefsUtility.pref_behaviour_hide_read_posts(activity, mSharedPreferences);
 				final boolean isConnectionWifi = General.isConnectionWifi(activity);
 
 				final PrefsUtility.AppearanceThumbnailsShow thumbnailsPref = PrefsUtility.appearance_thumbnails_show(
@@ -712,6 +712,10 @@ public class PostListingFragment extends RRFragment
 								timestamp,
 								showSubredditName,
 								downloadThisThumbnail);
+
+						// Skip adding this post (go to next iteration) if it has been clicked on AND user preference
+						// "hideReadPosts" is true
+						if(hideReadPosts && preparedPost.isRead()) continue;
 
 						if(precacheComments) {
 
