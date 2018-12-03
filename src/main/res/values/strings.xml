@@ -762,7 +762,7 @@
 
     <!-- 2016-04-02 -->
     <string name="open_with">Open with</string>
-    <string name="pref_network_tor_title">Use TOR (experimental)</string>
+    <string name="pref_network_tor_title">Use Tor</string>
     <string name="pref_network_tor_key" translatable="false">pref_network_tor</string>
 
     <!-- 2016-04-03 -->
@@ -1066,9 +1066,6 @@
 	<string name="pref_about_license_key" translatable="false">pref_about_license</string>
 	<string name="title_license">License</string>
 
-	<string name="pref_about_attribution_key" translatable="false">pref_about_attribution</string>
-	<string name="title_attribution">Attribution</string>
-
 	<!-- 2018-06-24 -->
 	<string name="pref_appearance_left_handed_key" translatable="false">pref_appearance_left_handed</string>
 	<string name="pref_appearance_left_handed_title">Left-handed mode</string>
@@ -1091,5 +1088,18 @@
 	<!-- 2018-09-11 -->
 	<string name="pref_behaviour_hide_read_posts_key" translatable="false">pref_behaviour_hide_read_posts</string>
 	<string name="pref_behaviour_hide_read_posts_title">Hide read posts</string>
+
+	<!-- 2018-10-06 -->
+	<string name="pref_menus_mainmenu_shortcutitems_title">Main Menu Shortcuts</string>
+	<string name="pref_menus_mainmenu_shortcutitems_key" translatable="false">pref_menus_mainmenu_shortcutitems_key</string>
+
+	<string name="pref_menus_show_multireddit_main_menu_title">Show Multireddits</string>
+	<string name="pref_menus_show_multireddit_main_menu_key" translatable="false">pref_menus_show_multireddit_main_menu_key</string>
+
+	<string name="pref_menus_show_subscribed_subreddits_main_menu_key" translatable="false">pref_menus_show_subscribed_main_menu</string>
+	<string name="pref_menus_show_subscribed_subreddits_main_menu_title">Show Subscribed Subreddits</string>
+
+	<!-- 2018-11-26 -->
+	<string name="mainmenu_random_nsfw">Random NSFW Subreddit</string>
 
 </resources>
