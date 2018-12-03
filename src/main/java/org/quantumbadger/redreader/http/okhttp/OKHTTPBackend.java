@@ -178,7 +178,7 @@ public class OKHTTPBackend extends HTTPBackend {
 						bodyStream = null;
 						bodyBytes = null;
 					}
-					response.body().close();
+					//response.body().close();
 
 					final String contentType = response.header("Content-Type");
 
