@@ -237,6 +237,15 @@ public class ExoPlayerWrapperView extends FrameLayout {
 		mVideoPlayer.addListener(new Player.EventListener() {
 			@Override
 			public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+				if (playbackState != Player.STATE_ENDED && playbackState != Player.STATE_IDLE) {
+					videoPlayerView.setKeepScreenOn(true);
+				}
+			}
+		});
+
+		mVideoPlayer.addListener(new Player.EventListener() {
+			@Override
+			public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
 
 				// Loop
 				if(playbackState == Player.STATE_ENDED) {
