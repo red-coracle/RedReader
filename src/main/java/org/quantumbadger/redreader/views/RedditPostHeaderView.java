@@ -151,7 +151,7 @@ public class RedditPostHeaderView extends LinearLayout {
 			silver_drawable.setBounds(0, 0, 28, 28);
 			ImageSpan silver = new ImageSpan(silver_drawable);
 			postListDescSb.setSpan(silver, ImageSpan.ALIGN_BASELINE);
-			postListDescSb.append(" x" + post.src.getSilverAmount() + " ", 0);
+			postListDescSb.append("x" + post.src.getSilverAmount() + " ", 0);
 		}
 
 		if(post.src.getGoldAmount() > 0) {
@@ -159,7 +159,7 @@ public class RedditPostHeaderView extends LinearLayout {
 			gold_drawable.setBounds(0, 0, 28, 28);
 			ImageSpan gold = new ImageSpan(gold_drawable);
 			postListDescSb.setSpan(gold, ImageSpan.ALIGN_BASELINE);
-			postListDescSb.append(" x" + post.src.getGoldAmount() + " ", 0);
+			postListDescSb.append("x" + post.src.getGoldAmount() + " ", 0);
 		}
 
 		if (post.src.getPlatinumAmount() > 0) {
@@ -167,7 +167,7 @@ public class RedditPostHeaderView extends LinearLayout {
 			platinum_drawable.setBounds(0, 0, 28, 28);
 			ImageSpan platinum = new ImageSpan(platinum_drawable);
 			postListDescSb.setSpan(platinum, ImageSpan.ALIGN_BASELINE);
-			postListDescSb.append(" x" + post.src.getPlatinumAmount() + " ", 0);
+			postListDescSb.append("x" + post.src.getPlatinumAmount() + " ", 0);
 		}
 
 		postListDescSb.append(RRTime.formatDurationFrom(context, post.src.getCreatedTimeSecsUTC() * 1000), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, boldCol, 0, 1f);

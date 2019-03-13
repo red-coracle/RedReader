@@ -747,7 +747,7 @@ public final class RedditPreparedPost {
 			silver_drawable.setBounds(0, 0, 28, 28);
 			ImageSpan silver = new ImageSpan(silver_drawable);
 			postListDescSb.setSpan(silver, ImageSpan.ALIGN_BASELINE);
-			postListDescSb.append(" x" + src.getSilverAmount() + " ", 0);
+			postListDescSb.append(BetterSSB.NBSP + "x" + src.getSilverAmount() + " ", 0);
 		}
 
 		if (src.getGoldAmount() > 0) {
@@ -755,7 +755,7 @@ public final class RedditPreparedPost {
 			gold_drawable.setBounds(0, 0, 28, 28);
 			ImageSpan gold = new ImageSpan(gold_drawable);
 			postListDescSb.setSpan(gold, ImageSpan.ALIGN_BASELINE);
-			postListDescSb.append(" x" + src.getGoldAmount() + " ", 0);
+			postListDescSb.append(BetterSSB.NBSP + "x" + src.getGoldAmount() + " ", 0);
 		}
 
 		if (src.getPlatinumAmount() > 0) {
@@ -763,7 +763,7 @@ public final class RedditPreparedPost {
 			platinum_drawable.setBounds(0, 0, 28, 28);
 			ImageSpan platinum = new ImageSpan(platinum_drawable);
 			postListDescSb.setSpan(platinum, ImageSpan.ALIGN_BASELINE);
-			postListDescSb.append(" x" + src.getPlatinumAmount() + " ", 0);
+			postListDescSb.append(BetterSSB.NBSP + "x" + src.getPlatinumAmount() + " ", 0);
 		}
 
 		postListDescSb.append(RRTime.formatDurationFrom(context, src.getCreatedTimeSecsUTC() * 1000), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, boldCol, 0, 1f);
