@@ -26,26 +26,42 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.ClipboardManager;
 import android.text.SpannableStringBuilder;
+import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
-import org.quantumbadger.redreader.activities.*;
+import org.quantumbadger.redreader.activities.BaseActivity;
+import org.quantumbadger.redreader.activities.BugReportActivity;
+import org.quantumbadger.redreader.activities.CommentEditActivity;
+import org.quantumbadger.redreader.activities.CommentReplyActivity;
+import org.quantumbadger.redreader.activities.MainActivity;
+import org.quantumbadger.redreader.activities.PostListingActivity;
+import org.quantumbadger.redreader.activities.WebViewActivity;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.cache.CacheRequest;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfNotCached;
-import org.quantumbadger.redreader.common.*;
+import org.quantumbadger.redreader.common.AndroidCommon;
+import org.quantumbadger.redreader.common.BetterSSB;
+import org.quantumbadger.redreader.common.Constants;
+import org.quantumbadger.redreader.common.General;
+import org.quantumbadger.redreader.common.LinkHandler;
+import org.quantumbadger.redreader.common.PrefsUtility;
+import org.quantumbadger.redreader.common.RRError;
+import org.quantumbadger.redreader.common.RRTime;
 import org.quantumbadger.redreader.fragments.PostPropertiesDialog;
 import org.quantumbadger.redreader.image.SaveImageCallback;
 import org.quantumbadger.redreader.image.ShareImageCallback;
@@ -61,7 +77,12 @@ import org.quantumbadger.redreader.views.bezelmenu.SideToolbarOverlay;
 import org.quantumbadger.redreader.views.bezelmenu.VerticalToolbar;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 public final class RedditPreparedPost {
 
@@ -721,11 +742,28 @@ public final class RedditPreparedPost {
 		postListDescSb.append(String.valueOf(score), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, pointsCol, 0, 1f);
 		postListDescSb.append(" " + context.getString(R.string.subtitle_points) + " ", 0);
 
+		if (src.getSilverAmount() > 0) {
+			Drawable silver_drawable = context.getResources().getDrawable(R.drawable.silver);
+			silver_drawable.setBounds(0, 0, 28, 28);
+			ImageSpan silver = new ImageSpan(silver_drawable);
+			postListDescSb.setSpan(silver, ImageSpan.ALIGN_BASELINE);
+			postListDescSb.append(" x" + src.getSilverAmount() + " ", 0);
+		}
+
 		if (src.getGoldAmount() > 0) {
-			postListDescSb.append(" ", 0);
-			postListDescSb.append(" " + context.getString(R.string.gold) + " x" + src.getGoldAmount() + " ",
-					BetterSSB.FOREGROUND_COLOR | BetterSSB.BACKGROUND_COLOR, rrGoldTextCol, rrGoldBackCol, 1f);
-			postListDescSb.append("  ", 0);
+			Drawable gold_drawable = context.getResources().getDrawable(R.drawable.gold);
+			gold_drawable.setBounds(0, 0, 28, 28);
+			ImageSpan gold = new ImageSpan(gold_drawable);
+			postListDescSb.setSpan(gold, ImageSpan.ALIGN_BASELINE);
+			postListDescSb.append(" x" + src.getGoldAmount() + " ", 0);
+		}
+
+		if (src.getPlatinumAmount() > 0) {
+			Drawable platinum_drawable = context.getResources().getDrawable(R.drawable.platinum);
+			platinum_drawable.setBounds(0, 0, 28, 28);
+			ImageSpan platinum = new ImageSpan(platinum_drawable);
+			postListDescSb.setSpan(platinum, ImageSpan.ALIGN_BASELINE);
+			postListDescSb.append(" x" + src.getPlatinumAmount() + " ", 0);
 		}
 
 		postListDescSb.append(RRTime.formatDurationFrom(context, src.getCreatedTimeSecsUTC() * 1000), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, boldCol, 0, 1f);

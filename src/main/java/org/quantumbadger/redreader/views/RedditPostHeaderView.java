@@ -21,7 +21,9 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.style.ImageSpan;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -144,11 +146,28 @@ public class RedditPostHeaderView extends LinearLayout {
 		postListDescSb.append(String.valueOf(post.computeScore()), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, pointsCol, 0, 1f);
 		postListDescSb.append(" " + context.getString(R.string.subtitle_points) + " ", 0);
 
+		if (post.src.getSilverAmount() > 0) {
+			Drawable silver_drawable = context.getResources().getDrawable(R.drawable.silver);
+			silver_drawable.setBounds(0, 0, 28, 28);
+			ImageSpan silver = new ImageSpan(silver_drawable);
+			postListDescSb.setSpan(silver, ImageSpan.ALIGN_BASELINE);
+			postListDescSb.append(" x" + post.src.getSilverAmount() + " ", 0);
+		}
+
 		if(post.src.getGoldAmount() > 0) {
-			postListDescSb.append(" ", 0);
-			postListDescSb.append(" " + context.getString(R.string.gold) + " x" + post.src.getGoldAmount() + " ",
-					BetterSSB.FOREGROUND_COLOR | BetterSSB.BACKGROUND_COLOR, rrGoldTextCol, rrGoldBackCol, 1f);
-			postListDescSb.append("  ", 0);
+			Drawable gold_drawable = context.getResources().getDrawable(R.drawable.gold);
+			gold_drawable.setBounds(0, 0, 28, 28);
+			ImageSpan gold = new ImageSpan(gold_drawable);
+			postListDescSb.setSpan(gold, ImageSpan.ALIGN_BASELINE);
+			postListDescSb.append(" x" + post.src.getGoldAmount() + " ", 0);
+		}
+
+		if (post.src.getPlatinumAmount() > 0) {
+			Drawable platinum_drawable = context.getResources().getDrawable(R.drawable.platinum);
+			platinum_drawable.setBounds(0, 0, 28, 28);
+			ImageSpan platinum = new ImageSpan(platinum_drawable);
+			postListDescSb.setSpan(platinum, ImageSpan.ALIGN_BASELINE);
+			postListDescSb.append(" x" + post.src.getPlatinumAmount() + " ", 0);
 		}
 
 		postListDescSb.append(RRTime.formatDurationFrom(context, post.src.getCreatedTimeSecsUTC() * 1000), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, boldCol, 0, 1f);

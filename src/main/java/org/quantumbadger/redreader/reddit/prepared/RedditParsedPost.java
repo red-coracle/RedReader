@@ -23,6 +23,8 @@ import org.quantumbadger.redreader.reddit.prepared.markdown.MarkdownParser;
 import org.quantumbadger.redreader.reddit.things.RedditPost;
 import org.quantumbadger.redreader.reddit.things.RedditThingWithIdAndType;
 
+import java.io.IOException;
+
 public class RedditParsedPost implements RedditThingWithIdAndType {
 
 	private final RedditPost mSrc;
@@ -129,8 +131,16 @@ public class RedditParsedPost implements RedditThingWithIdAndType {
 		return score;
 	}
 
+	public int getSilverAmount() {
+		return mSrc.getSilver();
+	}
+
 	public int getGoldAmount() {
-		return mSrc.gilded;
+		return mSrc.getGold();
+	}
+
+	public int getPlatinumAmount() {
+		return mSrc.getPlatinum();
 	}
 
 	public boolean isNsfw() {

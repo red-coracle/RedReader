@@ -112,4 +112,10 @@ public class BetterSSB {
 	public SpannableStringBuilder get() {
 		return sb;
 	}
+
+	public void setSpan(Object what, int flags) {
+		final int start = sb.length();
+		sb.append(" ");
+		this.sb.setSpan(what, start, start + 1, flags);
+	}
 }

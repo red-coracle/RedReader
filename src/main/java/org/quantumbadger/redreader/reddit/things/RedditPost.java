@@ -21,17 +21,21 @@ package org.quantumbadger.redreader.reddit.things;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
+
 import org.quantumbadger.redreader.jsonwrap.JsonBufferedObject;
+
+import java.io.IOException;
 
 public final class RedditPost implements Parcelable, RedditThingWithIdAndType {
 
 	public String id, name;
 	public String title, url, author, domain, subreddit, subreddit_id;
-	public int num_comments, score, ups, downs, gilded;
+	public int num_comments, score, ups, downs, gilded, silver, gold, platinum;
 	public boolean archived, over_18, hidden, saved, is_self, clicked, stickied;
 	public Object edited;
 	public Boolean likes;
 	public Boolean spoiler;
+	public JsonBufferedObject gildings;
 
 	public long created, created_utc;
 
@@ -86,6 +90,9 @@ public final class RedditPost implements Parcelable, RedditThingWithIdAndType {
 		ups = in.readInt();
 		downs = in.readInt();
 		gilded = in.readInt();
+		silver = in.readInt();
+		gold = in.readInt();
+		platinum = in.readInt();
 		archived = in.readInt() == 1;
 		over_18 = in.readInt() == 1;
 		hidden = in.readInt() == 1;
@@ -149,6 +156,14 @@ public final class RedditPost implements Parcelable, RedditThingWithIdAndType {
 		parcel.writeInt(ups);
 		parcel.writeInt(downs);
 		parcel.writeInt(gilded);
+
+		getSilver();
+		parcel.writeInt(silver);
+		getGold();
+		parcel.writeInt(gold);
+		getPlatinum();
+		parcel.writeInt(platinum);
+
 		parcel.writeInt(archived ? 1 : 0);
 		parcel.writeInt(over_18 ? 1 : 0);
 		parcel.writeInt(hidden ? 1 : 0);
@@ -196,6 +211,51 @@ public final class RedditPost implements Parcelable, RedditThingWithIdAndType {
 			return new RedditPost[size];
 		}
 	};
+
+	public int getSilver() {
+		if (this.gildings != null) {
+			try {
+				this.silver = this.gildings.getLong("gid_1").intValue();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			this.silver = 0;
+		}
+		return this.silver;
+	}
+
+	public int getGold() {
+		if (this.gildings != null) {
+			try {
+				this.gold = this.gildings.getLong("gid_2").intValue();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			this.gold = 0;
+		}
+		return this.gold;
+	}
+
+	public int getPlatinum() {
+		if (this.gildings != null) {
+			try {
+				this.platinum = this.gildings.getLong("gid_3").intValue();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			this.platinum = 0;
+		}
+		return this.platinum;
+	}
 
 	@Override
 	public String getIdAlone() {
