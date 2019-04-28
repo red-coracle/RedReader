@@ -23,10 +23,12 @@ import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.quantumbadger.redreader.common.LinkHandler;
+import org.quantumbadger.redreader.jsonwrap.JsonBufferedObject;
 import org.quantumbadger.redreader.jsonwrap.JsonValue;
 import org.quantumbadger.redreader.reddit.url.PostCommentListingURL;
 
 import java.util.HashSet;
+import java.util.Objects;
 
 
 public final class RedditComment implements Parcelable, RedditThingWithIdAndType {
@@ -41,6 +43,8 @@ public final class RedditComment implements Parcelable, RedditThingWithIdAndType
 
 	public int ups, downs;
 	public int gilded;
+	public JsonBufferedObject gildings;
+	private int silver, gold, platinum;
 
 	public Object edited;
 
@@ -93,6 +97,9 @@ public final class RedditComment implements Parcelable, RedditThingWithIdAndType
 
 		saved = in.readInt() != 0;
 		gilded = in.readInt();
+		silver = in.readInt();
+		gold = in.readInt();
+		platinum = in.readInt();
 
 		distinguished = in.readString();
 	}
@@ -133,6 +140,12 @@ public final class RedditComment implements Parcelable, RedditThingWithIdAndType
 
 		parcel.writeInt(saved ? 1 : 0);
 		parcel.writeInt(gilded);
+		getSilver();
+		parcel.writeInt(silver);
+		getGold();
+		parcel.writeInt(gold);
+		getPlatinum();
+		parcel.writeInt(platinum);
 
 		parcel.writeString(distinguished);
 	}
@@ -145,6 +158,39 @@ public final class RedditComment implements Parcelable, RedditThingWithIdAndType
 	@Override
 	public String getIdAndType() {
 		return name;
+	}
+
+	public int getSilver() {
+		if(this.gildings != null && this.gildings.toString().contains("gid_1")) {
+			try {
+				this.silver = Integer.parseInt(Objects.requireNonNull(this.gildings.getString("gid_1")));
+			} catch(final Exception e) {
+				this.silver = 0;
+			}
+		}
+		return this.silver;
+	}
+
+	public int getGold() {
+		if(this.gildings != null && this.gildings.toString().contains("gid_2")) {
+			try {
+				this.gold = Integer.parseInt(Objects.requireNonNull(this.gildings.getString("gid_2")));
+			} catch(final Exception e) {
+				this.gold = 0;
+			}
+		}
+		return this.gold;
+	}
+
+	public int getPlatinum() {
+		if(this.gildings != null && this.gildings.toString().contains("gid_3")) {
+			try {
+				this.platinum = Integer.parseInt(Objects.requireNonNull(this.gildings.getString("gid_3")));
+			} catch(final Exception e) {
+				this.platinum = 0;
+			}
+		}
+		return this.platinum;
 	}
 
 	public boolean isArchived() {

@@ -19,7 +19,9 @@ package org.quantumbadger.redreader.reddit.prepared;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.style.ImageSpan;
 import android.view.View;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -169,22 +171,28 @@ public class RedditRenderableComment implements RedditRenderableInboxItem, Reddi
 		}
 
 		if(theme.shouldShow(PrefsUtility.AppearanceCommentHeaderItem.GOLD)) {
+			if (rawComment.getSilver() > 0) {
+				Drawable silver_drawable = context.getResources().getDrawable(R.drawable.silver);
+				silver_drawable.setBounds(0, 0, 28, 28);
+				ImageSpan silver = new ImageSpan(silver_drawable);
+				sb.setSpan(silver, ImageSpan.ALIGN_BASELINE);
+				sb.append(BetterSSB.NBSP + "x" + rawComment.getSilver() + " ", 0);
+			}
 
-			if(rawComment.gilded > 0) {
+			if (rawComment.getGold() > 0) {
+				Drawable gold_drawable = context.getResources().getDrawable(R.drawable.gold);
+				gold_drawable.setBounds(0, 0, 28, 28);
+				ImageSpan gold = new ImageSpan(gold_drawable);
+				sb.setSpan(gold, ImageSpan.ALIGN_BASELINE);
+				sb.append(BetterSSB.NBSP + "x" + rawComment.getGold() + " ", 0);
+			}
 
-				sb.append(" ", 0);
-
-				sb.append(" "
-								+ context.getString(R.string.gold)
-								+ BetterSSB.NBSP + "x"
-								+ rawComment.gilded
-								+ " ",
-						BetterSSB.FOREGROUND_COLOR | BetterSSB.BACKGROUND_COLOR,
-						theme.rrGoldTextCol,
-						theme.rrGoldBackCol,
-						1f);
-
-				sb.append("  ", 0);
+			if (rawComment.getPlatinum() > 0) {
+				Drawable platinum_drawable = context.getResources().getDrawable(R.drawable.platinum);
+				platinum_drawable.setBounds(0, 0, 28, 28);
+				ImageSpan platinum = new ImageSpan(platinum_drawable);
+				sb.setSpan(platinum, ImageSpan.ALIGN_BASELINE);
+				sb.append(BetterSSB.NBSP + "x" + rawComment.getPlatinum() + " ", 0);
 			}
 		}
 

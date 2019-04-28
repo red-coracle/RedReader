@@ -24,18 +24,20 @@ import android.support.annotation.Nullable;
 
 import org.quantumbadger.redreader.jsonwrap.JsonBufferedObject;
 
-import java.io.IOException;
+import java.util.Objects;
 
 public final class RedditPost implements Parcelable, RedditThingWithIdAndType {
 
 	public String id, name;
 	public String title, url, author, domain, subreddit, subreddit_id;
-	public int num_comments, score, ups, downs, gilded, silver, gold, platinum;
+	public int num_comments, score, ups, downs, gilded;
 	public boolean archived, over_18, hidden, saved, is_self, clicked, stickied;
 	public Object edited;
 	public Boolean likes;
 	public Boolean spoiler;
+
 	public JsonBufferedObject gildings;
+	public int silver, gold, platinum;
 
 	public long created, created_utc;
 
@@ -213,46 +215,34 @@ public final class RedditPost implements Parcelable, RedditThingWithIdAndType {
 	};
 
 	public int getSilver() {
-		if (this.gildings != null) {
+		if(this.gildings != null && this.gildings.toString().contains("gid_1")) {
 			try {
-				this.silver = this.gildings.getLong("gid_1").intValue();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+				this.silver = Integer.parseInt(Objects.requireNonNull(this.gildings.getString("gid_1")));
+			} catch(final Exception e) {
+				this.silver = 0;
 			}
-		} else {
-			this.silver = 0;
 		}
 		return this.silver;
 	}
 
 	public int getGold() {
-		if (this.gildings != null) {
+		if(this.gildings != null && this.gildings.toString().contains("gid_2")) {
 			try {
-				this.gold = this.gildings.getLong("gid_2").intValue();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+				this.gold = Integer.parseInt(Objects.requireNonNull(this.gildings.getString("gid_2")));
+			} catch(final Exception e) {
+				this.gold = 0;
 			}
-		} else {
-			this.gold = 0;
 		}
 		return this.gold;
 	}
 
 	public int getPlatinum() {
-		if (this.gildings != null) {
+		if(this.gildings != null && this.gildings.toString().contains("gid_3")) {
 			try {
-				this.platinum = this.gildings.getLong("gid_3").intValue();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+				this.platinum = Integer.parseInt(Objects.requireNonNull(this.gildings.getString("gid_3")));
+			} catch(final Exception e) {
+				this.platinum = 0;
 			}
-		} else {
-			this.platinum = 0;
 		}
 		return this.platinum;
 	}
