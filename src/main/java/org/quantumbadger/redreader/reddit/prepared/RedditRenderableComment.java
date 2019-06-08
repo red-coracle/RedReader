@@ -27,6 +27,7 @@ import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountManager;
 import org.quantumbadger.redreader.common.BetterSSB;
 import org.quantumbadger.redreader.common.Constants;
+import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.RRThemeAttributes;
@@ -147,7 +148,7 @@ public class RedditRenderableComment implements RedditRenderableInboxItem, Reddi
 			}
 
 			sb.append(
-					" " + flair + "\u200E ",
+					" " + flair + General.LTR_OVERRIDE_MARK + " ",
 					BetterSSB.FOREGROUND_COLOR | BetterSSB.BACKGROUND_COLOR,
 					theme.rrFlairTextCol,
 					theme.rrFlairBackCol,
