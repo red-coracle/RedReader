@@ -42,6 +42,7 @@ import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.fragments.MainMenuFragment;
+import org.quantumbadger.redreader.fragments.ShareOrderDialog;
 import org.quantumbadger.redreader.reddit.api.RedditSubredditSubscriptionManager;
 import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
 import org.quantumbadger.redreader.reddit.url.MultiredditPostListURL;
@@ -131,8 +132,8 @@ public class MainMenuListingManager {
 					R.attr.rrIconSend,
 					R.attr.rrIconStarFilled,
 					R.attr.rrIconCross,
-					R.attr.rrIconUpvote,
-					R.attr.rrIconDownvote
+					R.attr.rrIconArrowUpBold,
+					R.attr.rrIconArrowDownBold
 			});
 
 			rrIconPerson = ContextCompat.getDrawable(activity, attr.getResourceId(0, 0));
@@ -664,7 +665,14 @@ public class MainMenuListingManager {
 					final Intent mailer = new Intent(Intent.ACTION_SEND);
 					mailer.setType("text/plain");
 					mailer.putExtra(Intent.EXTRA_TEXT, url);
-					activity.startActivity(Intent.createChooser(mailer, activity.getString(R.string.action_share)));
+
+					if(PrefsUtility.pref_behaviour_sharing_dialog(
+							activity,
+							PreferenceManager.getDefaultSharedPreferences(activity))){
+						ShareOrderDialog.newInstance(mailer).show(activity.getSupportFragmentManager(), null);
+					} else {
+						activity.startActivity(Intent.createChooser(mailer, activity.getString(R.string.action_share)));
+					}
 					break;
 				case COPY_URL:
 					ClipboardManager manager = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
