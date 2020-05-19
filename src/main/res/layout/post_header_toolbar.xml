@@ -23,7 +23,8 @@
 	android:layout_height="wrap_content"
 	android:background="?rrPostToolbarCol"
 	android:orientation="horizontal"
-	android:visibility="visible">
+	android:visibility="visible"
+	android:paddingLeft="6dp">
 
 	<ImageButton
 			android:id="@+id/post_toolbar_botton_add_upvote"

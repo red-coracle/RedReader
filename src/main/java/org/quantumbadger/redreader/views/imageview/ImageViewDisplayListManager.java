@@ -17,24 +17,14 @@
 
 package org.quantumbadger.redreader.views.imageview;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.util.Log;
-
 import org.quantumbadger.redreader.common.MutableFloatPoint2D;
-import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.UIThreadRepeatingTimer;
 import org.quantumbadger.redreader.common.collections.Stack;
 import org.quantumbadger.redreader.views.glview.Refreshable;
-import org.quantumbadger.redreader.views.glview.displaylist.RRGLDisplayList;
-import org.quantumbadger.redreader.views.glview.displaylist.RRGLDisplayListRenderer;
-import org.quantumbadger.redreader.views.glview.displaylist.RRGLRenderableGroup;
-import org.quantumbadger.redreader.views.glview.displaylist.RRGLRenderableScale;
-import org.quantumbadger.redreader.views.glview.displaylist.RRGLRenderableTexturedQuad;
-import org.quantumbadger.redreader.views.glview.displaylist.RRGLRenderableTranslation;
+import org.quantumbadger.redreader.views.glview.displaylist.*;
 import org.quantumbadger.redreader.views.glview.program.RRGLContext;
 import org.quantumbadger.redreader.views.glview.program.RRGLTexture;
 
@@ -53,6 +43,15 @@ public class ImageViewDisplayListManager implements
 
 	private static final long TAP_MAX_DURATION_MS = 225;
 	private static final long DOUBLE_TAP_MAX_GAP_DURATION_MS = 275;
+
+	private static final Bitmap NOT_LOADED_BITMAP;
+
+	static {
+		NOT_LOADED_BITMAP = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888);
+
+		final Canvas notLoadedCanvas = new Canvas(NOT_LOADED_BITMAP);
+		notLoadedCanvas.drawRGB(70, 70, 70);
+	}
 
 	private final Listener mListener;
 
@@ -104,10 +103,10 @@ public class ImageViewDisplayListManager implements
 
 	private float mScreenDensity = 1;
 
-	private final int mLoadingCheckerboardDarkCol;
-	private final int mLoadingCheckerboardLightCol;
+	public ImageViewDisplayListManager(
+			final ImageTileSource imageTileSource,
+			final Listener listener) {
 
-	public ImageViewDisplayListManager(final Context context, ImageTileSource imageTileSource, Listener listener) {
 		mImageTileSource = imageTileSource;
 		mListener = listener;
 		mHTileCount = mImageTileSource.getHTileCount();
@@ -123,15 +122,6 @@ public class ImageViewDisplayListManager implements
 				mTileLoaders[x][y] = new MultiScaleTileManager(imageTileSource, thread, x, y, this);
 			}
 		}
-
-		if(PrefsUtility.isNightMode(context)) {
-			mLoadingCheckerboardDarkCol = Color.rgb(70, 70, 70);
-			mLoadingCheckerboardLightCol = Color.rgb(110, 110, 110);
-
-		} else {
-			mLoadingCheckerboardDarkCol = Color.rgb(150, 150, 150);
-			mLoadingCheckerboardLightCol = Color.WHITE;
-		}
 	}
 
 	@Override
@@ -142,23 +132,7 @@ public class ImageViewDisplayListManager implements
 		mRefreshable = refreshable;
 		mScreenDensity = glContext.getScreenDensity();
 
-		final Bitmap notLoadedBitmap = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888);
-		final Canvas notLoadedCanvas = new Canvas(notLoadedBitmap);
-
-		final Paint lightPaint = new Paint();
-		final Paint darkPaint = new Paint();
-
-		lightPaint.setColor(mLoadingCheckerboardLightCol);
-		darkPaint.setColor(mLoadingCheckerboardDarkCol);
-
-		for(int x = 0; x < 4; x++) {
-			for(int y = 0; y < 4; y++) {
-				final Paint paint = ((x ^ y) & 1) == 0 ? lightPaint : darkPaint;
-				notLoadedCanvas.drawRect(x * 64, y * 64, (x + 1) * 64, (y + 1) * 64, paint);
-			}
-		}
-
-		mNotLoadedTexture = new RRGLTexture(glContext, notLoadedBitmap);
+		mNotLoadedTexture = new RRGLTexture(glContext, NOT_LOADED_BITMAP, false);
 
 		final RRGLRenderableGroup group = new RRGLRenderableGroup();
 
@@ -172,13 +146,28 @@ public class ImageViewDisplayListManager implements
 				final RRGLRenderableTexturedQuad quad = new RRGLRenderableTexturedQuad(glContext, mNotLoadedTexture);
 				mTiles[x][y] = quad;
 
-				final RRGLRenderableTranslation translation = new RRGLRenderableTranslation(quad);
-				translation.setPosition(x, y);
+				final RRGLRenderableScale scale = new RRGLRenderableScale(quad);
 
-				final RRGLRenderableScale scale = new RRGLRenderableScale(translation);
-				scale.setScale(mTileSize, mTileSize);
+				int tileWidth = mTileSize;
+				int tileHeight = mTileSize;
 
-				group.add(scale);
+				final int imageWidth = mImageTileSource.getWidth();
+				final int imageHeight = mImageTileSource.getHeight();
+
+				if(x == mHTileCount - 1 && imageWidth % mTileSize != 0) {
+					tileWidth = imageWidth % mTileSize;
+				}
+
+				if(y == mVTileCount - 1 && imageHeight % mTileSize != 0) {
+					tileHeight = imageHeight % mTileSize;
+				}
+
+				scale.setScale(tileWidth, tileHeight);
+
+				final RRGLRenderableTranslation translation = new RRGLRenderableTranslation(scale);
+				translation.setPosition(x * mTileSize, y * mTileSize);
+
+				group.add(translation);
 			}
 		}
 
@@ -290,7 +279,7 @@ public class ImageViewDisplayListManager implements
 						if(tile != null) {
 
 							try {
-								final RRGLTexture texture = new RRGLTexture(context, tile);
+								final RRGLTexture texture = new RRGLTexture(context, tile, true);
 								mTiles[x][y].setTexture(texture);
 								texture.releaseReference();
 								mTileLoaded[x][y] = true;

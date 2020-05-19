@@ -18,34 +18,21 @@
 package org.quantumbadger.redreader.views.imageview;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Rect;
-import android.util.Log;
+import android.graphics.Matrix;
 import org.quantumbadger.redreader.common.General;
-
-import java.io.IOException;
 
 public class ImageTileSourceWholeBitmap implements ImageTileSource {
 
-	private final byte[] mData;
-	private Bitmap mBitmap = null;
+	private final Bitmap mBitmap;
 
 	private final int mWidth, mHeight;
 
 	private static final int TILE_SIZE = 512;
 
-	public ImageTileSourceWholeBitmap(final byte[] data) throws IOException {
-
-		mData = data;
-
-		BitmapFactory.Options opts = new BitmapFactory.Options();
-		opts.inJustDecodeBounds = true;
-
-		final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+	public ImageTileSourceWholeBitmap(final Bitmap bitmap) {
+		mBitmap = bitmap;
 		mWidth = bitmap.getWidth();
 		mHeight = bitmap.getHeight();
-		bitmap.recycle();
 	}
 
 	@Override
@@ -74,69 +61,44 @@ public class ImageTileSourceWholeBitmap implements ImageTileSource {
 	}
 
 	@Override
-	public synchronized Bitmap getTile(final int sampleSize, final int tileX, final int tileY) {
+	public Bitmap getTile(final int sampleSize, final int tileX, final int tileY) {
 
-		if(mBitmap == null) {
-			Log.i("ImageTileSourceWholeBitmap", "Loading bitmap.");
-			mBitmap = BitmapFactory.decodeByteArray(mData, 0, mData.length);
+		if(sampleSize == 1 && TILE_SIZE >= mWidth && TILE_SIZE >= mHeight) {
+			return mBitmap;
 		}
 
 		final int tileStartX = tileX * TILE_SIZE;
 		final int tileStartY = tileY * TILE_SIZE;
-		final int tileEndX = (tileX + 1) * TILE_SIZE;
-		final int tileEndY = (tileY + 1) * TILE_SIZE;
+		final int tileEndX = Math.min(mWidth, (tileX + 1) * TILE_SIZE);
+		final int tileEndY = Math.min(mHeight, (tileY + 1) * TILE_SIZE);
 
-		final int outputTileSize = TILE_SIZE / sampleSize;
+		final int inputTileWidthPx = tileEndX - tileStartX;
+		final int inputTileHeightPx = tileEndY - tileStartY;
 
-		if(tileEndX <= getWidth() && tileEndY <= getHeight()) {
-
-			final Bitmap region = Bitmap.createBitmap(
+		if(sampleSize == 1) {
+			return Bitmap.createBitmap(
 					mBitmap,
 					tileStartX,
 					tileStartY,
-					tileEndX - tileStartX,
-					tileEndY - tileStartY);
-
-			return Bitmap.createScaledBitmap(region, outputTileSize, outputTileSize, true);
-
-		} else {
-
-			final Bitmap tile = Bitmap.createBitmap(outputTileSize, outputTileSize, Bitmap.Config.ARGB_8888);
-			final Canvas canvas = new Canvas(tile);
-
-			final int tileLimitedEndX = Math.min(tileEndX, getWidth());
-			final int tileLimitedEndY = Math.min(tileEndY, getHeight());
-
-			final Rect srcRect = new Rect(
-					tileStartX,
-					tileStartY,
-					tileLimitedEndX,
-					tileLimitedEndY
-			);
-
-			final int srcTileWidth = tileLimitedEndX - tileStartX;
-			final int srcTileHeight = tileLimitedEndY - tileStartY;
-
-			final Rect dstRect = new Rect(
-					0,
-					0,
-					srcTileWidth / sampleSize,
-					srcTileHeight / sampleSize
-			);
-
-			canvas.drawBitmap(mBitmap, srcRect, dstRect, null);
-
-			return tile;
+					inputTileWidthPx,
+					inputTileHeightPx);
 		}
+
+		final Matrix scaleMatrix = new Matrix();
+		scaleMatrix.setScale(1.0f / sampleSize, 1.0f / sampleSize);
+
+		return Bitmap.createBitmap(
+				mBitmap,
+				tileStartX,
+				tileStartY,
+				inputTileWidthPx,
+				inputTileHeightPx,
+				scaleMatrix,
+				true);
 	}
 
 	@Override
-	public synchronized void dispose() {
-
-		if(mBitmap != null && !mBitmap.isRecycled()) {
-			mBitmap.recycle();
-		}
-
-		mBitmap = null;
+	public void dispose() {
+		// Nothing to do here
 	}
 }

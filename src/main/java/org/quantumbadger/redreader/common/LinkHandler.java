@@ -18,6 +18,7 @@
 package org.quantumbadger.redreader.common;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -31,17 +32,33 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.util.TypedValue;
-
 import org.quantumbadger.redreader.R;
-import org.quantumbadger.redreader.activities.*;
+import org.quantumbadger.redreader.activities.AlbumListingActivity;
+import org.quantumbadger.redreader.activities.BaseActivity;
+import org.quantumbadger.redreader.activities.CommentListingActivity;
+import org.quantumbadger.redreader.activities.ImageViewActivity;
+import org.quantumbadger.redreader.activities.PostListingActivity;
+import org.quantumbadger.redreader.activities.WebViewActivity;
 import org.quantumbadger.redreader.cache.CacheRequest;
 import org.quantumbadger.redreader.fragments.ShareOrderDialog;
 import org.quantumbadger.redreader.fragments.UserProfileDialog;
-import org.quantumbadger.redreader.image.*;
+import org.quantumbadger.redreader.image.DeviantArtAPI;
+import org.quantumbadger.redreader.image.GetAlbumInfoListener;
+import org.quantumbadger.redreader.image.GetImageInfoListener;
+import org.quantumbadger.redreader.image.GfycatAPI;
+import org.quantumbadger.redreader.image.ImageInfo;
+import org.quantumbadger.redreader.image.ImgurAPI;
+import org.quantumbadger.redreader.image.ImgurAPIV3;
+import org.quantumbadger.redreader.image.RedditVideosAPI;
+import org.quantumbadger.redreader.image.SaveImageCallback;
+import org.quantumbadger.redreader.image.ShareImageCallback;
+import org.quantumbadger.redreader.image.StreamableAPI;
 import org.quantumbadger.redreader.reddit.things.RedditPost;
 import org.quantumbadger.redreader.reddit.url.RedditURLParser;
 
@@ -173,31 +190,16 @@ public class LinkHandler {
 				}
 
 				case INTERNAL_BROWSER: {
-					final Intent intent = new Intent();
 					if (PrefsUtility.pref_behaviour_usecustomtabs(activity, sharedPreferences) &&
 							Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-						intent.setAction(Intent.ACTION_VIEW);
-						intent.setData(Uri.parse(url));
-						intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-						Bundle bundle = new Bundle();
-						bundle.putBinder("android.support.customtabs.extra.SESSION", null);
-						intent.putExtras(bundle);
-
-						intent.putExtra("android.support.customtabs.extra.SHARE_MENU_ITEM", true);
-
-						TypedValue typedValue = new TypedValue();
-						activity.getTheme().resolveAttribute(R.attr.colorPrimary, typedValue, true);
-
-						intent.putExtra("android.support.customtabs.extra.TOOLBAR_COLOR", typedValue.data);
-
-						intent.putExtra("android.support.customtabs.extra.ENABLE_URLBAR_HIDING", true);
+						openCustomTab(activity, Uri.parse(url));
 					} else {
+						final Intent intent = new Intent();
 						intent.setClass(activity, WebViewActivity.class);
 						intent.putExtra("url", url);
 						intent.putExtra("post", post);
+						activity.startActivity(intent);
 					}
-					activity.startActivity(intent);
 					return;
 				}
 
@@ -264,32 +266,17 @@ public class LinkHandler {
 			}
 		}
 
-		final Intent intent = new Intent();
 		if (PrefsUtility.pref_behaviour_usecustomtabs(activity, sharedPreferences)
 				&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-			intent.setAction(Intent.ACTION_VIEW);
-			intent.setData(Uri.parse(url));
-			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-			Bundle bundle = new Bundle();
-			bundle.putBinder("android.support.customtabs.extra.SESSION", null);
-			intent.putExtras(bundle);
-
-			intent.putExtra("android.support.customtabs.extra.SHARE_MENU_ITEM", true);
-
-			TypedValue typedValue = new TypedValue();
-			activity.getTheme().resolveAttribute(R.attr.colorPrimary, typedValue, true);
-
-			intent.putExtra("android.support.customtabs.extra.TOOLBAR_COLOR", typedValue.data);
-
-			intent.putExtra("android.support.customtabs.extra.ENABLE_URLBAR_HIDING", true);
+			openCustomTab(activity, Uri.parse(url));
 		} else {
+			final Intent intent = new Intent();
 			intent.setClass(activity, WebViewActivity.class);
 			intent.putExtra("url", url);
 			intent.putExtra("post", post);
+			activity.startActivity(intent);
 		}
 
-		activity.startActivity(intent);
 	}
 
 	public static void onLinkLongClicked(AppCompatActivity activity, String uri){
@@ -351,17 +338,7 @@ public class LinkHandler {
 	public static void onActionMenuItemSelected(String uri, AppCompatActivity activity, LinkAction action){
 		switch (action){
 			case SHARE:
-				final Intent mailer = new Intent(Intent.ACTION_SEND);
-				mailer.setType("text/plain");
-				mailer.putExtra(Intent.EXTRA_TEXT, uri);
-
-				if(PrefsUtility.pref_behaviour_sharing_dialog(
-						activity,
-						PreferenceManager.getDefaultSharedPreferences(activity))){
-					ShareOrderDialog.newInstance(mailer).show(activity.getSupportFragmentManager(), null);
-				} else {
-					activity.startActivity(Intent.createChooser(mailer, activity.getString(R.string.action_share)));
-				}
+				shareText(activity, null, uri);
 				break;
 			case COPY_URL:
 				ClipboardManager manager = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -395,7 +372,7 @@ public class LinkHandler {
 				return true;
 
 			} catch(Exception e) {
-				General.quickToast(activity, "Failed to open url \"" + uri.toString() + "\" in external browser");
+				General.quickToast(activity, String.format(activity.getString(R.string.error_toast_failed_open_external_browser), uri.toString()));
 			}
 
 		} else {
@@ -436,6 +413,29 @@ public class LinkHandler {
 		}
 
 		return false;
+	}
+
+	@TargetApi(18)
+	public static void openCustomTab(AppCompatActivity activity, Uri uri) {
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_VIEW);
+		intent.setData(uri);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+		Bundle bundle = new Bundle();
+		bundle.putBinder("android.support.customtabs.extra.SESSION", null);
+		intent.putExtras(bundle);
+
+		intent.putExtra("android.support.customtabs.extra.SHARE_MENU_ITEM", true);
+
+		TypedValue typedValue = new TypedValue();
+		activity.getTheme().resolveAttribute(R.attr.colorPrimary, typedValue, true);
+
+		intent.putExtra("android.support.customtabs.extra.TOOLBAR_COLOR", typedValue.data);
+
+		intent.putExtra("android.support.customtabs.extra.ENABLE_URLBAR_HIDING", true);
+
+		activity.startActivity(intent);
 	}
 
 	public static final Pattern imgurPattern = Pattern.compile(".*[^A-Za-z]imgur\\.com/(\\w+).*"),
@@ -879,6 +879,7 @@ public class LinkHandler {
 
 		return result;
 	}
+
 	private static class LinkMenuItem {
 		public final String title;
 		public final LinkAction action;
@@ -886,6 +887,33 @@ public class LinkHandler {
 		private LinkMenuItem(Context context, int titleRes, LinkAction action) {
 			this.title = context.getString(titleRes);
 			this.action = action;
+		}
+	}
+
+	public static void shareText(
+			@NonNull final AppCompatActivity activity,
+			@Nullable final String subject,
+			@NonNull final String text) {
+
+		final Intent mailer = new Intent(Intent.ACTION_SEND);
+		mailer.setType("text/plain");
+		mailer.putExtra(Intent.EXTRA_TEXT, text);
+
+		if(subject != null) {
+			mailer.putExtra(Intent.EXTRA_SUBJECT, subject);
+		}
+
+		if(PrefsUtility.pref_behaviour_sharing_dialog(
+				activity,
+				PreferenceManager.getDefaultSharedPreferences(activity))) {
+			ShareOrderDialog.newInstance(mailer).show(
+					activity.getSupportFragmentManager(),
+					null);
+
+		} else {
+			activity.startActivity(Intent.createChooser(
+					mailer,
+					activity.getString(R.string.action_share)));
 		}
 	}
 }

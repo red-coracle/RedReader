@@ -31,7 +31,8 @@ import org.quantumbadger.redreader.fragments.MainMenuFragment;
 import org.quantumbadger.redreader.io.WritableHashSet;
 import org.quantumbadger.redreader.reddit.PostSort;
 import org.quantumbadger.redreader.reddit.prepared.RedditPreparedPost;
-import org.quantumbadger.redreader.reddit.things.RedditSubreddit;
+import org.quantumbadger.redreader.reddit.things.InvalidSubredditNameException;
+import org.quantumbadger.redreader.reddit.things.SubredditCanonicalId;
 import org.quantumbadger.redreader.reddit.url.PostCommentListingURL;
 
 import java.io.File;
@@ -40,6 +41,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -231,6 +233,10 @@ public final class PrefsUtility {
 	}
 
 	public static AppearanceThumbnailsShow appearance_thumbnails_show(final Context context, final SharedPreferences sharedPreferences) {
+		return AppearanceThumbnailsShow.valueOf(getString(R.string.pref_appearance_thumbnails_show_list_key, "always", context, sharedPreferences).toUpperCase());
+	}
+
+	public static AppearanceThumbnailsShow appearance_thumbnails_show_old(final Context context, final SharedPreferences sharedPreferences) {
 
 		if(!getBoolean(R.string.pref_appearance_thumbnails_show_key, true, context,  sharedPreferences)) {
 			return AppearanceThumbnailsShow.NEVER;
@@ -249,12 +255,36 @@ public final class PrefsUtility {
 		return Float.valueOf(getString(R.string.pref_appearance_fontscale_comments_key, "1", context,  sharedPreferences));
 	}
 
+	public static float appearance_fontscale_comment_headers(final Context context, final SharedPreferences sharedPreferences) {
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_comment_headers_key, "1", context, sharedPreferences));
+	}
+
 	public static float appearance_fontscale_inbox(final Context context, final SharedPreferences sharedPreferences) {
 		return Float.valueOf(getString(R.string.pref_appearance_fontscale_inbox_key, "1", context,  sharedPreferences));
 	}
 
 	public static float appearance_fontscale_posts(final Context context, final SharedPreferences sharedPreferences) {
 		return Float.valueOf(getString(R.string.pref_appearance_fontscale_posts_key, "1", context,  sharedPreferences));
+	}
+
+	public static float appearance_fontscale_post_subtitles(final Context context, final SharedPreferences sharedPreferences) {
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_post_subtitles_key, "1", context, sharedPreferences));
+	}
+
+	public static float appearance_fontscale_post_header_titles(final Context context, final SharedPreferences sharedPreferences) {
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_post_header_titles_key, "1", context, sharedPreferences));
+	}
+
+	public static float appearance_fontscale_post_header_subtitles(final Context context, final SharedPreferences sharedPreferences) {
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_post_header_subtitles_key, "1", context, sharedPreferences));
+	}
+
+	public static boolean appearance_fontscale_post_use_different_scales(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_appearance_fontscale_post_use_different_scales_key, false, context, sharedPreferences);
+	}
+
+	public static float appearance_fontscale_selftext(final Context context, final SharedPreferences sharedPreferences) {
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_selftext_key, "1", context, sharedPreferences));
 	}
 
 	public static boolean pref_appearance_hide_username_main_menu(final Context context, final SharedPreferences sharedPreferences) {
@@ -315,6 +345,34 @@ public final class PrefsUtility {
 
 	public static boolean pref_appearance_bottom_toolbar(final Context context, final SharedPreferences sharedPreferences) {
 		return getBoolean(R.string.pref_appearance_bottom_toolbar_key, false, context, sharedPreferences);
+	}
+
+	public enum AppearancePostSubtitleItem {
+		AUTHOR, FLAIR, SCORE, AGE, GOLD, SUBREDDIT, DOMAIN, STICKY, SPOILER, NSFW
+	}
+
+	public static EnumSet<AppearancePostSubtitleItem> appearance_post_subtitle_items(final Context context, final SharedPreferences sharedPreferences) {
+
+		final Set<String> strings = getStringSet(R.string.pref_appearance_post_subtitle_items_key, R.array.pref_appearance_post_subtitle_items_default, context, sharedPreferences);
+
+		final EnumSet<AppearancePostSubtitleItem> result = EnumSet.noneOf(AppearancePostSubtitleItem.class);
+		for(String s : strings) result.add(AppearancePostSubtitleItem.valueOf(General.asciiUppercase(s)));
+
+		return result;
+	}
+
+	public static boolean appearance_post_subtitle_items_use_different_settings(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_appearance_post_subtitle_items_use_different_settings_key, false, context, sharedPreferences);
+	}
+
+	public static EnumSet<AppearancePostSubtitleItem> appearance_post_header_subtitle_items(final Context context, final SharedPreferences sharedPreferences) {
+
+		final Set<String> strings = getStringSet(R.string.pref_appearance_post_header_subtitle_items_key, R.array.pref_appearance_post_subtitle_items_default, context, sharedPreferences);
+
+		final EnumSet<AppearancePostSubtitleItem> result = EnumSet.noneOf(AppearancePostSubtitleItem.class);
+		for(String s : strings) result.add(AppearancePostSubtitleItem.valueOf(General.asciiUppercase(s)));
+
+		return result;
 	}
 
 	public enum AppearanceCommentHeaderItem {
@@ -671,6 +729,10 @@ public final class PrefsUtility {
 	}
 
 	public static CachePrecacheImages cache_precache_images(final Context context, final SharedPreferences sharedPreferences) {
+		return CachePrecacheImages.valueOf(getString(R.string.pref_cache_precache_images_list_key, "wifionly", context, sharedPreferences).toUpperCase());
+	}
+
+	public static CachePrecacheImages cache_precache_images_old(final Context context, final SharedPreferences sharedPreferences) {
 
 		if(network_tor(context, sharedPreferences)) {
 			return CachePrecacheImages.NEVER;
@@ -692,6 +754,10 @@ public final class PrefsUtility {
 	}
 
 	public static CachePrecacheComments cache_precache_comments(final Context context, final SharedPreferences sharedPreferences) {
+		return CachePrecacheComments.valueOf(getString(R.string.pref_cache_precache_comments_list_key, "always", context, sharedPreferences).toUpperCase());
+	}
+
+	public static CachePrecacheComments cache_precache_comments_old(final Context context, final SharedPreferences sharedPreferences) {
 
 		if(!getBoolean(R.string.pref_cache_precache_comments_key, true, context,  sharedPreferences)) {
 			return CachePrecacheComments.NEVER;
@@ -788,15 +854,14 @@ public final class PrefsUtility {
 	// pref_pinned_subreddits
 	///////////////////////////////
 
-	public static List<String> pref_pinned_subreddits(final Context context, final SharedPreferences sharedPreferences) {
-		final String value = getString(R.string.pref_pinned_subreddits_key, "", context, sharedPreferences);
-		return WritableHashSet.escapedStringToList(value);
+	public static List<SubredditCanonicalId> pref_pinned_subreddits(final Context context, final SharedPreferences sharedPreferences) {
+		return pref_subreddits_list(context, sharedPreferences, R.string.pref_pinned_subreddits_key);
 	}
 
 	public static void pref_pinned_subreddits_add(
 			final Context context,
 			final SharedPreferences sharedPreferences,
-			final String subreddit) throws RedditSubreddit.InvalidSubredditNameException {
+			final SubredditCanonicalId subreddit) {
 
 		pref_subreddits_add(context, sharedPreferences, subreddit, R.string.pref_pinned_subreddits_key);
 	}
@@ -804,7 +869,7 @@ public final class PrefsUtility {
 	public static void pref_pinned_subreddits_remove(
 			final Context context,
 			final SharedPreferences sharedPreferences,
-			final String subreddit) throws RedditSubreddit.InvalidSubredditNameException {
+			final SubredditCanonicalId subreddit) {
 
 		pref_subreddits_remove(context, sharedPreferences, subreddit, R.string.pref_pinned_subreddits_key);
 	}
@@ -812,30 +877,26 @@ public final class PrefsUtility {
 	public static boolean pref_pinned_subreddits_check(
 			final Context context,
 			final SharedPreferences sharedPreferences,
-			final String subreddit) throws RedditSubreddit.InvalidSubredditNameException {
+			final SubredditCanonicalId id) {
 
-		final List<String> list = pref_pinned_subreddits(context, sharedPreferences);
-
-		for(final String existingSr : list) {
-			if(General.asciiLowercase(subreddit).equals(General.asciiLowercase(existingSr))) return true;
-		}
-
-		return false;
+		return pref_pinned_subreddits(context, sharedPreferences).contains(id);
 	}
 
 	///////////////////////////////
 	// pref_blocked_subreddits
 	///////////////////////////////
 
-	public static List<String> pref_blocked_subreddits(final Context context, final SharedPreferences sharedPreferences) {
-		final String value = getString(R.string.pref_blocked_subreddits_key, "", context, sharedPreferences);
-		return WritableHashSet.escapedStringToList(value);
+	public static List<SubredditCanonicalId> pref_blocked_subreddits(
+			final Context context,
+			final SharedPreferences sharedPreferences) {
+
+		return pref_subreddits_list(context, sharedPreferences, R.string.pref_blocked_subreddits_key);
 	}
 
 	public static void pref_blocked_subreddits_add(
 			final Context context,
 			final SharedPreferences sharedPreferences,
-			final String subreddit) throws RedditSubreddit.InvalidSubredditNameException {
+			final SubredditCanonicalId subreddit) {
 
 		pref_subreddits_add(context, sharedPreferences, subreddit, R.string.pref_blocked_subreddits_key);
 
@@ -845,7 +906,7 @@ public final class PrefsUtility {
 	public static void pref_blocked_subreddits_remove(
 			final Context context,
 			final SharedPreferences sharedPreferences,
-			final String subreddit) throws RedditSubreddit.InvalidSubredditNameException {
+			final SubredditCanonicalId subreddit) {
 
 		pref_subreddits_remove(context, sharedPreferences, subreddit, R.string.pref_blocked_subreddits_key);
 
@@ -855,49 +916,75 @@ public final class PrefsUtility {
 	public static boolean pref_blocked_subreddits_check(
 			final Context context,
 			final SharedPreferences sharedPreferences,
-			final String subreddit) throws RedditSubreddit.InvalidSubredditNameException {
+			final SubredditCanonicalId subreddit)  {
 
-		final List<String> list = pref_blocked_subreddits(context, sharedPreferences);
-
-		for(final String existingSr : list) {
-			if (General.asciiLowercase(subreddit).equals(General.asciiLowercase(existingSr))) return true;
-		}
-
-		return false;
+		return pref_blocked_subreddits(context, sharedPreferences).contains(subreddit);
 	}
 
 	///////////////////////////////
 	// Shared pref_subreddits methods
 	///////////////////////////////
 
-	private static void pref_subreddits_add(Context context, SharedPreferences sharedPreferences, String subreddit, int prefId) throws RedditSubreddit.InvalidSubredditNameException {
-		final String name = RedditSubreddit.getCanonicalName(subreddit);
+	private static void pref_subreddits_add(
+			final Context context,
+			final SharedPreferences sharedPreferences,
+			final SubredditCanonicalId subreddit,
+			final int prefId) {
 
 		final String value = getString(prefId, "", context, sharedPreferences);
 		final ArrayList<String> list = WritableHashSet.escapedStringToList(value);
-		list.add(name);
 
-		final String result = WritableHashSet.listToEscapedString(list);
-
-		sharedPreferences.edit().putString(context.getString(prefId), result).apply();
+		if(!list.contains(subreddit.toString())) {
+			list.add(subreddit.toString());
+			final String result = WritableHashSet.listToEscapedString(list);
+			sharedPreferences.edit().putString(context.getString(prefId), result).apply();
+		}
 	}
 
-	private static void pref_subreddits_remove(Context context, SharedPreferences sharedPreferences, String subreddit, int prefId) throws RedditSubreddit.InvalidSubredditNameException {
-		final String name = RedditSubreddit.getCanonicalName(subreddit);
+	private static void pref_subreddits_remove(
+			final Context context,
+			final SharedPreferences sharedPreferences,
+			final SubredditCanonicalId subreddit,
+			final int prefId) {
 
 		final String value = getString(prefId, "", context, sharedPreferences);
 		final ArrayList<String> list = WritableHashSet.escapedStringToList(value);
-		list.add(name);
 
-		final ArrayList<String> result = new ArrayList<>(list.size());
-		for(final String existingSr : list) {
-			if(!General.asciiLowercase(name).equals(General.asciiLowercase(existingSr))) {
-				result.add(existingSr);
+		final Iterator<String> iterator = list.iterator();
+
+		while(iterator.hasNext()) {
+
+			final String id = iterator.next();
+
+			if(id.equals(subreddit.toString())) {
+				iterator.remove();
+				break;
 			}
 		}
 
-		final String resultStr = WritableHashSet.listToEscapedString(result);
+		final String resultStr = WritableHashSet.listToEscapedString(list);
 
 		sharedPreferences.edit().putString(context.getString(prefId), resultStr).apply();
+	}
+
+	public static List<SubredditCanonicalId> pref_subreddits_list(
+			final Context context,
+			final SharedPreferences sharedPreferences,
+			final int prefId) {
+
+		final String value = getString(prefId, "", context, sharedPreferences);
+		final ArrayList<String> list = WritableHashSet.escapedStringToList(value);
+
+		final ArrayList<SubredditCanonicalId> result = new ArrayList<>(list.size());
+
+		try {
+			for(final String str : list) {
+				result.add(new SubredditCanonicalId(str));
+			}
+		} catch(final InvalidSubredditNameException e) {
+			throw new RuntimeException(e);
+		}
+
+		return result;
 	}
 }

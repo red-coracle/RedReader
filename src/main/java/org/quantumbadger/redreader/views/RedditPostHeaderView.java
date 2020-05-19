@@ -17,13 +17,10 @@
 
 package org.quantumbadger.redreader.views;
 
-import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.text.style.ImageSpan;
-import android.view.View;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageButton;
@@ -32,16 +29,13 @@ import android.widget.TextView;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
-import org.quantumbadger.redreader.common.BetterSSB;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
-import org.quantumbadger.redreader.common.RRTime;
+import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.reddit.prepared.RedditChangeDataManager;
 import org.quantumbadger.redreader.reddit.prepared.RedditPreparedPost;
 
 public class RedditPostHeaderView extends LinearLayout {
-
-	private final RedditPreparedPost post;
 
 	private final TextView subtitle;
 
@@ -51,7 +45,6 @@ public class RedditPostHeaderView extends LinearLayout {
 	public RedditPostHeaderView(final AppCompatActivity activity, final RedditPreparedPost post) {
 
 		super(activity);
-		this.post = post;
 
 		final float dpScale = activity.getResources().getDisplayMetrics().density;
 
@@ -67,16 +60,30 @@ public class RedditPostHeaderView extends LinearLayout {
 
 		final Typeface tf = Typeface.createFromAsset(activity.getAssets(), "fonts/Roboto-Light.ttf");
 
+		final float titleFontScale;
+		if(PrefsUtility.appearance_fontscale_post_use_different_scales(activity, PreferenceManager.getDefaultSharedPreferences(activity))) {
+			titleFontScale = PrefsUtility.appearance_fontscale_post_header_titles(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+		} else {
+			titleFontScale = PrefsUtility.appearance_fontscale_posts(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+		}
+
 		final TextView title = new TextView(activity);
-		title.setTextSize(19.0f);
+		title.setTextSize(19.0f * titleFontScale);
 		title.setTypeface(tf);
 		title.setText(post.src.getTitle());
 		title.setTextColor(Color.WHITE);
 		greyHeader.addView(title);
 
+		final float subtitleFontScale;
+		if(PrefsUtility.appearance_fontscale_post_use_different_scales(activity, PreferenceManager.getDefaultSharedPreferences(activity))) {
+			subtitleFontScale = PrefsUtility.appearance_fontscale_post_header_subtitles(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+		} else {
+			subtitleFontScale = PrefsUtility.appearance_fontscale_post_subtitles(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+		}
+
 		subtitle = new TextView(activity);
-		subtitle.setTextSize(13.0f);
-		rebuildSubtitle(activity);
+		subtitle.setTextSize(13.0f * subtitleFontScale);
+		subtitle.setText(post.rebuildSubtitle(activity, true));
 
 		subtitle.setTextColor(Color.rgb(200, 200, 200));
 		greyHeader.addView(subtitle);
@@ -131,7 +138,7 @@ public class RedditPostHeaderView extends LinearLayout {
 
 			final RedditChangeDataManager.Listener changeListener = thingIdAndType -> {
 
-				rebuildSubtitle(activity);
+				subtitle.setText(post.rebuildSubtitle(activity, true));
 
 				final boolean isUpvoted = changeDataManager.isUpvoted(post.src);
 				final boolean isDownvoted = changeDataManager.isDownvoted(post.src);
@@ -187,89 +194,5 @@ public class RedditPostHeaderView extends LinearLayout {
 		if(mChangeListenerRemoveTask != null) {
 			mChangeListenerRemoveTask.run();
 		}
-	}
-
-	private void rebuildSubtitle(Context context) {
-
-		// TODO customise display
-		// TODO preference for the X days, X hours thing
-
-		final int boldCol = Color.WHITE;
-		final int rrPostSubtitleUpvoteCol;
-		final int rrPostSubtitleDownvoteCol;
-		final int rrGoldTextCol;
-		final int rrGoldBackCol;
-
-		{
-			final TypedArray appearance = context.obtainStyledAttributes(new int[]{
-					R.attr.rrPostSubtitleBoldCol,
-					R.attr.rrPostSubtitleUpvoteCol,
-					R.attr.rrPostSubtitleDownvoteCol,
-					R.attr.rrGoldTextCol,
-					R.attr.rrGoldBackCol
-
-			});
-
-			rrPostSubtitleUpvoteCol = appearance.getColor(1, 255);
-			rrPostSubtitleDownvoteCol = appearance.getColor(2, 255);
-			rrGoldTextCol = appearance.getColor(3, 255);
-			rrGoldBackCol = appearance.getColor(4, 255);
-
-			appearance.recycle();
-		}
-
-		final BetterSSB postListDescSb = new BetterSSB();
-
-		final int pointsCol;
-		if(post.isUpvoted()) {
-			pointsCol = rrPostSubtitleUpvoteCol;
-		} else if(post.isDownvoted()) {
-			pointsCol = rrPostSubtitleDownvoteCol;
-		} else {
-			pointsCol = boldCol;
-		}
-
-		if(post.src.isNsfw()) {
-			postListDescSb.append(" NSFW ", BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR | BetterSSB.BACKGROUND_COLOR,
-					Color.WHITE, Color.RED, 1f); // TODO color?
-			postListDescSb.append("  ", 0);
-		}
-
-		postListDescSb.append(String.valueOf(post.computeScore()), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, pointsCol, 0, 1f);
-		postListDescSb.append(" " + context.getString(R.string.subtitle_points) + " ", 0);
-
-		if (post.src.getSilverAmount() > 0) {
-			Drawable silver_drawable = context.getResources().getDrawable(R.drawable.silver);
-			silver_drawable.setBounds(0, 0, 28, 28);
-			ImageSpan silver = new ImageSpan(silver_drawable);
-			postListDescSb.setSpan(silver, ImageSpan.ALIGN_BASELINE);
-			postListDescSb.append("x" + post.src.getSilverAmount() + " ", 0);
-		}
-
-		if(post.src.getGoldAmount() > 0) {
-			Drawable gold_drawable = context.getResources().getDrawable(R.drawable.gold);
-			gold_drawable.setBounds(0, 0, 28, 28);
-			ImageSpan gold = new ImageSpan(gold_drawable);
-			postListDescSb.setSpan(gold, ImageSpan.ALIGN_BASELINE);
-			postListDescSb.append("x" + post.src.getGoldAmount() + " ", 0);
-		}
-
-		if (post.src.getPlatinumAmount() > 0) {
-			Drawable platinum_drawable = context.getResources().getDrawable(R.drawable.platinum);
-			platinum_drawable.setBounds(0, 0, 28, 28);
-			ImageSpan platinum = new ImageSpan(platinum_drawable);
-			postListDescSb.setSpan(platinum, ImageSpan.ALIGN_BASELINE);
-			postListDescSb.append("x" + post.src.getPlatinumAmount() + " ", 0);
-		}
-
-		postListDescSb.append(RRTime.formatDurationFrom(context, post.src.getCreatedTimeSecsUTC() * 1000), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, boldCol, 0, 1f);
-		postListDescSb.append(" " + context.getString(R.string.subtitle_by) + " ", 0);
-		postListDescSb.append(post.src.getAuthor(), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, boldCol, 0, 1f);
-		postListDescSb.append(" " + context.getString(R.string.subtitle_to) + " ", 0);
-		postListDescSb.append(post.src.getSubreddit(), BetterSSB.BOLD | BetterSSB.FOREGROUND_COLOR, boldCol, 0, 1f);
-
-		postListDescSb.append(" (" + post.src.getDomain() + ")", 0);
-
-		subtitle.setText(postListDescSb.get());
 	}
 }

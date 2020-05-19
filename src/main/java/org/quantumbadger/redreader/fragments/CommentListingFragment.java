@@ -29,7 +29,11 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
@@ -48,7 +52,13 @@ import org.quantumbadger.redreader.adapters.GroupedRecyclerViewAdapter;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategy;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyAlways;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfNotCached;
-import org.quantumbadger.redreader.common.*;
+import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyIfTimestampOutsideBounds;
+import org.quantumbadger.redreader.common.General;
+import org.quantumbadger.redreader.common.PrefsUtility;
+import org.quantumbadger.redreader.common.RRError;
+import org.quantumbadger.redreader.common.RRThemeAttributes;
+import org.quantumbadger.redreader.common.RRTime;
+import org.quantumbadger.redreader.common.TimestampBound;
 import org.quantumbadger.redreader.reddit.CommentListingRequest;
 import org.quantumbadger.redreader.reddit.RedditCommentListItem;
 import org.quantumbadger.redreader.reddit.api.RedditAPICommentAction;
@@ -92,7 +102,7 @@ public class CommentListingFragment extends RRFragment
 	private final FrameLayout mOuterFrame;
 	private final @Nullable LinearLayout mFloatingToolbar;
 
-	private final float mCommentFontScale;
+	private final float mSelfTextFontScale;
 	private final boolean mShowLinkButtons;
 
 	private Long mCachedTimestamp = null;
@@ -123,6 +133,10 @@ public class CommentListingFragment extends RRFragment
 		if(forceDownload) {
 			mDownloadStrategy = DownloadStrategyAlways.INSTANCE;
 
+		} else if(session == null && savedInstanceState == null && General.isNetworkConnected(parent)) {
+			mDownloadStrategy = new DownloadStrategyIfTimestampOutsideBounds(
+					TimestampBound.notOlderThan(RRTime.minsToMs(20)));
+
 		} else {
 			mDownloadStrategy = DownloadStrategyIfNotCached.INSTANCE;
 		}
@@ -134,7 +148,7 @@ public class CommentListingFragment extends RRFragment
 		final Context context = getActivity();
 
 		final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		mCommentFontScale = PrefsUtility.appearance_fontscale_comments(context, prefs);
+		mSelfTextFontScale = PrefsUtility.appearance_fontscale_selftext(context, prefs);
 		mShowLinkButtons = PrefsUtility.pref_appearance_linkbuttons(context, prefs);
 
 		mOuterFrame = new FrameLayout(context);
@@ -484,7 +498,7 @@ public class CommentListingFragment extends RRFragment
 
 			if(post.src.getSelfText() != null) {
 				final ViewGroup selfText = post.src.getSelfText().buildView(
-						getActivity(), attr.rrMainTextCol, 14f * mCommentFontScale, mShowLinkButtons);
+						getActivity(), attr.rrMainTextCol, 14f * mSelfTextFontScale, mShowLinkButtons);
 				selfText.setFocusable(false);
 				selfText.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
 
@@ -551,8 +565,8 @@ public class CommentListingFragment extends RRFragment
 				mCommentListingManager.addNotification(specificCommentThreadView);
 			}
 
-			// TODO pref (currently 10 mins)
-			if(mCachedTimestamp != null && RRTime.since(mCachedTimestamp) > 10 * 60 * 1000) {
+			// 30 minutes
+			if(mCachedTimestamp != null && RRTime.since(mCachedTimestamp) > 30 * 60 * 1000) {
 
 				final TextView cacheNotif = (TextView) LayoutInflater.from(getActivity())
 					.inflate(R.layout.cached_header, null, false);
@@ -621,7 +635,11 @@ public class CommentListingFragment extends RRFragment
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu) {
-		if(mAllUrls != null && mAllUrls.size() > 0 && mAllUrls.get(0).pathType() == RedditURLParser.POST_COMMENT_LISTING_URL) {
+		if(mAllUrls != null && mAllUrls.size() > 0 && mAllUrls.get(0).pathType() == RedditURLParser.POST_COMMENT_LISTING_URL &&
+		PrefsUtility.pref_menus_optionsmenu_items(
+				getActivity(),
+				PreferenceManager.getDefaultSharedPreferences(getActivity()))
+				.contains(OptionsMenuUtility.OptionsMenuItemsPref.REPLY)) {
 			menu.add(R.string.action_reply);
 		}
 	}

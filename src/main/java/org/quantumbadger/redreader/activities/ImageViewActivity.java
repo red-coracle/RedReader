@@ -20,6 +20,7 @@ package org.quantumbadger.redreader.activities;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
@@ -78,7 +79,6 @@ import org.quantumbadger.redreader.views.imageview.ImageViewDisplayListManager;
 import org.quantumbadger.redreader.views.liststatus.ErrorView;
 import org.quantumbadger.redreader.views.video.ExoPlayerWrapperView;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -627,18 +627,9 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 
 			final ImageTileSource imageTileSource;
 			try {
-
-				final long bytes = cacheFile.getSize();
-				final byte[] buf = new byte[(int)bytes];
-
 				try {
-					new DataInputStream(cacheFileInputStream).readFully(buf);
-				} catch(IOException e) {
-					throw new RuntimeException(e);
-				}
-
-				try {
-					imageTileSource = new ImageTileSourceWholeBitmap(buf);
+					imageTileSource = new ImageTileSourceWholeBitmap(
+							BitmapFactory.decodeStream(cacheFileInputStream));
 
 				} catch(Throwable t) {
 					Log.e(TAG, "Exception when creating ImageTileSource", t);
@@ -660,7 +651,6 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 					if(mIsDestroyed) return;
 					mRequest = null;
 					mImageViewDisplayerManager = new ImageViewDisplayListManager(
-							ImageViewActivity.this,
 							imageTileSource,
 							ImageViewActivity.this);
 					surfaceView = new RRGLSurfaceView(ImageViewActivity.this, mImageViewDisplayerManager);
