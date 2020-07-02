@@ -24,9 +24,9 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -72,6 +72,9 @@ public final class PostListingHeader extends LinearLayout
 
 		mContext = activity.getApplicationContext();
 
+		final SharedPreferences sharedPreferences
+				= PreferenceManager.getDefaultSharedPreferences(activity);
+
 		final float dpScale = activity.getResources().getDisplayMetrics().density;
 
 		setOrientation(LinearLayout.VERTICAL);
@@ -112,7 +115,8 @@ public final class PostListingHeader extends LinearLayout
 
 		final RedditAccount currentUser = RedditAccountManager.getInstance(activity).getDefaultAccount();
 
-		if(subreddit != null) {
+		if(subreddit != null
+				&& !PrefsUtility.pref_appearance_hide_headertoolbar_postlist(activity, sharedPreferences)) {
 
 			final LinearLayout buttons = (LinearLayout)inflate(
 					activity,
@@ -134,9 +138,6 @@ public final class PostListingHeader extends LinearLayout
 
 			final RedditSubredditSubscriptionManager subscriptionManager
 					= RedditSubredditSubscriptionManager.getSingleton(activity, currentUser);
-
-			final SharedPreferences sharedPreferences
-					= PreferenceManager.getDefaultSharedPreferences(activity);
 
 			final SubredditCanonicalId subredditCanonicalId;
 

@@ -24,6 +24,8 @@ import android.graphics.Paint;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.preference.PreferenceManager;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -37,7 +39,7 @@ import org.quantumbadger.redreader.common.PrefsUtility;
 
 public class LinkDetailsView extends FrameLayout {
 
-	public LinkDetailsView(Context context, final String title, final String subtitle) {
+	public LinkDetailsView(Context context, @NonNull final String title, @Nullable final String subtitle) {
 
 		super(context);
 
@@ -62,8 +64,8 @@ public class LinkDetailsView extends FrameLayout {
 		layout.addView(textLayout);
 		((LinearLayout.LayoutParams)textLayout.getLayoutParams()).setMargins(0, marginPx, marginPx, marginPx);
 
-		final float linkFontScale = PrefsUtility.appearance_fontscale_comments(context, PreferenceManager.getDefaultSharedPreferences(context));
-		
+		final float linkFontScale = PrefsUtility.appearance_fontscale_linkbuttons(context, PreferenceManager.getDefaultSharedPreferences(context));
+
 		{
 			final TextView titleView = new TextView(context);
 			titleView.setText(title);

@@ -20,7 +20,7 @@ package org.quantumbadger.redreader.image;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -133,9 +133,7 @@ public class SaveImageCallback implements BaseActivity.PermissionCallback {
 							}
 						}
 
-						try {
-							final InputStream cacheFileInputStream = cacheFile.getInputStream();
-
+						try(InputStream cacheFileInputStream = cacheFile.getInputStream()) {
 							if(cacheFileInputStream == null) {
 								notifyFailure(CacheRequest.REQUEST_FAILURE_CACHE_MISS, null, null, "Could not find cached image");
 								return;

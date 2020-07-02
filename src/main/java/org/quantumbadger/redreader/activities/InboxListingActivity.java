@@ -24,8 +24,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
@@ -289,9 +289,22 @@ public final class InboxListingActivity extends BaseActivity {
 						switch(thing.getKind()) {
 							case COMMENT:
 								final RedditComment comment = thing.asComment();
-								final RedditParsedComment parsedComment = new RedditParsedComment(comment);
-								final RedditRenderableComment renderableComment = new RedditRenderableComment(parsedComment, null, -100000, false);
-								itemHandler.sendMessage(General.handlerMessage(0, new InboxItem(listPosition, renderableComment)));
+
+								final RedditParsedComment parsedComment = new RedditParsedComment(
+										comment,
+										InboxListingActivity.this);
+
+								final RedditRenderableComment renderableComment
+										= new RedditRenderableComment(
+												parsedComment,
+										null,
+										-100000,
+										false);
+
+								itemHandler.sendMessage(General.handlerMessage(
+										0,
+										new InboxItem(listPosition, renderableComment)));
+
 								listPosition++;
 
 								break;

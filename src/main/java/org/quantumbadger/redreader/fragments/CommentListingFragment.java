@@ -24,11 +24,11 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.Nullable;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -148,7 +148,9 @@ public class CommentListingFragment extends RRFragment
 		final Context context = getActivity();
 
 		final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		mSelfTextFontScale = PrefsUtility.appearance_fontscale_selftext(context, prefs);
+
+		mSelfTextFontScale = PrefsUtility.appearance_fontscale_bodytext(context, prefs);
+
 		mShowLinkButtons = PrefsUtility.pref_appearance_linkbuttons(context, prefs);
 
 		mOuterFrame = new FrameLayout(context);
@@ -497,10 +499,13 @@ public class CommentListingFragment extends RRFragment
 			layoutManager.scrollToPositionWithOffset(0, 0);
 
 			if(post.src.getSelfText() != null) {
-				final ViewGroup selfText = post.src.getSelfText().buildView(
-						getActivity(), attr.rrMainTextCol, 14f * mSelfTextFontScale, mShowLinkButtons);
+				final View selfText = post.src.getSelfText().generateView(
+						getActivity(), attr.rrMainTextCol, 13f * mSelfTextFontScale, mShowLinkButtons);
 				selfText.setFocusable(false);
-				selfText.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+
+				if(selfText instanceof ViewGroup) {
+					((ViewGroup)selfText).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+				}
 
 				final int paddingPx = General.dpToPixels(context, 10);
 				final FrameLayout paddingLayout = new FrameLayout(context);

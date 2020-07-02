@@ -96,8 +96,7 @@ public final class RedditVideosAPI {
 					final boolean fromCache,
 					final String mimetype) {
 
-				try {
-					final InputStream is = cacheFile.getInputStream();
+				try(InputStream is = cacheFile.getInputStream()) {
 
 					try {
 						final String mpd = General.readWholeStreamAsUTF8(is);
@@ -105,11 +104,20 @@ public final class RedditVideosAPI {
 						String videoUrl = null;
 						String audioUrl = null;
 
-						if(mpd.contains("audio")) {
+						if(mpd.contains("DASH_audio.mp4")) {
+							audioUrl = "https://v.redd.it/" + imageId + "/DASH_audio.mp4";
+
+						} else if(mpd.contains("audio")) {
 							audioUrl = "https://v.redd.it/" + imageId + "/audio";
 						}
 
 						for(final String format : PREFERRED_VIDEO_FORMATS) {
+
+							if(mpd.contains(format + ".mp4")) {
+								videoUrl = "https://v.redd.it/" + imageId + "/" + format + ".mp4";
+								break;
+							}
+
 							if(mpd.contains(format)) {
 								videoUrl = "https://v.redd.it/" + imageId + "/" + format;
 								break;
@@ -118,7 +126,7 @@ public final class RedditVideosAPI {
 
 						if(videoUrl == null) {
 							// Fallback
-							videoUrl = "https://v.redd.it/" + imageId + "/DASH_480";
+							videoUrl = "https://v.redd.it/" + imageId + "/DASH_480.mp4";
 						}
 
 						final ImageInfo result;

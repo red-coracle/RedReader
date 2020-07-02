@@ -22,8 +22,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.annotation.UiThread;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.UiThread;
+import androidx.appcompat.app.AppCompatActivity;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.activities.SessionChangeListener;
 import org.quantumbadger.redreader.cache.CacheManager;
@@ -262,7 +262,7 @@ public class CommentListingRequest {
 					final RedditThing postThing = postContainer.getObject(0, RedditThing.class);
 					final RedditPost post = postThing.asPost();
 
-					final RedditParsedPost parsedPost = new RedditParsedPost(post, mParsePostSelfText);
+					final RedditParsedPost parsedPost = new RedditParsedPost(mActivity, post, mParsePostSelfText);
 
 					final RedditPreparedPost preparedPost = new RedditPreparedPost(
 							context,
@@ -321,7 +321,7 @@ public class CommentListingRequest {
 			final Integer minimumCommentScore,
 			final String parentPostAuthor)
 
-			throws IOException, InterruptedException, IllegalAccessException, java.lang.InstantiationException,
+			throws IOException, InterruptedException, IllegalAccessException, InstantiationException,
 			NoSuchMethodException, InvocationTargetException {
 
 		final RedditThing thing = value.asObject(RedditThing.class);
@@ -341,7 +341,7 @@ public class CommentListingRequest {
 			final RedditComment comment = thing.asComment();
 			final RedditCommentListItem item = new RedditCommentListItem(
 					new RedditRenderableComment(
-							new RedditParsedComment(comment),
+							new RedditParsedComment(comment, mActivity),
 							parentPostAuthor,
 							minimumCommentScore,
 							true),

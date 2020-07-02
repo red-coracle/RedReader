@@ -17,7 +17,7 @@
 
 package org.quantumbadger.redreader.common;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -36,10 +36,9 @@ public class ChangelogManager {
 		final int outerPaddingPx = General.dpToPixels(context, 12);
 		items.setPadding(outerPaddingPx, 0, outerPaddingPx, outerPaddingPx);
 
-		try {
-			final BufferedReader br = new BufferedReader(
+		try(BufferedReader br = new BufferedReader(
 				new InputStreamReader(context.getAssets().open("changelog.txt")),
-				128 * 1024);
+				128 * 1024)) {
 
 			String curVersionName = null;
 

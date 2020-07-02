@@ -17,9 +17,11 @@
 
 package org.quantumbadger.redreader.reddit.prepared;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.quantumbadger.redreader.reddit.prepared.markdown.MarkdownParagraphGroup;
-import org.quantumbadger.redreader.reddit.prepared.markdown.MarkdownParser;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import org.apache.commons.text.StringEscapeUtils;
+import org.quantumbadger.redreader.reddit.prepared.bodytext.BodyElement;
+import org.quantumbadger.redreader.reddit.prepared.html.HtmlReader;
 import org.quantumbadger.redreader.reddit.things.RedditPost;
 import org.quantumbadger.redreader.reddit.things.RedditThingWithIdAndType;
 
@@ -32,10 +34,11 @@ public class RedditParsedPost implements RedditThingWithIdAndType {
 	private final String mTitle;
 	private final String mUrl;
 	private final String mPermalink;
-	private final MarkdownParagraphGroup mSelfText;
+	private final BodyElement mSelfText;
 	private final String mFlairText;
 
 	public RedditParsedPost(
+			@NonNull final AppCompatActivity activity,
 			final RedditPost src,
 			final boolean parseSelfText) {
 
@@ -50,8 +53,8 @@ public class RedditParsedPost implements RedditThingWithIdAndType {
 		mUrl = StringEscapeUtils.unescapeHtml4(src.getUrl());
 		mPermalink = StringEscapeUtils.unescapeHtml4(src.permalink);
 
-		if(parseSelfText && src.is_self && src.selftext != null && src.selftext.trim().length() > 0) {
-			mSelfText = MarkdownParser.parse(StringEscapeUtils.unescapeHtml4(src.selftext).toCharArray());
+		if(parseSelfText && src.is_self && src.selftext_html != null && src.selftext.trim().length() > 0) {
+			mSelfText = HtmlReader.parse(StringEscapeUtils.unescapeHtml4(src.selftext_html), activity);
 		} else {
 			mSelfText = null;
 		}
@@ -105,7 +108,7 @@ public class RedditParsedPost implements RedditThingWithIdAndType {
 		return mSrc.author;
 	}
 
-	public String getRawSelfText() {
+	public String getRawSelfTextMarkdown() {
 		return mSrc.selftext;
 	}
 
@@ -163,7 +166,7 @@ public class RedditParsedPost implements RedditThingWithIdAndType {
 		return mSrc.is_self;
 	}
 
-	public MarkdownParagraphGroup getSelfText() {
+	public BodyElement getSelfText() {
 		return mSelfText;
 	}
 }

@@ -35,8 +35,8 @@ import android.os.Message;
 import android.os.StatFs;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -122,15 +122,17 @@ public final class General {
 
 	public static void copyFile(final File src, final File dst) throws IOException {
 
-		final FileInputStream fis = new FileInputStream(src);
-		final FileOutputStream fos = new FileOutputStream(dst);
-
-		copyFile(fis, fos);
+		try(FileInputStream fis = new FileInputStream(src)) {
+			try(FileOutputStream fos = new FileOutputStream(dst)) {
+				copyFile(fis, fos);
+			}
+		}
 	}
 
 	public static void copyFile(final InputStream fis, final File dst) throws IOException {
-		final FileOutputStream fos = new FileOutputStream(dst);
-		copyFile(fis, fos);
+		try(FileOutputStream fos = new FileOutputStream(dst)) {
+			copyFile(fis, fos);
+		}
 	}
 
 	public static void copyFile(final InputStream fis, final OutputStream fos) throws IOException {
@@ -626,12 +628,40 @@ public final class General {
 		layoutParams.rightMargin = marginPx;
 		layoutParams.topMargin = marginPx;
 		layoutParams.bottomMargin = marginPx;
+
+		view.setLayoutParams(layoutParams);
 	}
 
 	public static void setLayoutMatchParent(final View view) {
-		final ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
-		layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
-		layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+		setLayoutWidthHeight(
+				view,
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.MATCH_PARENT);
+	}
+
+	public static void setLayoutMatchWidthWrapHeight(final View view) {
+		setLayoutWidthHeight(
+				view,
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT);
+	}
+
+	public static void setLayoutWidthHeight(
+			final View view,
+			final int width,
+			final int height) {
+
+		ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+
+		if(layoutParams == null) {
+			layoutParams = new ViewGroup.LayoutParams(width, height);
+
+		} else {
+			layoutParams.width = width;
+			layoutParams.height = height;
+		}
+
+		view.setLayoutParams(layoutParams);
 	}
 
 	public static void recreateActivityNoAnimation(final AppCompatActivity activity) {

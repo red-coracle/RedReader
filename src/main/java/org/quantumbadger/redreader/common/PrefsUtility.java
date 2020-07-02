@@ -22,8 +22,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
+import androidx.annotation.NonNull;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.OptionsMenuUtility;
 import org.quantumbadger.redreader.adapters.MainMenuListingManager;
@@ -54,7 +54,7 @@ public final class PrefsUtility {
 		return result;
 	}
 
-	private static String getString(final int id, final String defaultValue, final Context context, final SharedPreferences sharedPreferences) {
+	public static String getString(final int id, final String defaultValue, final Context context, final SharedPreferences sharedPreferences) {
 		return sharedPreferences.getString(context.getString(id), defaultValue);
 	}
 
@@ -86,7 +86,9 @@ public final class PrefsUtility {
 				|| key.equals(context.getString(R.string.pref_behaviour_postcount_key))
 				|| key.equals(context.getString(R.string.pref_behaviour_comment_min_key))
 				|| key.equals(context.getString(R.string.pref_behaviour_pinned_subredditsort_key))
-				|| key.equals(context.getString(R.string.pref_behaviour_blocked_subredditsort_key));
+				|| key.equals(context.getString(R.string.pref_behaviour_blocked_subredditsort_key))
+				|| key.equals(context.getString(R.string.pref_appearance_hide_headertoolbar_commentlist_key))
+				|| key.equals(context.getString(R.string.pref_appearance_hide_headertoolbar_postlist_key));
 	}
 
 	public static boolean isRestartRequired(Context context, String key) {
@@ -233,7 +235,8 @@ public final class PrefsUtility {
 	}
 
 	public static AppearanceThumbnailsShow appearance_thumbnails_show(final Context context, final SharedPreferences sharedPreferences) {
-		return AppearanceThumbnailsShow.valueOf(getString(R.string.pref_appearance_thumbnails_show_list_key, "always", context, sharedPreferences).toUpperCase());
+		return AppearanceThumbnailsShow.valueOf(General.asciiUppercase(
+				getString(R.string.pref_appearance_thumbnails_show_list_key, "always", context, sharedPreferences)));
 	}
 
 	public static AppearanceThumbnailsShow appearance_thumbnails_show_old(final Context context, final SharedPreferences sharedPreferences) {
@@ -251,40 +254,57 @@ public final class PrefsUtility {
 		return getBoolean(R.string.pref_appearance_thumbnails_nsfw_show_key, false, context, sharedPreferences);
 	}
 
-	public static float appearance_fontscale_comments(final Context context, final SharedPreferences sharedPreferences) {
-		return Float.valueOf(getString(R.string.pref_appearance_fontscale_comments_key, "1", context,  sharedPreferences));
+	public static float appearance_fontscale_global(final Context context, final SharedPreferences sharedPreferences) {
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_global_key, "1", context, sharedPreferences));
+	}
+
+	public static float appearance_fontscale_bodytext(final Context context, final SharedPreferences sharedPreferences) {
+		if(getString(R.string.pref_appearance_fontscale_bodytext_key, "-1", context, sharedPreferences).equals("-1")) {
+			return appearance_fontscale_global(context, sharedPreferences);
+		}
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_bodytext_key, "-1", context,  sharedPreferences));
 	}
 
 	public static float appearance_fontscale_comment_headers(final Context context, final SharedPreferences sharedPreferences) {
-		return Float.valueOf(getString(R.string.pref_appearance_fontscale_comment_headers_key, "1", context, sharedPreferences));
+		if(getString(R.string.pref_appearance_fontscale_comment_headers_key, "-1", context, sharedPreferences).equals("-1")) {
+			return appearance_fontscale_global(context, sharedPreferences);
+		}
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_comment_headers_key, "-1", context, sharedPreferences));
 	}
 
-	public static float appearance_fontscale_inbox(final Context context, final SharedPreferences sharedPreferences) {
-		return Float.valueOf(getString(R.string.pref_appearance_fontscale_inbox_key, "1", context,  sharedPreferences));
+	public static float appearance_fontscale_linkbuttons(final Context context, final SharedPreferences sharedPreferences) {
+		if(getString(R.string.pref_appearance_fontscale_linkbuttons_key, "-1", context, sharedPreferences).equals("-1")) {
+			return appearance_fontscale_global(context, sharedPreferences);
+		}
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_linkbuttons_key, "-1", context, sharedPreferences));
 	}
 
 	public static float appearance_fontscale_posts(final Context context, final SharedPreferences sharedPreferences) {
-		return Float.valueOf(getString(R.string.pref_appearance_fontscale_posts_key, "1", context,  sharedPreferences));
+		if(getString(R.string.pref_appearance_fontscale_posts_key, "-1", context, sharedPreferences).equals("-1")) {
+			return appearance_fontscale_global(context, sharedPreferences);
+		}
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_posts_key, "-1", context,  sharedPreferences));
 	}
 
 	public static float appearance_fontscale_post_subtitles(final Context context, final SharedPreferences sharedPreferences) {
-		return Float.valueOf(getString(R.string.pref_appearance_fontscale_post_subtitles_key, "1", context, sharedPreferences));
+		if(getString(R.string.pref_appearance_fontscale_post_subtitles_key, "-1", context, sharedPreferences).equals("-1")) {
+			return appearance_fontscale_global(context, sharedPreferences);
+		}
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_post_subtitles_key, "-1", context, sharedPreferences));
 	}
 
 	public static float appearance_fontscale_post_header_titles(final Context context, final SharedPreferences sharedPreferences) {
-		return Float.valueOf(getString(R.string.pref_appearance_fontscale_post_header_titles_key, "1", context, sharedPreferences));
+		if(getString(R.string.pref_appearance_fontscale_post_header_titles_key, "-1", context, sharedPreferences).equals("-1")) {
+			return appearance_fontscale_global(context, sharedPreferences);
+		}
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_post_header_titles_key, "-1", context, sharedPreferences));
 	}
 
 	public static float appearance_fontscale_post_header_subtitles(final Context context, final SharedPreferences sharedPreferences) {
-		return Float.valueOf(getString(R.string.pref_appearance_fontscale_post_header_subtitles_key, "1", context, sharedPreferences));
-	}
-
-	public static boolean appearance_fontscale_post_use_different_scales(final Context context, final SharedPreferences sharedPreferences) {
-		return getBoolean(R.string.pref_appearance_fontscale_post_use_different_scales_key, false, context, sharedPreferences);
-	}
-
-	public static float appearance_fontscale_selftext(final Context context, final SharedPreferences sharedPreferences) {
-		return Float.valueOf(getString(R.string.pref_appearance_fontscale_selftext_key, "1", context, sharedPreferences));
+		if(getString(R.string.pref_appearance_fontscale_post_header_subtitles_key, "-1", context, sharedPreferences).equals("-1")) {
+			return appearance_fontscale_global(context, sharedPreferences);
+		}
+		return Float.valueOf(getString(R.string.pref_appearance_fontscale_post_header_subtitles_key, "-1", context, sharedPreferences));
 	}
 
 	public static boolean pref_appearance_hide_username_main_menu(final Context context, final SharedPreferences sharedPreferences) {
@@ -345,6 +365,14 @@ public final class PrefsUtility {
 
 	public static boolean pref_appearance_bottom_toolbar(final Context context, final SharedPreferences sharedPreferences) {
 		return getBoolean(R.string.pref_appearance_bottom_toolbar_key, false, context, sharedPreferences);
+	}
+
+	public static boolean pref_appearance_hide_headertoolbar_postlist(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_appearance_hide_headertoolbar_postlist_key, false, context, sharedPreferences);
+	}
+
+	public static boolean pref_appearance_hide_headertoolbar_commentlist(final Context context, final SharedPreferences sharedPreferences) {
+		return getBoolean(R.string.pref_appearance_hide_headertoolbar_commentlist_key, false, context, sharedPreferences);
 	}
 
 	public enum AppearancePostSubtitleItem {
@@ -729,7 +757,8 @@ public final class PrefsUtility {
 	}
 
 	public static CachePrecacheImages cache_precache_images(final Context context, final SharedPreferences sharedPreferences) {
-		return CachePrecacheImages.valueOf(getString(R.string.pref_cache_precache_images_list_key, "wifionly", context, sharedPreferences).toUpperCase());
+		return CachePrecacheImages.valueOf(General.asciiUppercase(
+				getString(R.string.pref_cache_precache_images_list_key, "wifionly", context, sharedPreferences)));
 	}
 
 	public static CachePrecacheImages cache_precache_images_old(final Context context, final SharedPreferences sharedPreferences) {
@@ -754,7 +783,8 @@ public final class PrefsUtility {
 	}
 
 	public static CachePrecacheComments cache_precache_comments(final Context context, final SharedPreferences sharedPreferences) {
-		return CachePrecacheComments.valueOf(getString(R.string.pref_cache_precache_comments_list_key, "always", context, sharedPreferences).toUpperCase());
+		return CachePrecacheComments.valueOf(General.asciiUppercase(
+				getString(R.string.pref_cache_precache_comments_list_key, "always", context, sharedPreferences)));
 	}
 
 	public static CachePrecacheComments cache_precache_comments_old(final Context context, final SharedPreferences sharedPreferences) {
@@ -864,6 +894,10 @@ public final class PrefsUtility {
 			final SubredditCanonicalId subreddit) {
 
 		pref_subreddits_add(context, sharedPreferences, subreddit, R.string.pref_pinned_subreddits_key);
+
+		General.quickToast(context, context.getApplicationContext().getString(
+				R.string.pin_successful,
+				subreddit.toString()));
 	}
 
 	public static void pref_pinned_subreddits_remove(
@@ -872,6 +906,10 @@ public final class PrefsUtility {
 			final SubredditCanonicalId subreddit) {
 
 		pref_subreddits_remove(context, sharedPreferences, subreddit, R.string.pref_pinned_subreddits_key);
+
+		General.quickToast(context, context.getApplicationContext().getString(
+				R.string.unpin_successful,
+				subreddit.toString()));
 	}
 
 	public static boolean pref_pinned_subreddits_check(

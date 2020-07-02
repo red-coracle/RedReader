@@ -19,9 +19,9 @@ package org.quantumbadger.redreader.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.widget.LinearLayout;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.common.RRTime;
 import org.quantumbadger.redreader.reddit.things.RedditPost;
@@ -66,6 +66,14 @@ public final class PostPropertiesDialog extends PropertiesDialog {
 
 		if(post.selftext != null && post.selftext.length() > 0) {
 			items.addView(propView(context, R.string.props_self_markdown, StringEscapeUtils.unescapeHtml4(post.selftext), false));
+
+			if(post.selftext_html != null) {
+				items.addView(propView(
+						context,
+						R.string.props_self_html,
+						StringEscapeUtils.unescapeHtml4(post.selftext_html),
+						false));
+			}
 		}
 	}
 }

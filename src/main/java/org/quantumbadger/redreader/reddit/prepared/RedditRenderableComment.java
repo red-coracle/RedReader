@@ -20,8 +20,8 @@ package org.quantumbadger.redreader.reddit.prepared;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.support.v7.app.AppCompatActivity;
 import android.text.style.ImageSpan;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -220,7 +220,7 @@ public class RedditRenderableComment implements RedditRenderableInboxItem, Reddi
 			final Float textSize,
 			final boolean showLinkButtons) {
 
-		return mComment.getBody().buildView(activity, textColor, textSize, showLinkButtons);
+		return mComment.getBody().generateView(activity, textColor, textSize, showLinkButtons);
 	}
 
 	@Override

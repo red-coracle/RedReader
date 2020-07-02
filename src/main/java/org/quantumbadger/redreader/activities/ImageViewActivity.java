@@ -26,20 +26,21 @@ import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.github.lzyzsd.circleprogress.DonutProgress;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -269,7 +270,7 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 
 		if(mPost != null) {
 
-			final RedditParsedPost parsedPost = new RedditParsedPost(mPost, false);
+			final RedditParsedPost parsedPost = new RedditParsedPost(this, mPost, false);
 
 			post = new RedditPreparedPost(
 					this,
@@ -361,19 +362,6 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 			return;
 		}
 
-		final InputStream cacheFileInputStream;
-		try {
-			cacheFileInputStream = cacheFile.getInputStream();
-		} catch(IOException e) {
-			revertToWeb();
-			return;
-		}
-
-		if(cacheFileInputStream == null) {
-			revertToWeb();
-			return;
-		}
-
 		if(mImageInfo != null
 				&& ((mImageInfo.title != null && mImageInfo.title.length() > 0)
 						|| (mImageInfo.caption != null && mImageInfo.caption.length() > 0))) {
@@ -440,6 +428,7 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 						try {
 
 							Log.i(TAG, "Playing video using ExoPlayer");
+							getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 							final RelativeLayout layout = new RelativeLayout(ImageViewActivity.this);
 							layout.setGravity(Gravity.CENTER);
@@ -557,8 +546,12 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 						if(mIsDestroyed) return;
 						mRequest = null;
 
-						try {
-							final GIFView gifView = new GIFView(ImageViewActivity.this, cacheFileInputStream);
+						getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+						try(InputStream cacheFileInputStream = cacheFile.getInputStream()) {
+
+							final byte[] data = GIFView.streamToBytes(cacheFileInputStream);
+							final GIFView gifView = new GIFView(ImageViewActivity.this, data);
 							setMainView(gifView);
 							gifView.setOnTouchListener(new BasicGestureHandler(ImageViewActivity.this));
 
@@ -574,6 +567,21 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 				});
 
 			} else {
+
+				@SuppressWarnings("PMD.CloseResource")
+				final InputStream cacheFileInputStream;
+				try {
+					cacheFileInputStream = cacheFile.getInputStream();
+
+				} catch(final IOException e) {
+					revertToWeb();
+					return;
+				}
+
+				if(cacheFileInputStream == null) {
+					revertToWeb();
+					return;
+				}
 
 				gifThread = new GifDecoderThread(cacheFileInputStream, new GifDecoderThread.OnGifLoadedListener() {
 
@@ -627,7 +635,13 @@ public class ImageViewActivity extends BaseActivity implements RedditPostView.Po
 
 			final ImageTileSource imageTileSource;
 			try {
-				try {
+				try(InputStream cacheFileInputStream = cacheFile.getInputStream()) {
+
+					if(cacheFileInputStream == null) {
+						revertToWeb();
+						return;
+					}
+
 					imageTileSource = new ImageTileSourceWholeBitmap(
 							BitmapFactory.decodeStream(cacheFileInputStream));
 

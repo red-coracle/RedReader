@@ -19,7 +19,7 @@ package org.quantumbadger.redreader.views;
 
 import android.graphics.Color;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -67,7 +67,7 @@ public class RedditInboxItemView extends LinearLayout {
 		inner.setOrientation(VERTICAL);
 
 		mHeader = new TextView(activity);
-		mHeader.setTextSize(11.0f * theme.rrCommentFontScale);
+		mHeader.setTextSize(11.0f * theme.rrCommentHeaderFontScale);
 		mHeader.setTextColor(theme.rrCommentHeaderCol);
 		inner.addView(mHeader);
 		mHeader.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;

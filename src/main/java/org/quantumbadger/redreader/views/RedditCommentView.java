@@ -19,9 +19,9 @@ package org.quantumbadger.redreader.views;
 
 import android.content.Context;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -282,7 +282,7 @@ public class RedditCommentView extends FlingableItemView implements RedditChange
 		mBodyHolder = (FrameLayout)rootView.findViewById(R.id.view_reddit_comment_bodyholder);
 		mIndentedContent = (LinearLayout)rootView.findViewById(R.id.view_reddit_comment_indented_content);
 
-		mBodyFontScale = PrefsUtility.appearance_fontscale_comments(context, PreferenceManager.getDefaultSharedPreferences(context));
+		mBodyFontScale = PrefsUtility.appearance_fontscale_bodytext(context, PreferenceManager.getDefaultSharedPreferences(context));
 		final float mHeaderFontScale = PrefsUtility.appearance_fontscale_comment_headers(context, PreferenceManager.getDefaultSharedPreferences(context));
 
 		mHeader.setTextSize(TypedValue.COMPLEX_UNIT_PX, mHeader.getTextSize() * mHeaderFontScale);

@@ -17,7 +17,7 @@
 
 package org.quantumbadger.redreader.jsonwrap;
 
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -232,7 +232,7 @@ public final class JsonValue {
 				break;
 
 			default:
-				throw new JsonParseException("Expecting an object, literal, or array", jp.getCurrentLocation());
+				throw new JsonParseException(jp, "Expecting an object, literal, or array", jp.getCurrentLocation());
 		}
 	}
 

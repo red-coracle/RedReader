@@ -32,10 +32,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
-import android.text.ClipboardManager;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import android.content.ClipboardManager;
 import android.util.Log;
 import android.util.TypedValue;
 import org.quantumbadger.redreader.R;
@@ -476,7 +476,7 @@ public class LinkHandler {
 				}
 			}
 		}
-		
+
         {
 			final Matcher matchRedgifs = redgifsPattern.matcher(url);
 

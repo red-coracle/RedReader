@@ -37,7 +37,6 @@
     <!-- Appearance Prefs -->
 
     <string name="pref_appearance_theme_header">Theme</string>
-    <string name="pref_appearance_font_header">Font Scale</string>
     <string name="pref_appearance_thumbnails_header">Thumbnails</string>
     <string name="pref_appearance_comments_header">Comments</string>
     <string name="pref_appearance_other_header">Other</string>
@@ -51,10 +50,7 @@
     <string name="pref_appearance_solidblack_title">Solid black in night mode</string>
 
     <string name="pref_appearance_fontscale_posts_key" translatable="false">pref_appearance_fontscale_posts</string>
-    <string name="pref_appearance_fontscale_posts_title">Post Title Font Scale</string>
-
-    <string name="pref_appearance_fontscale_comments_key" translatable="false">pref_appearance_fontscale_comments</string>
-    <string name="pref_appearance_fontscale_comments_title">Comments</string>
+    <string name="pref_appearance_fontscale_posts_title">Post titles</string>
 
     <string name="pref_appearance_thumbnails_show_key" translatable="false">pref_appearance_thumbnails_show</string>
     <string name="pref_appearance_thumbnails_show_title">Show thumbnails</string>
@@ -69,7 +65,7 @@
     <string name="pref_appearance_loading_detail_title">Show detailed loading messages</string>
 
     <string name="pref_appearance_comment_header_items_key" translatable="false">pref_appearance_comment_header_items</string>
-    <string name="pref_appearance_comment_header_items_title">Comment header</string>
+    <string name="pref_appearance_comment_header_items_title">Comment header entries</string>
 
     <!-- Behaviour Prefs -->
 
@@ -122,10 +118,10 @@
     <!-- Menu Prefs -->
 
     <string name="pref_menus_post_context_items_key" translatable="false">pref_menus_post_context_items_2</string>
-    <string name="pref_menus_post_context_items_title">Post context menu items</string>
+    <string name="pref_menus_post_context_items_title">Long-press menu items</string>
 
     <string name="pref_menus_post_toolbar_items_key" translatable="false">pref_menus_post_toolbar_items</string>
-    <string name="pref_menus_post_toolbar_items_title">Post toolbar items</string>
+    <string name="pref_menus_post_toolbar_items_title">Side-toolbar items</string>
 
     <!-- Options Menu -->
 
@@ -568,7 +564,7 @@
     <!-- 2014-04-13 -->
 
     <string name="pref_menus_mainmenu_useritems_key" translatable="false">pref_menus_mainmenu_useritems</string>
-    <string name="pref_menus_mainmenu_useritems_title">Main menu user items</string>
+    <string name="pref_menus_mainmenu_useritems_title">User items</string>
 
     <string name="mainmenu_submitted">Submitted Posts</string>
     <string name="mainmenu_downvoted">Downvoted Posts</string>
@@ -658,12 +654,12 @@
     <string name="options_close_all">Close All</string>
 
     <string name="pref_menus_optionsmenu_items_key" translatable="false">pref_menus_optionsmenu_items_3</string>
-    <string name="pref_menus_optionsmenu_items_title">Options menu items</string>
+    <string name="pref_menus_optionsmenu_items_title">Three-dot menu items</string>
 
     <!-- 2015-07-05 -->
-    <string name="pref_behaviour_bezel_toolbar_header">Bezel Toolbar</string>
+    <string name="pref_behaviour_bezel_toolbar_header">Post Side-Toolbar</string>
     <string name="pref_behaviour_bezel_toolbar_swipezone_key" translatable="false">pref_behaviour_bezel_toolbar_swipezone</string>
-    <string name="pref_behaviour_bezel_toolbar_swipezone_title">Bezel toolbar swipe zone size</string>
+    <string name="pref_behaviour_bezel_toolbar_swipezone_title">Post side-toolbar swipe zone size</string>
 
     <string name="pref_behaviour_gifview_mode_title">GIF viewer</string>
     <string name="pref_behaviour_gifview_mode_key" translatable="false">pref_behaviour_gifview_mode</string>
@@ -675,15 +671,12 @@
     <string name="pref_behaviour_view_mode_external_browser">External browser</string>
 
     <!-- 2015-08-15 -->
-    <string name="pref_appearance_fontscale_inbox_key" translatable="false">pref_appearance_fontscale_inbox</string>
-    <string name="pref_appearance_fontscale_inbox_title">Inbox</string>
-
     <string name="action_delete">Delete</string>
     <string name="delete_confirm">Are you sure you want to delete this?</string>
     <string name="delete_success">Successfully deleted. The item will still be visible until you refresh.</string>
 
     <string name="pref_appearance_hide_username_main_menu_key" translatable="false">pref_appearance_hide_username_main_menu</string>
-    <string name="pref_appearance_hide_username_main_menu_title">Hide username in main menu</string>
+    <string name="pref_appearance_hide_username_main_menu_title">Hide username</string>
     <string name="mainmenu_useritems">User Items</string>
 
     <!-- 2015-09-13 -->
@@ -900,7 +893,7 @@
 	<!-- 2016-09-04 -->
 	<string name="pref_appearance_image_viewer_header">Image Viewer</string>
 
-	<string name="pref_appearance_image_viewer_show_floating_toolbar_title">Show floating toolbar over image</string>
+	<string name="pref_appearance_image_viewer_show_floating_toolbar_title">Show floating buttons over images and videos</string>
 	<string name="pref_appearance_image_viewer_show_floating_toolbar_key" translatable="false">pref_appearance_image_viewer_show_floating_toolbar</string>
 
 	<string name="pref_appearance_link_text_clickable_title">Make link text clickable</string>
@@ -923,7 +916,7 @@
 
 	<!-- 2016-09-21 -->
 	<string name="pref_appearance_show_blocked_subreddits_main_menu_key" translatable="false">pref_appearance_show_blocked_subreddits_main_menu</string>
-	<string name="pref_appearance_show_blocked_subreddits_main_menu_title">Show blocked subreddits in main menu</string>
+	<string name="pref_appearance_show_blocked_subreddits_main_menu_title">Show blocked subreddits</string>
 
 	<!-- 2016-10-02 -->
 	<string name="pref_cache_rerequest_postlist_age_key" translatable="false">pref_cache_rerequest_postlist_age</string>
@@ -969,13 +962,13 @@
 
 	<!-- 2017-03-02 -->
 	<string name="pref_menus_link_context_items_key" translatable="false">pref_menus_link_context_items</string>
-	<string name="pref_menus_link_context_items_title">Link context menu items</string>
+	<string name="pref_menus_link_context_items_title">Link long-press menu items</string>
 	<string name="lang_eo" translatable="false">Esperanto</string>
 	<string name="lang_pl" translatable="false">Polski</string>
 
 	<!-- 2017-03-07 -->
 	<string name="pref_menus_subreddit_context_items_key" translatable="false">pref_menus_subreddit_context_items</string>
-	<string name="pref_menus_subreddit_context_items_title">Subreddit context menu items</string>
+	<string name="pref_menus_subreddit_context_items_title">Subreddit long-press menu items</string>
 	<string name="mainmenu_toast_not_subscribed">You are not subscribed to this subreddit yet!</string>
 	<string name="mainmenu_toast_subscribed">You are already subscribed to this subreddit!</string>
 	<string name="mainmenu_toast_not_pinned">This subreddit is not pinned to the main menu!</string>
@@ -1001,7 +994,7 @@
 	<string name="button_next_comment_parent">Next Parent Comment</string>
 	<string name="button_prev_comment_parent">Previous Parent Comment</string>
 
-	<string name="pref_appearance_comments_show_floating_toolbar_title">Show floating toolbar over comments</string>
+	<string name="pref_appearance_comments_show_floating_toolbar_title">Show navigation buttons over comments</string>
 	<string name="pref_appearance_comments_show_floating_toolbar_key" translatable="false">pref_appearance_comments_show_floating_toolbar</string>
 
 	<!--2017-05-08-->
@@ -1088,7 +1081,7 @@
 	<string name="pref_behaviour_hide_read_posts_title">Hide read posts</string>
 
 	<!-- 2018-10-06 -->
-	<string name="pref_menus_mainmenu_shortcutitems_title">Main menu shortcuts</string>
+	<string name="pref_menus_mainmenu_shortcutitems_title">Shortcuts</string>
 	<string name="pref_menus_mainmenu_shortcutitems_key" translatable="false">pref_menus_mainmenu_shortcutitems_key</string>
 
 	<string name="pref_menus_show_multireddit_main_menu_title">Show multireddits</string>
@@ -1142,17 +1135,13 @@
 	<string name="pref_appearance_fontscale_post_header_titles_title">Opened post titles</string>
 	<string name="pref_appearance_fontscale_post_header_subtitles_key" translatable="false">pref_appearance_fontscale_post_header_subtitles_key</string>
 	<string name="pref_appearance_fontscale_post_header_subtitles_title">Opened post subtitles</string>
-	<string name="pref_appearance_fontscale_post_use_different_scales_key" translatable="false">pref_appearance_fontscale_post_use_different_scales_key</string>
-	<string name="pref_appearance_fontscale_post_use_different_scales_title">Use different settings for opened posts</string>
-	<string name="pref_appearance_fontscale_selftext_key" translatable="false">pref_appearance_fontscale_selftext_key</string>
-	<string name="pref_appearance_fontscale_selftext_title">Self text</string>
 	<string name="pref_appearance_fontscale_comment_headers_key" translatable="false">pref_appearance_fontscale_comment_headers_key</string>
-	<string name="pref_appearance_fontscale_comment_headers_title">Comment headers</string>
+	<string name="pref_appearance_fontscale_comment_headers_title">Comment/Inbox headers</string>
 
 	<!-- 2020-02-04 -->
 	<string name="pref_appearance_posts_header">Posts</string>
 	<string name="pref_appearance_post_subtitle_items_key" translatable="false">pref_appearance_post_subtitle_items_key</string>
-	<string name="pref_appearance_post_subtitle_items_title">Post Subtitle Entries</string>
+	<string name="pref_appearance_post_subtitle_items_title">Post subtitle entries</string>
 	<string name="pref_appearance_post_subtitle_items_sticky">Sticky tag</string>
 	<string name="pref_appearance_post_subtitle_items_spoiler">Spoiler tag</string>
 	<string name="pref_appearance_post_subtitle_items_nsfw">NSFW tag</string>
@@ -1161,7 +1150,7 @@
 	<string name="pref_appearance_post_subtitle_items_use_different_settings_key" translatable="false">pref_appearance_post_subtitle_items_use_different_settings_key</string>
 	<string name="pref_appearance_post_subtitle_items_use_different_settings_title">Use different settings for opened posts</string>
 	<string name="pref_appearance_post_header_subtitle_items_key" translatable="false">pref_appearance_post_header_subtitle_items_key</string>
-	<string name="pref_appearance_post_header_subtitle_items_title">Opened Post Subtitle Entries</string>
+	<string name="pref_appearance_post_header_subtitle_items_title">Opened post subtitle entries</string>
 
 	<!-- 2020-02-05 -->
 	<string name="pref_cache_precache_images_list_key">pref_cache_precache_images_list_key</string>
@@ -1182,8 +1171,19 @@
 	<string name="search_results_subreddit_only">Search on /r/%s</string>
 
 	<!-- 2020-02-17 -->
-	<string name="pref_appearance_comment_header_summary">Select which information to display in comments</string>
 	<string name="pref_network_tor_summary">When using an external browser or Custom Tabs, links will not be opened using Tor (unless your browser is configured to use Tor)</string>
+
+	<!-- 2020-03-05 -->
+	<string name="prefs_category_fonts">Font</string>
+	<string name="pref_appearance_fontscale_header">Font Scale</string>
+	<string name="pref_appearance_fontscale_global_key" translatable="false">pref_appearance_fontscale_global</string>
+	<string name="pref_appearance_fontscale_global_title">Global</string>
+	<string name="pref_appearance_fontscale_use_global">Use global font scale</string>
+	<string name="pref_appearance_fontscale_linkbuttons_key" translatable="false">pref_appearance_fontscale_linkbuttons</string>
+	<string name="pref_appearance_fontscale_linkbuttons_title">Link buttons</string>
+	<!-- Uses the old Comments Font Scale key, do not change -->
+	<string name="pref_appearance_fontscale_bodytext_key" translatable="false">pref_appearance_fontscale_comments</string>
+	<string name="pref_appearance_fontscale_bodytext_title">Body text</string>
 
 	<!-- 2020-04-06 -->
 	<string name="must_login_message">You need to be logged into a Reddit account to do this.</string>
@@ -1193,5 +1193,30 @@
 	<string name="error_toast_failed_open_external_browser">Failed to open url \"%s\" in external browser</string>
 	<string name="error_toast_no_email_apps">No email apps installed!</string>
 	<string name="bug_chooser_title">Email bug report</string>
+
+	<!-- 2020-06-08 -->
+	<string name="subscription_successful">Successfully subscribed to %s</string>
+	<string name="unsubscription_successful">Successfully unsubscribed from %s</string>
+	<string name="pin_successful">Pinned %s to main menu</string>
+	<string name="unpin_successful">Unpinned %s from main menu</string>
+
+	<!-- 2020-06-13 -->
+	<string name="pref_menus_mainmenu_header">Main Menu</string>
+	<string name="pref_menus_posts_header">Posts</string>
+
+	<!-- 2020-06-14 -->
+	<string name="spoiler">Spoiler</string>
+
+	<string name="error_title_malformed_html">Malformed HTML</string>
+	<string name="error_message_malformed_html">Failed to parse body text. Please report this to the app developer.</string>
+
+	<string name="props_body_html">Body (HTML)</string>
+	<string name="props_self_html">Self text (HTML)</string>
+
+	<string name="pref_appearance_hide_headertoolbar_postlist_key" translatable="false">pref_appearance_hide_headertoolbar_postlist</string>
+	<string name="pref_appearance_hide_headertoolbar_postlist_title">Hide post list header toolbar</string>
+
+	<string name="pref_appearance_hide_headertoolbar_commentlist_key" translatable="false">pref_appearance_hide_headertoolbar_commentlist</string>
+	<string name="pref_appearance_hide_headertoolbar_commentlist_title">Hide comment list header toolbar</string>
 
 </resources>

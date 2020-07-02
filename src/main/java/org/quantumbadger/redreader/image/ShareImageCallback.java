@@ -21,8 +21,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v4.content.FileProvider;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.appcompat.app.AppCompatActivity;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -145,9 +145,7 @@ public class ShareImageCallback implements BaseActivity.PermissionCallback {
 								dst
 						);
 
-						try {
-							final InputStream cacheFileInputStream = cacheFile.getInputStream();
-
+						try(InputStream cacheFileInputStream = cacheFile.getInputStream()) {
 							if(cacheFileInputStream == null) {
 								notifyFailure(CacheRequest.REQUEST_FAILURE_CACHE_MISS, null, null, "Could not find cached image");
 								return;

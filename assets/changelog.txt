@@ -1,3 +1,14 @@
+91/1.11
+Fix for v.redd.it videos
+Support for table rendering
+Support for new spoiler syntax, and formatting/links inside spoilers
+Various improvements to markdown rendering
+Added preference to disable new header toolbars
+Keep screen on while playing videos
+Dependency updates (thanks to TacoTheDank)
+Crash fix for users with some non-English locales
+Reorganised menu preferences (thanks to Cameron Merkel)
+
 90/1.10
 Added toolbar when viewing subreddits and comments
 Avoid showing old comment listings (by refreshing if the cached copy is too old)
