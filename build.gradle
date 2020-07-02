@@ -81,7 +81,7 @@ android {
 			assets.srcDirs = ['assets']
 		}
 	}
-<<<<<<< HEAD
+
     // Flag to tell aapt to keep the attribute ids around
     aaptOptions {
         additionalParameters "--no-version-vectors"
@@ -138,8 +138,6 @@ android {
             assets.srcDirs = ['assets']
         }
     }
-=======
->>>>>>> upstream/master
 }
 
 pmd {
