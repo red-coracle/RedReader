@@ -94,12 +94,20 @@ public abstract class HtmlRawElement {
 
 			final ArrayList<HtmlRawElement> children = new ArrayList<>();
 
-			while(reader.peek().type != HtmlReader.TokenType.TAG_END) {
+			while(reader.peek().type != HtmlReader.TokenType.TAG_END
+					&& reader.peek().type != HtmlReader.TokenType.EOF) {
+
 				children.add(HtmlRawElement.readFrom(reader));
 			}
 
-			final HtmlReader.Token endToken = reader.peek();
-			reader.advance();
+			{
+				final HtmlReader.Token endToken = reader.peek();
+
+				// Reddit sometimes doesn't close tags properly :'(
+				if(endToken.text.equalsIgnoreCase(startToken.text)) {
+					reader.advance();
+				}
+			}
 
 			final HtmlRawElement result;
 
@@ -218,20 +226,14 @@ public abstract class HtmlRawElement {
 					result = new HtmlRawElementTableRow(children);
 					break;
 
+				case "img":
+					result = new HtmlRawElementPlainText("Image");
+					break;
+
 				default:
 					return HtmlRawElementInlineErrorMessage.appendError(
 							"Error: Unexpected tag start <" + startToken.text + ">",
 							new HtmlRawElementBlock(BlockType.NORMAL_TEXT, children));
-			}
-
-			if(!endToken.text.equalsIgnoreCase(startToken.text)) {
-				return HtmlRawElementInlineErrorMessage.appendError(
-						"Error: Mismatched end tag (start <"
-								+ startToken.text
-								+ ">, end </"
-								+ endToken.text
-								+ ">)",
-						result);
 			}
 
 			return result;

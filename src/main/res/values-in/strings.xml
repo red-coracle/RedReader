@@ -14,8 +14,7 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~ along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
-  -->
-<resources>
+  --><resources>
     <string name="app_name" translatable="false">RedReader</string>
     <!-- First Run Dialog -->
     <string name="firstrun_login_title">Masuk</string>
@@ -185,7 +184,7 @@
     <string name="action_link">Buka Tautan</string>
     <string name="action_link_switch">Beralih ke Tautan</string>
     <string name="action_link_short">Tautan</string>
-    <string name="action_collapse"></string>
+    <string name="action_collapse">Toggle tutup</string>
     <string name="action_nothing">Tidak Melakukan Apapun</string>
     <string name="action_report">Laporkan</string>
     <string name="action_report_sure">Apakah anda yakin ingin melaporkan hal ini\?</string>
@@ -238,7 +237,7 @@
     <string name="error_cancelled_message">Operasi ini telah dibatalkan.</string>
     <string name="error_parse_title">Galat Urai</string>
     <string name="error_parse_message">Reddit mengirim data yang tidak saya ketahui.</string>
-    <string name="error_unexpected_cache_title"></string>
+    <string name="error_unexpected_cache_title">Galat Cache yang Tak Terduga</string>
     <string name="error_unexpected_cache_message">Telah terjadi galat internal yang tidak diketahui, terkait dengan cache.</string>
     <string name="error_unexpected_storage_title">Galat Penyimpanan Tak Terduga</string>
     <string name="error_unexpected_storage_message">Telah terjadi galat internal yang tidak diketahui, terkait dengan penyimpanan cache. Anda mungkin kehabisan ruang kosong penyimpanan.</string>
@@ -519,9 +518,9 @@
     <string name="pref_cache_precache_comments_wifionly_key" translatable="false">pref_cache_precache_comments_wifionly</string>
     <string name="pref_cache_precache_comments_wifionly_title">Hanya di Wi-Fi</string>
     <string name="mainmenu_header_subreddits_subscribed">Subreddit Disubscribe</string>
-    <string name="mainmenu_header_subreddits_pinned">Subreddit Disematkan</string>
-    <string name="pin_subreddit">Semat ke Menu Utama</string>
-    <string name="unpin_subreddit">Buang dari Menu Utama</string>
+    <string name="mainmenu_header_subreddits_pinned">Subreddit Favorit</string>
+    <string name="pin_subreddit">Pin ke Menu Utama</string>
+    <string name="unpin_subreddit">Hapus dari Menu Utama</string>
     <string name="pref_pinned_subreddits_key" translatable="false">pref_pinned_subreddits</string>
     <!-- 2015-11-22 -->
     <string name="props_image_title">Info Gambar</string>
@@ -545,7 +544,7 @@
     <string name="lang_se" translatable="false">Svenska</string>
     <!-- 2016-04-02 -->
     <string name="open_with">Buka dengan</string>
-    <string name="pref_network_tor_title">Gunakan TOR (eksperimental)</string>
+    <string name="pref_network_tor_title">Gunakan Tor</string>
     <string name="pref_network_tor_key" translatable="false">pref_network_tor</string>
     <!-- 2016-04-03 -->
     <string name="error_tor_not_installed">Tor tidak akan bekerja kecuali Orbot terpasang. Pasang sekarang\?</string>
@@ -636,7 +635,7 @@
     <string name="error_cache_dir_does_not_exist_message">Direktori cache tidak bisa diakses. Silakan pilih lokasi yang berbeda di pengaturan cache.</string>
     <!-- 2016-08-15 -->
     <string name="pref_behaviour_pinned_subredditsort_key" translatable="false">pref_behaviour_pinned_subreddit_sort</string>
-    <string name="pref_behaviour_pinned_subredditsort">Urutan Subreddit Disematkan</string>
+    <string name="pref_behaviour_pinned_subredditsort">Urutan Subreddit Favorit</string>
     <string name="sort_pinned_subreddit_name">Nama</string>
     <string name="sort_pinned_subreddit_date">Tanggal Ditambahkan</string>
     <!-- 2016-09-01 -->
@@ -701,8 +700,8 @@
     <string name="pref_menus_subreddit_context_items_title">Item Menu Konteks Subreddit</string>
     <string name="mainmenu_toast_not_subscribed">Anda belum subscribe ke subreddit ini!</string>
     <string name="mainmenu_toast_subscribed">Anda sudah subscribe ke subreddit ini!</string>
-    <string name="mainmenu_toast_not_pinned">Subreddit tidak disematkan ke menu utama!</string>
-    <string name="mainmenu_toast_pinned">Subreddit ini sudah disematkan ke menu utama!</string>
+    <string name="mainmenu_toast_not_pinned">Subreddit ini tidak dipin ke menu utama!</string>
+    <string name="mainmenu_toast_pinned">Subreddit ini sudah dipin ke menu utama!</string>
     <string name="mainmenu_toast_not_blocked">Subreddit ini tidak diblokir!</string>
     <string name="mainmenu_toast_blocked">Subreddit ini sudah diblokir!</string>
     <string name="lang_pt" translatable="false">Português</string>
@@ -711,8 +710,8 @@
     <string name="post_edit_done">Pos telah disunting. Perubahan akan ditampilkan setelah anda menyegarkan halaman.</string>
     <string name="action_block_subreddit">Blokir Subreddit</string>
     <string name="action_unblock_subreddit">Buka Blokir Subreddit</string>
-    <string name="action_pin_subreddit">Semat Subreddit ke Menu Utama</string>
-    <string name="action_unpin_subreddit">Hapus Semat Subreddit dari Menu Utama</string>
+    <string name="action_pin_subreddit">Pin Subreddit ke Menu Utama</string>
+    <string name="action_unpin_subreddit">Hapus Subreddit dari Menu Utama</string>
     <string name="action_subscribe_subreddit">Subscribe ke Subreddit</string>
     <string name="action_unsubscribe_subreddit">Batal subscribe dari Subreddit</string>
     <!-- 2017-04-14 -->
@@ -744,5 +743,30 @@
     <string name="pref_behaviour_sharing_include_desc_title">Sertakan judul/deskripsi saat berbagi</string>
     <string name="share_comments_for">Komentar untuk %s</string>
     <string name="share_comment_by_on_reddit">Komentar oleh %s di Reddit</string>
-
+    <string name="title_license">Lisensi</string>
+    <string name="pref_appearance_left_handed_title">Mode kidal</string>
+    <string name="post_submit_mark_nsfw">Tandai sebagai TAUSB</string>
+    <string name="post_submit_mark_spoiler">Tandai sebagai spoiler</string>
+    <string name="error_already_submitted_title">Sudah dikirimkan</string>
+    <string name="error_already_submitted_message">Pos ini sudah dikirimkan ke subreddit ini.</string>
+    <string name="comment_reply_done_norefresh">Balasan terkirim.</string>
+    <string name="sort_posts_best">Terbaik</string>
+    <string name="pref_behaviour_usecustomtabs_title">Gunakan Custom Tab</string>
+    <string name="pref_behaviour_usecustomtabs_summary">Gunakan Custom Tab jika tersedia</string>
+    <string name="pref_behaviour_hide_read_posts_title">Sembunyikan pos yang sudah dibaca</string>
+    <string name="pref_menus_mainmenu_shortcutitems_title">Pintasan Menu Utama</string>
+    <string name="pref_menus_show_multireddit_main_menu_title">Tampilkan Multireddit</string>
+    <string name="pref_menus_show_subscribed_subreddits_main_menu_title">Tampilkan Subreddit yang Disubscribe</string>
+    <string name="mainmenu_random_nsfw">Subreddit TAUSB Acak</string>
+    <string name="pref_appearance_show_aspect_ratio_indicator_title">Tampilkan Indikator Rasio Aspek</string>
+    <string name="pref_appearance_show_aspect_ratio_indicator_summary">Tampilkan indikator pemuatan media jika tersedia</string>
+    <string name="pref_appearance_bottom_toolbar_title">Tampilkan Bilah Alat di Bawah</string>
+    <string name="pref_behaviour_video_mute_default_title">Matikan suara video secara bawaan</string>
+    <string name="prefs_category_images_video">Gambar/Video</string>
+    <string name="notification_channel_name_reddit_messages">Pesan Masuk Reddit</string>
+    <string name="post_text_copied_to_clipboard">Pos disalin ke papan klip</string>
+    <string name="action_copy_selftext">Salin Self-Text</string>
+    <string name="pref_behaviour_sharing_share_dialog_dialogtitle">Pilih apl untuk berbagi</string>
+    <string name="pref_behaviour_sharing_share_dialog_title">Gunakan dialog berbagi bawaan</string>
+    <string name="error_toast_no_share_app_installed">Tidak ada apl terpasang untuk berbagi pos ini.</string>
 </resources>

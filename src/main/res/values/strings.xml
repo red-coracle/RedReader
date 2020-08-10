@@ -83,7 +83,7 @@
     <string name="pref_behaviour_fling_post_right_title">Fling right</string>
 
     <string name="pref_behaviour_actions_comment_tap_key" translatable="false">pref_behaviour_actions_comment_tap</string>
-    <string name="pref_behaviour_actions_comment_tap_title">Tap</string>
+    <string name="pref_behaviour_actions_comment_tap_title">Press</string>
 
     <string name="pref_behaviour_nsfw_key" translatable="false">pref_behaviour_nsfw</string>
     <string name="pref_behaviour_nsfw_title">Show NSFW content</string>
@@ -808,7 +808,7 @@
 	
 	<!-- 2016-07-02 -->
 	<string name="pref_behaviour_actions_comment_longclick_key" translatable="false">pref_behaviour_actions_comment_longclick</string>
-	<string name="pref_behaviour_actions_comment_longclick_title">Long tap</string>
+	<string name="pref_behaviour_actions_comment_longclick_title">Long press</string>
 
 	<string name="no_comments_yet">No comments yet.</string>
 
@@ -1003,7 +1003,7 @@
 
 	<!--2017-05-21-->
 	<string name="pref_behaviour_self_post_tap_actions_key" translatable="false">pref_behaviour_self_post_tap_actions</string>
-	<string name="pref_behaviour_self_post_tap_actions_title">Self-post tap</string>
+	<string name="pref_behaviour_self_post_tap_actions_title">Self-post press</string>
 
 	<!-- 2017-06-05 -->
 	<string name="lang_in" translatable="false">Bahasa Indonesia</string>
@@ -1111,7 +1111,7 @@
 	<string name="notification_channel_name_reddit_messages">Incoming Reddit Messages</string>
 	
 	<!-- 2019-10-05 -->
-	<string name="post_text_copied_to_clipboard">Post copied to clipboard</string>
+	<string name="post_text_copied_to_clipboard">Post self-text copied to clipboard</string>
 	<string name="action_copy_selftext">Copy Self-Text</string>
 
 	<!-- 2020-01-11 -->
@@ -1218,5 +1218,18 @@
 
 	<string name="pref_appearance_hide_headertoolbar_commentlist_key" translatable="false">pref_appearance_hide_headertoolbar_commentlist</string>
 	<string name="pref_appearance_hide_headertoolbar_commentlist_title">Hide comment list header toolbar</string>
+
+	<!-- 2020-07-11 -->
+	<string name="post_link_copied_to_clipboard">Post link copied to clipboard</string>
+	<string name="link_copied_to_clipboard">Link copied to clipboard</string>
+	<string name="comment_link_copied_to_clipboard">Comment link copied to clipboard</string>
+	<string name="comment_text_copied_to_clipboard">Comment text copied to clipboard</string>
+	<string name="subreddit_link_copied_to_clipboard">Subreddit link copied to clipboard</string>
+
+	<!-- 2020-07-16 -->
+	<string name="copied_to_clipboard">Copied to clipboard</string>
+
+	<!-- 2020-07-25 -->
+	<string name="image_gallery">Gallery</string>
 
 </resources>

@@ -14,8 +14,7 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~ along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
-  -->
-<resources>
+  --><resources>
     <!-- First Run Dialog -->
     <string name="firstrun_login_title">Iniciar sesión</string>
     <string name="firstrun_login_message">No has iniciado sesión. Puedes acceder a la lista de cuentas seleccionando "Cuentas" desde el menú.</string>
@@ -197,7 +196,7 @@
     <!-- Bug Reporting -->
     <string name="bug_title">Ha ocurrido un error.</string>
     <string name="bug_message">RedReader ha encontrado un error.\n\n¿Te gustaría enviar un informe al desarrollador? Si es así, se generará un correo con toda la información relevante, y podrás revisarlo antes de enviarlo.</string>
-    <string name="bug_button_send">Enviar informe por email</string>
+    <string name="bug_button_send">Enviar informe por correo electrónico</string>
     <string name="bug_button_ignore">No enviar informe</string>
     <!-- General errors -->
     <string name="error_403_title">Usuario no válido</string>
@@ -227,9 +226,9 @@
     <string name="error_unknown_title">Error desconocido</string>
     <string name="error_unknown_message">Ha ocurrido un error desconocido. Por favor, inténtalo de nuevo.</string>
     <!-- Post list specific errors -->
-    <string name="error_postlist_cache_title">Fin de los datos en caché.</string>
+    <string name="error_postlist_cache_title">Fin de los datos en caché</string>
     <string name="error_postlist_cache_message">Estás viendo una versión anterior de este contenido, y no hay más publicaciones de esta sesión en la caché. Presiona actualizar para descargar las últimas publicaciones, o selecciona una versión anterior diferente desde el menú.</string>
-    <string name="error_postlist_redditdown_title">Reddit está caído.</string>
+    <string name="error_postlist_redditdown_title">Reddit está fuera de servicio</string>
     <string name="error_postlist_redditdown_message">Reddit está sobrecargado ahora mismo. Presiona actualizar para descargar las últimas publicaciones, o selecciona una versión anterior diferente desde el menú.</string>
     <!-- Session List -->
     <string name="session_active">Activa</string>
@@ -237,7 +236,7 @@
     <string name="time_ago">hace %s</string>
     <!-- User Profile -->
     <string name="userprofile_created">Creado</string>
-    <string name="userprofile_hasmail">Tiene email</string>
+    <string name="userprofile_hasmail">Tiene correo</string>
     <string name="userprofile_hasmodmail">Tiene mensajes de moderadores</string>
     <string name="userprofile_isfriend">Es amigo</string>
     <string name="userprofile_isgold">Reddit Gold</string>
@@ -550,7 +549,7 @@
     <string name="pref_appearance_navbar_color_option_black">Negro</string>
     <string name="pref_appearance_navbar_color_option_primary">Primario (claro)</string>
     <string name="pref_appearance_navbar_color_option_primarydark">Primario (oscuro)</string>
-    <string name="pref_not_supported_before_lollipop">No soportado en versiones anteriores a Lollipop.</string>
+    <string name="pref_not_supported_before_lollipop">No soportado en versiones anteriores a Lollipop</string>
     <!-- 2016-08-03 -->
     <string name="action_copy_text">Copiar texto</string>
     <string name="action_copy_link">Copiar enlace</string>
@@ -657,4 +656,30 @@
     <string name="share_comments_for">Comentarios para %s</string>
     <string name="share_comment_by_on_reddit">Comentarios por %s en Reddit</string>
     <string name="gold">Gold</string>
+    <string name="title_license">Licencia</string>
+    <string name="pref_appearance_left_handed_title">Modo zurdo</string>
+    <string name="post_submit_mark_nsfw">Marcar como NSFW</string>
+    <string name="post_submit_mark_spoiler">Marcar como spoiler</string>
+    <string name="error_already_submitted_message">Esta publicación ya se ha enviado a este subreddit.</string>
+    <string name="comment_reply_done_norefresh">Respuesta enviada.</string>
+    <string name="sort_posts_best">Los mejores</string>
+    <string name="pref_behaviour_usecustomtabs_title">Usar pestañas personalizadas</string>
+    <string name="pref_behaviour_usecustomtabs_summary">Usar pestañas personalizadas cuando estén disponibles</string>
+    <string name="pref_behaviour_hide_read_posts_title">Ocultar publicaciones leídas</string>
+    <string name="pref_menus_show_multireddit_main_menu_title">Mostrar Multireddits</string>
+    <string name="mainmenu_random_nsfw">Subreddit NSFW aleatorio</string>
+    <string name="error_toast_no_share_app_installed">No se ha instalado una aplicación adecuada para compartir esto.</string>
+    <string name="error_already_submitted_title">Ya ha sido enviado</string>
+    <string name="pref_menus_mainmenu_shortcutitems_title">Atajos del menú principal</string>
+    <string name="pref_menus_show_subscribed_subreddits_main_menu_title">Mostrar Subreddits donde estoy suscrito</string>
+    <string name="pref_appearance_show_aspect_ratio_indicator_title">Mostrar indicador de relación de aspecto</string>
+    <string name="pref_appearance_show_aspect_ratio_indicator_summary">Mostrar indicador de que el contenido se está cargando, cuando esté disponible</string>
+    <string name="pref_appearance_bottom_toolbar_title">Mostrar barra de herramientas en la parte inferior</string>
+    <string name="pref_behaviour_video_mute_default_title">Silenciar videos de forma predeterminada</string>
+    <string name="prefs_category_images_video">Imágenes/Video</string>
+    <string name="notification_channel_name_reddit_messages">Mensajes entrantes de Reddit</string>
+    <string name="post_text_copied_to_clipboard">Publicación copiada al portapapeles</string>
+    <string name="action_copy_selftext">Copiar texto propio</string>
+    <string name="pref_behaviour_sharing_share_dialog_dialogtitle">Elige una app para compartir</string>
+    <string name="pref_behaviour_sharing_share_dialog_title">Usar el diálogo incorporado para compartir</string>
 </resources>
