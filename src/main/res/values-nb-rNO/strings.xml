@@ -14,7 +14,7 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~ along with RedReader.  If not, see <http://www.gnu.org/licenses/>.
-  --><resources>
+  --><resources xmlns:tools="http://schemas.android.com/tools">
     <string name="firstrun_login_title">Logg inn</string>
     <string name="firstrun_login_message">Du er for tiden ikke innlogget. Du har tilgang til kontolisten ved å velge \"Kontoer\" fra menyen.</string>
     <string name="firstrun_login_button_now">Logg inn nå</string>
@@ -23,15 +23,12 @@
     <string name="prefs_category_behaviour">Oppførsel</string>
     <string name="prefs_category_menus">Menyer</string>
     <string name="pref_appearance_theme_header">Drakt</string>
-    <string name="pref_appearance_font_header">Skrift</string>
     <string name="pref_appearance_thumbnails_header">Miniatyrbilder</string>
-    <string name="pref_appearance_tabletmode_header">Brettmodus</string>
     <string name="pref_appearance_comments_header">Kommentarer</string>
     <string name="pref_appearance_other_header">Annet</string>
     <string name="pref_appearance_theme_title">Drakt</string>
     <string name="pref_appearance_solidblack_title">Helsvart i nattmodus</string>
     <string name="pref_appearance_fontscale_posts_title">Skriftstørrelse for innlegg</string>
-    <string name="pref_appearance_fontscale_comments_title">Skriftstørrelse for kommentarer</string>
     <string name="pref_appearance_thumbnails_show_title">Vis miniatyrbilder</string>
     <string name="pref_appearance_thumbnails_wifionly_title">Miniatyrbilder kun på Wi-Fi</string>
     <string name="pref_appearance_loading_detail_title">Vis detaljerte innlastingsmeldinger</string>
@@ -113,7 +110,7 @@
     <string name="sort_comments_controversial">Kontroversielt</string>
     <string name="sort_comments_top">Topp</string>
     <string name="dialog_close">Lukk</string>
-    <string name="dialog_cancel">Abryt</string>
+    <string name="dialog_cancel">Avbryt</string>
     <string name="dialog_yes">Ja</string>
     <string name="dialog_no">Nei</string>
     <string name="dialog_go">Gå</string>
@@ -285,10 +282,6 @@
     <string name="subtitle_points">poeng</string>
     <string name="subtitle_by">av</string>
     <string name="subtitle_to">til</string>
-    <plurals name="subtitle_replies">
-        <item quantity="one">…</item>
-        <item quantity="other">(%d svar)</item>
-    </plurals>
     <string name="general_unknown">ukjent</string>
     <string name="action_search">Søk</string>
     <string name="search_subreddit_restrict">Begrens søk til</string>
@@ -348,7 +341,6 @@
     <string name="user_comments">Kommentarer</string>
     <string name="comment_header_specific_thread_title">Du viser nå en spesifikk kommentartråd.</string>
     <string name="comment_header_specific_thread_message">Klikk her for å vise alle kommentarene på innlegget.</string>
-    <string name="more_comments_button_text">Last inn flere kommentarer</string>
     <string name="action_comment_context">Bindeleddsinformasjon</string>
     <string name="action_comment_go_to">Gå til kommentar</string>
     <string name="webview_https_already">Nåværende side bruker allerede HTTPS.</string>
@@ -378,7 +370,6 @@
     <string name="pref_behaviour_gifview_mode_internal_legacy">Intern viser (foreldet)</string>
     <string name="pref_behaviour_view_mode_internal_browser">Intern nettleser</string>
     <string name="pref_behaviour_view_mode_external_browser">Ekstern nettleser</string>
-    <string name="pref_appearance_fontscale_inbox_title">Skriftstørrelse for innboks</string>
     <string name="action_delete">Slett</string>
     <string name="delete_confirm">Er du sikker på at du vil slette dette?</string>
     <string name="delete_success">Slettet. Elementet vil vises til du gjenoppfrisker.</string>
@@ -532,12 +523,9 @@
     <string name="download_link_title">Last ned fil</string>
     <string name="download_link_message">Dette er en nedlastet lenke. Ønsker du å laste den i en ekstern nettleser?</string>
     <string name="pref_behaviour_self_post_tap_actions_title">Handling for egeninnlegg</string>
-    <string name="pref_menus_show_popular_main_menu_key">pref_menus_show_popular_main_menu</string>
     <string name="pref_menus_show_popular_main_menu_title">Vis /r/populær i hovedmeny</string>
-    <string name="pref_behaviour_video_playback_controls_key">pref_behaviour_video_playback_controls</string>
     <string name="pref_behaviour_video_playback_controls_title">Skru på videoavspillingskontroller</string>
     <string name="error_no_suitable_apps_available">Ingen egnede programmer tilgjengelig.</string>
-    <string name="pref_behaviour_comment_share_text_title">Inkluder tekst ved deling av kommentar</string>
     <string name="disable_replies_to_infobox_failed">Klarte ikke å slå av svarfunksjon for innboks</string>
     <string name="mainmenu_random">Tilfeldig subreddit</string>
     <string name="pref_menus_show_random_main_menu_title">Vis /r/random i hovedmenyen</string>
@@ -567,7 +555,9 @@
     <string name="pref_menus_show_subscribed_subreddits_main_menu_title">Vis abonnerte underreddit-er</string>
     <string name="mainmenu_random_nsfw">Tilfeldig NSFW-underreddit</string>
     <string name="pref_appearance_show_aspect_ratio_indicator_title">Vis indikator for sideforhold</string>
-    <string name="pref_appearance_show_aspect_ratio_indicator_summary">Vis innlasting av media visuelt når tilgjengelig</string>
+    <string
+			name="pref_appearance_show_aspect_ratio_indicator_summary"
+			tools:ignore="Typos">Vis innlasting av media visuelt når tilgjengelig</string>
     <string name="pref_appearance_bottom_toolbar_title">Vis verktøyslinje på bunnen</string>
     <string name="pref_behaviour_video_mute_default_title">Forstum videoer som forvalg</string>
     <string name="prefs_category_images_video">Bilder/video</string>
@@ -577,4 +567,46 @@
     <string name="pref_behaviour_sharing_share_dialog_dialogtitle">Velg et program for deling</string>
     <string name="pref_behaviour_sharing_share_dialog_title">Bruk innebygd delingsdialog</string>
     <string name="error_toast_no_share_app_installed">Finner ikke noe program for deling av dette.</string>
+    <string name="pref_menus_mainmenu_header">Hovedmeny</string>
+    <string name="pref_appearance_fontscale_header">Skriftstørrelse</string>
+    <string name="prefs_category_fonts">Skrift</string>
+    <string name="search_results_subreddit_only">Søk etter /r/%s</string>
+    <string name="search_results_query_only">Søk etter \"%s\"</string>
+    <string name="search_results_all">Søk etter \"%1$s\" på /r/%2$s</string>
+    <string name="search_results_short">Søkeresultater</string>
+    <string name="button_error_details">Detaljer</string>
+    <string name="image_gallery_no_data_present_title">Fant ikke galleriet</string>
+    <string name="image_gallery_removed_message">Dette galleriet har blitt fjernet og er ikke lenger tilgjengelig.</string>
+    <string name="image_gallery_removed_title">Galleri fjernet</string>
+    <string name="sort_comments_top_all">Topp: Siden begynnelsen</string>
+    <string name="sort_comments_top_year">Topp: Dette året</string>
+    <string name="sort_comments_top_month">Topp: Denne måneden</string>
+    <string name="sort_comments_top_week">Topp: Denne uken</string>
+    <string name="sort_comments_top_today">Topp: I dag</string>
+    <string name="sort_comments_top_hour">Topp: Denne timen</string>
+    <string name="pref_behaviour_user_commentsort_title">Brukerkommentarer (forvalg)</string>
+    <string name="error_nsfw_subreddits_disabled_title">Blokkert NSFW-subreddit</string>
+    <string name="list_yes_no_or_wifi_never">Aldri</string>
+    <string name="list_yes_no_or_wifi_wifionly">Kun på Wi-Fi</string>
+    <string name="list_yes_no_or_wifi_always">Alltid</string>
+    <string name="pref_appearance_post_subtitle_items_domain">Domene</string>
+    <string name="dialog_continue">Fortsett</string>
+    <string name="image_gallery_no_image_present_message">Kunne ikke finne angitt bilde. Det kan ha blitt slettet.</string>
+    <string name="image_gallery_no_image_present_title">Fant ikke bilde</string>
+    <string name="image_gallery_no_data_present_message">Fant ikke noe bildegalleri på angitt lenke. Det kan ha blitt slettet.</string>
+    <string name="action_comments_with_count">Vis kommentarer (%d)</string>
+    <string name="image_gallery">Galleri</string>
+    <string name="pref_menus_appbar_items_never">Ikke vis</string>
+    <string name="copied_to_clipboard">Kopiert til utklippstavle</string>
+    <string name="subreddit_link_copied_to_clipboard">Subredditlenke kopiert til utklippstavle</string>
+    <string name="comment_text_copied_to_clipboard">Kommentartekst kopiert til utklippstavle</string>
+    <string name="comment_link_copied_to_clipboard">Kommentarlenke kopiert til utklippstavle</string>
+    <string name="link_copied_to_clipboard">Lenke kopiert til utklippstavle</string>
+    <string name="reddit_login_browser_popup_use_external_browser">Bruk ekstern nettleser (anbefales)</string>
+    <string name="reddit_login_browser_popup_use_internal_browser">Bruk intern nettleser (anbefales)</string>
+    <string name="reddit_login_browser_popup_line_2">Når innloggingen er utført, burde du bli videresendt tilbake til RedReader. Hvis det ikke fungerer kan du bruke en annen nettleser nedenfor.</string>
+    <string name="reddit_login_browser_popup_line_1">Du vil nå bli sendt til Reddit i en nettleser for innlogging.</string>
+	<plurals name="load_more_comments_button_reply_count">
+		<item quantity="other">Last inn flere kommentarer (%d svar)</item>
+	</plurals>
 </resources>

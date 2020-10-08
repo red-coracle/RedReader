@@ -31,7 +31,10 @@ final class CachingInputStream extends InputStream {
 
 	private boolean stillRunning = true;
 
-	public CachingInputStream(final InputStream in, final OutputStream out, final BytesReadListener listener) {
+	public CachingInputStream(
+			final InputStream in,
+			final OutputStream out,
+			final BytesReadListener listener) {
 		this.in = in;
 		this.out = out;
 		this.listener = listener;
@@ -42,7 +45,9 @@ final class CachingInputStream extends InputStream {
 	}
 
 	private void notifyOnBytesRead() {
-		if(listener != null) listener.onBytesRead(bytesRead);
+		if(listener != null) {
+			listener.onBytesRead(bytesRead);
+		}
 	}
 
 	@Override
@@ -53,10 +58,13 @@ final class CachingInputStream extends InputStream {
 			final byte[] skipBuffer = new byte[8192];
 
 			//noinspection StatementWithEmptyBody
-			while(read(skipBuffer) > 0);
+			while(read(skipBuffer) > 0) {
+				;
+			}
 
 			if(stillRunning) {
-				throw new RuntimeException("Attempted to close CachingInputStream before the input stream has ended");
+				throw new RuntimeException(
+						"Attempted to close CachingInputStream before the input stream has ended");
 			}
 		}
 	}
@@ -79,7 +87,8 @@ final class CachingInputStream extends InputStream {
 	}
 
 	@Override
-	public int read(final byte[] buffer, final int offset, final int length) throws IOException {
+	public int read(final byte[] buffer, final int offset, final int length) throws
+			IOException {
 
 		final int result = in.read(buffer, offset, length);
 

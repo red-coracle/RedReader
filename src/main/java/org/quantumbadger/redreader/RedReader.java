@@ -18,18 +18,12 @@
 package org.quantumbadger.redreader;
 
 import android.app.Application;
-import android.os.Environment;
 import android.util.Log;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.common.Alarms;
 import org.quantumbadger.redreader.io.RedditChangeDataIO;
 import org.quantumbadger.redreader.receivers.NewMessageChecker;
 import org.quantumbadger.redreader.reddit.prepared.RedditChangeDataManager;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.util.UUID;
 
 public class RedReader extends Application {
 
@@ -40,35 +34,6 @@ public class RedReader extends Application {
 
 		Log.i("RedReader", "Application created.");
 
-		final Thread.UncaughtExceptionHandler androidHandler = Thread.getDefaultUncaughtExceptionHandler();
-
-		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-			public void uncaughtException(Thread thread, Throwable t) {
-
-				try {
-					t.printStackTrace();
-
-					File dir = Environment.getExternalStorageDirectory();
-
-					if(dir == null) {
-						dir = Environment.getDataDirectory();
-					}
-
-					try(FileOutputStream fos = new FileOutputStream(
-							new File(dir, "redreader_crash_log_" + UUID.randomUUID().toString() + ".txt"))) {
-
-						try(PrintWriter pw = new PrintWriter(fos)) {
-							t.printStackTrace(pw);
-							pw.flush();
-						}
-					}
-
-				} catch(Throwable t1) {}
-
-				androidHandler.uncaughtException(thread, t);
-			}
-		});
-
 		final CacheManager cm = CacheManager.getInstance(this);
 
 		new Thread() {
@@ -78,14 +43,15 @@ public class RedReader extends Application {
 				android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
 				cm.pruneTemp();
-				cm.pruneCache(); // Hope for the best :)
+				cm.pruneCache();
 			}
 		}.start();
 
 		new Thread() {
 			@Override
 			public void run() {
-				RedditChangeDataIO.getInstance(RedReader.this).runInitialReadInThisThread();
+				RedditChangeDataIO.getInstance(RedReader.this)
+						.runInitialReadInThisThread();
 				RedditChangeDataManager.pruneAllUsers(RedReader.this);
 			}
 		}.start();

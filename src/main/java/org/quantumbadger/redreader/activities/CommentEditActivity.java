@@ -47,26 +47,27 @@ public class CommentEditActivity extends BaseActivity {
 	private boolean isSelfPost = false;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(final Bundle savedInstanceState) {
 
 		PrefsUtility.applyTheme(this);
 
 		super.onCreate(savedInstanceState);
 
-		if (getIntent() != null && getIntent().hasExtra("isSelfPost")
-				&& getIntent().getBooleanExtra("isSelfPost", false)){
+		if(getIntent() != null && getIntent().hasExtra("isSelfPost")
+				&& getIntent().getBooleanExtra("isSelfPost", false)) {
 			setTitle(R.string.edit_post_actionbar);
 			isSelfPost = true;
 		} else {
 			setTitle(R.string.edit_comment_actionbar);
 		}
-		textEdit = (EditText) getLayoutInflater().inflate(R.layout.comment_edit, null);
+		textEdit = (EditText)getLayoutInflater().inflate(R.layout.comment_edit, null);
 
 		if(getIntent() != null && getIntent().hasExtra("commentIdAndType")) {
 			commentIdAndType = getIntent().getStringExtra("commentIdAndType");
 			textEdit.setText(getIntent().getStringExtra("commentText"));
 
-		} else if(savedInstanceState != null && savedInstanceState.containsKey("commentIdAndType")) {
+		} else if(savedInstanceState != null && savedInstanceState.containsKey(
+				"commentIdAndType")) {
 			textEdit.setText(savedInstanceState.getString("commentText"));
 			commentIdAndType = savedInstanceState.getString("commentIdAndType");
 		}
@@ -77,14 +78,14 @@ public class CommentEditActivity extends BaseActivity {
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
+	protected void onSaveInstanceState(final Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putString("commentText", textEdit.getText().toString());
 		outState.putString("commentIdAndType", commentIdAndType);
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onCreateOptionsMenu(final Menu menu) {
 
 		final MenuItem send = menu.add(R.string.comment_edit_save);
 		send.setIcon(R.drawable.ic_action_save_dark);
@@ -96,7 +97,7 @@ public class CommentEditActivity extends BaseActivity {
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		if(item.getTitle().equals(getString(R.string.comment_edit_save))) {
 
@@ -108,17 +109,26 @@ public class CommentEditActivity extends BaseActivity {
 			progressDialog.setCanceledOnTouchOutside(false);
 
 			progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+				@Override
 				public void onCancel(final DialogInterface dialogInterface) {
-					General.quickToast(CommentEditActivity.this, R.string.comment_reply_oncancel);
+					General.quickToast(
+							CommentEditActivity.this,
+							R.string.comment_reply_oncancel);
 					General.safeDismissDialog(progressDialog);
 				}
 			});
 
 			progressDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-				public boolean onKey(final DialogInterface dialogInterface, final int keyCode, final KeyEvent keyEvent) {
+				@Override
+				public boolean onKey(
+						final DialogInterface dialogInterface,
+						final int keyCode,
+						final KeyEvent keyEvent) {
 
 					if(keyCode == KeyEvent.KEYCODE_BACK) {
-						General.quickToast(CommentEditActivity.this, R.string.comment_reply_oncancel);
+						General.quickToast(
+								CommentEditActivity.this,
+								R.string.comment_reply_oncancel);
 						General.safeDismissDialog(progressDialog);
 					}
 
@@ -126,7 +136,8 @@ public class CommentEditActivity extends BaseActivity {
 				}
 			});
 
-			final APIResponseHandler.ActionResponseHandler handler = new APIResponseHandler.ActionResponseHandler(this) {
+			final APIResponseHandler.ActionResponseHandler handler
+					= new APIResponseHandler.ActionResponseHandler(this) {
 				@Override
 				protected void onSuccess(@Nullable final String redirectUrl) {
 					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
@@ -135,10 +146,14 @@ public class CommentEditActivity extends BaseActivity {
 
 							General.safeDismissDialog(progressDialog);
 
-							if (isSelfPost){
-								General.quickToast(CommentEditActivity.this, R.string.post_edit_done);
+							if(isSelfPost) {
+								General.quickToast(
+										CommentEditActivity.this,
+										R.string.post_edit_done);
 							} else {
-								General.quickToast(CommentEditActivity.this, R.string.comment_edit_done);
+								General.quickToast(
+										CommentEditActivity.this,
+										R.string.comment_edit_done);
 							}
 
 							finish();
@@ -147,14 +162,23 @@ public class CommentEditActivity extends BaseActivity {
 				}
 
 				@Override
-				protected void onCallbackException(Throwable t) {
+				protected void onCallbackException(final Throwable t) {
 					BugReportActivity.handleGlobalError(CommentEditActivity.this, t);
 				}
 
 				@Override
-				protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+				protected void onFailure(
+						@CacheRequest.RequestFailureType final int type,
+						final Throwable t,
+						final Integer status,
+						final String readableMessage) {
 
-					final RRError error = General.getGeneralErrorForFailure(context, type, t, status, null);
+					final RRError error = General.getGeneralErrorForFailure(
+							context,
+							type,
+							t,
+							status,
+							null);
 
 					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
@@ -168,7 +192,9 @@ public class CommentEditActivity extends BaseActivity {
 				@Override
 				protected void onFailure(final APIFailureType type) {
 
-					final RRError error = General.getGeneralErrorForFailure(context, type);
+					final RRError error = General.getGeneralErrorForFailure(
+							context,
+							type);
 
 					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
@@ -181,14 +207,22 @@ public class CommentEditActivity extends BaseActivity {
 			};
 
 			final CacheManager cm = CacheManager.getInstance(this);
-			final RedditAccount selectedAccount = RedditAccountManager.getInstance(this).getDefaultAccount();
+			final RedditAccount selectedAccount = RedditAccountManager.getInstance(this)
+					.getDefaultAccount();
 
-			RedditAPI.editComment(cm, handler, selectedAccount, commentIdAndType, textEdit.getText().toString(), this);
+			RedditAPI.editComment(
+					cm,
+					handler,
+					selectedAccount,
+					commentIdAndType,
+					textEdit.getText().toString(),
+					this);
 
 			progressDialog.show();
 
 		} else if(item.getTitle().equals(getString(R.string.comment_reply_preview))) {
-			MarkdownPreviewDialog.newInstance(textEdit.getText().toString()).show(getSupportFragmentManager(), "MarkdownPreviewDialog");
+			MarkdownPreviewDialog.newInstance(textEdit.getText().toString())
+					.show(getSupportFragmentManager(), "MarkdownPreviewDialog");
 		}
 
 		return true;
@@ -196,6 +230,8 @@ public class CommentEditActivity extends BaseActivity {
 
 	@Override
 	public void onBackPressed() {
-		if(General.onBackPressed()) super.onBackPressed();
+		if(General.onBackPressed()) {
+			super.onBackPressed();
+		}
 	}
 }

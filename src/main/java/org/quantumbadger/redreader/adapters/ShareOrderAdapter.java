@@ -39,7 +39,10 @@ public class ShareOrderAdapter extends BaseAdapter {
 	private final PackageManager packageManager;
 	private final AppCompatDialogFragment fragment;
 
-	public ShareOrderAdapter(Context context, List<ResolveInfo> appList, AppCompatDialogFragment fragment) {
+	public ShareOrderAdapter(
+			final Context context,
+			final List<ResolveInfo> appList,
+			final AppCompatDialogFragment fragment) {
 		this.context = context;
 		this.appList = appList;
 		this.packageManager = context.getPackageManager();
@@ -52,33 +55,33 @@ public class ShareOrderAdapter extends BaseAdapter {
 	}
 
 	@Override
-	public Object getItem(int position) {
+	public Object getItem(final int position) {
 		return appList.get(position);
 	}
 
 	@Override
-	public long getItemId(int position) {
+	public long getItemId(final int position) {
 		return position;
 	}
 
 	@Override
-	public View getView(final int position, View convertView, ViewGroup parent) {
-		LayoutInflater inflater = (LayoutInflater) context
+	public View getView(final int position, final View convertView, final ViewGroup parent) {
+		final LayoutInflater inflater = (LayoutInflater)context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View rowView = null;
 		if(inflater != null) {
 			rowView = inflater.inflate(R.layout.list_item_share_dialog, parent, false);
-			TextView label = rowView.findViewById(R.id.list_item_share_dialog_text);
+			final TextView label = rowView.findViewById(R.id.list_item_share_dialog_text);
 			label.setText(appList.get(position).loadLabel(packageManager).toString());
-			ImageView icon = rowView.findViewById(R.id.list_item_share_dialog_icon);
+			final ImageView icon = rowView.findViewById(R.id.list_item_share_dialog_icon);
 			icon.setImageDrawable(appList.get(position).loadIcon(packageManager));
-			View divider = rowView.findViewById(R.id.list_item_share_dialog_divider);
+			final View divider = rowView.findViewById(R.id.list_item_share_dialog_divider);
 			divider.setVisibility(View.INVISIBLE);
 
-			rowView.setOnClickListener(new View.OnClickListener(){
+			rowView.setOnClickListener(new View.OnClickListener() {
 				@Override
-				public void onClick(View v) {
-					((ShareOrderCallbackListener) fragment).onSelectedIntent(position);
+				public void onClick(final View v) {
+					((ShareOrderCallbackListener)fragment).onSelectedIntent(position);
 					fragment.dismiss();
 				}
 			});

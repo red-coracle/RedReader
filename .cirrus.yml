@@ -1,0 +1,34 @@
+container:
+    image: cirrusci/android-sdk:29
+    cpu: 6
+    memory: 10G
+    kvm: true
+
+ui_tests_api29_task:
+    name: UI Tests (Android 10)
+    run_tests_script:
+        - sudo chown cirrus:cirrus /dev/kvm
+        - ./config/scripts/run_emulator_tests_with_retry.sh "system-images;android-29;google_apis;x86_64"
+    always:
+        results_artifacts:
+            path: "build/outputs/androidTest-results/connected/*.xml"
+            type: text/xml
+            format: junit
+
+android_lint_task:
+    name: Android Lint
+    lint_script: ./gradlew lint
+    always:
+        android_lint_artifacts:
+            path: "build/reports/lint-results.xml"
+            type: text/xml
+            format: android-lint
+
+android_unit_tests_task:
+    name: Unit tests
+    unit_test_script: ./gradlew test
+    always:
+        results_artifacts:
+            path: "build/test-results/test*/*.xml"
+            type: text/xml
+            format: junit

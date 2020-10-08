@@ -34,9 +34,7 @@
     <!-- Appearance Prefs -->
 
     <string name="pref_appearance_theme_header">Design</string>
-    <string name="pref_appearance_font_header">Fonturi</string>
     <string name="pref_appearance_thumbnails_header">Thumbnail-uri</string>
-    <string name="pref_appearance_tabletmode_header">Modul pentru Tabletă</string>
     <string name="pref_appearance_comments_header">Comentariile</string>
     <string name="pref_appearance_other_header">Altele</string>
 
@@ -48,7 +46,6 @@
 
     <string name="pref_appearance_fontscale_posts_title">Mărimea fonturilor postărilor</string>
 
-    <string name="pref_appearance_fontscale_comments_title">Mărimea fonturilor comentariilor</string>
 
     <string name="pref_appearance_thumbnails_show_title">Arată thumbnail-urile</string>
 
@@ -428,10 +425,9 @@
     <string name="subtitle_points">puncte</string>
     <string name="subtitle_by">de</string>
     <string name="subtitle_to">spre</string>
-	<plurals name="subtitle_replies">
-		<item quantity="zero">…</item>
-		<item quantity="one">" (%d răspuns)"</item>
-		<item quantity="other">" (%d răspunsuri)"</item>
+	<plurals name="load_more_comments_button_reply_count">
+		<item quantity="one">"Încarcă mai multe comentarii (%d răspuns)"</item>
+		<item quantity="other">"Încarcă mai multe comentarii (%d răspunsuri)"</item>
 	</plurals>
 
     <string name="general_unknown">necunoscut</string>
@@ -558,7 +554,6 @@
     <string name="comment_header_specific_thread_message">Apăsați aici pentru a vedea toate comentariile.</string>
 
     <!-- 2014-12-18 -->
-    <string name="more_comments_button_text">Încarcă mai multe comentarii</string>
     <string name="action_comment_context">Context</string>
     <string name="action_comment_go_to">Mergeți la comentariu</string>
 
@@ -614,7 +609,6 @@
     <string name="pref_behaviour_view_mode_external_browser">Browser Extern</string>
 
     <!-- 2015-08-15 -->
-    <string name="pref_appearance_fontscale_inbox_title">Mărimea Fontului din Inbox</string>
 
     <string name="action_delete">Șterge</string>
     <string name="delete_confirm">Sunteți sigur că doriți ștergerea?</string>

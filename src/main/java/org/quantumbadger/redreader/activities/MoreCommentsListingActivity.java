@@ -55,6 +55,7 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 
 	private String mSearchString = null;
 
+	@Override
 	public void onCreate(final Bundle savedInstanceState) {
 
 		PrefsUtility.applyTheme(this);
@@ -76,7 +77,8 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 			final Intent intent = getIntent();
 			mSearchString = intent.getStringExtra(EXTRA_SEARCH_STRING);
 
-			final ArrayList<String> commentIds = intent.getStringArrayListExtra("commentIds");
+			final ArrayList<String> commentIds = intent.getStringArrayListExtra(
+					"commentIds");
 			final String postId = intent.getStringExtra("postId");
 
 			for(final String commentId : commentIds) {
@@ -123,12 +125,16 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 		return true;
 	}
 
+	@Override
 	public void onRedditAccountChanged() {
 		requestRefresh(RefreshableFragment.ALL, false);
 	}
 
 	@Override
-	protected void doRefresh(final RefreshableFragment which, final boolean force, final Bundle savedInstanceState) {
+	protected void doRefresh(
+			final RefreshableFragment which,
+			final boolean force,
+			final Bundle savedInstanceState) {
 
 		mFragment = new CommentListingFragment(
 				this,
@@ -147,25 +153,29 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 		setTitle("More Comments");
 	}
 
+	@Override
 	public void onRefreshComments() {
 		requestRefresh(RefreshableFragment.COMMENTS, true);
 	}
 
 	@Override
-	public void onPastComments() {}
+	public void onPastComments() {
+	}
 
 	@Override
-	public void onSortSelected(final PostCommentListingURL.Sort order) {}
+	public void onSortSelected(final PostCommentListingURL.Sort order) {
+	}
 
 	@Override
-	public void onSortSelected(final UserCommentListingURL.Sort order) {}
+	public void onSortSelected(final UserCommentListingURL.Sort order) {
+	}
 
 	@Override
 	public void onSearchComments() {
 		DialogUtils.showSearchDialog(this, new DialogUtils.OnSearchListener() {
 			@Override
-			public void onSearch(@Nullable String query) {
-				Intent searchIntent = getIntent();
+			public void onSearch(@Nullable final String query) {
+				final Intent searchIntent = getIntent();
 				searchIntent.putExtra(EXTRA_SEARCH_STRING, query);
 				startActivity(searchIntent);
 			}
@@ -184,16 +194,23 @@ public class MoreCommentsListingActivity extends RefreshableActivity
 		return super.onOptionsItemSelected(item);
 	}
 
+	@Override
 	public void onPostSelected(final RedditPreparedPost post) {
 		LinkHandler.onLinkClicked(this, post.src.getUrl(), false, post.src.getSrc());
 	}
 
+	@Override
 	public void onPostCommentsSelected(final RedditPreparedPost post) {
-		LinkHandler.onLinkClicked(this, PostCommentListingURL.forPostId(post.src.getIdAlone()).toString(), false);
+		LinkHandler.onLinkClicked(
+				this,
+				PostCommentListingURL.forPostId(post.src.getIdAlone()).toString(),
+				false);
 	}
 
 	@Override
 	public void onBackPressed() {
-		if(General.onBackPressed()) super.onBackPressed();
+		if(General.onBackPressed()) {
+			super.onBackPressed();
+		}
 	}
 }

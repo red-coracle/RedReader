@@ -19,10 +19,11 @@ package org.quantumbadger.redreader.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.widget.LinearLayout;
+import androidx.annotation.NonNull;
 import org.apache.commons.text.StringEscapeUtils;
 import org.quantumbadger.redreader.R;
+import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.common.RRTime;
 import org.quantumbadger.redreader.reddit.things.RedditPost;
 
@@ -40,32 +41,66 @@ public final class PostPropertiesDialog extends PropertiesDialog {
 	}
 
 	@Override
-	protected String getTitle(Context context) {
+	protected String getTitle(final Context context) {
 		return context.getString(R.string.props_post_title);
 	}
 
 	@Override
-	protected void prepare(AppCompatActivity context, LinearLayout items) {
+	protected void prepare(
+			@NonNull final BaseActivity context,
+			@NonNull final LinearLayout items) {
 
 		final RedditPost post = getArguments().getParcelable("post");
 
-		items.addView(propView(context, R.string.props_title, StringEscapeUtils.unescapeHtml4(post.title.trim()), true));
+		items.addView(propView(
+				context,
+				R.string.props_title,
+				StringEscapeUtils.unescapeHtml4(post.title.trim()),
+				true));
 		items.addView(propView(context, R.string.props_author, post.author, false));
-		items.addView(propView(context, R.string.props_url, StringEscapeUtils.unescapeHtml4(post.getUrl()), false));
-		items.addView(propView(context, R.string.props_created, RRTime.formatDateTime(post.created_utc * 1000, context), false));
+		items.addView(propView(
+				context,
+				R.string.props_url,
+				StringEscapeUtils.unescapeHtml4(post.getUrl()),
+				false));
+		items.addView(propView(
+				context,
+				R.string.props_created,
+				RRTime.formatDateTime(post.created_utc * 1000, context),
+				false));
 
 		if(post.edited instanceof Long) {
-			items.addView(propView(context, R.string.props_edited, RRTime.formatDateTime((Long) post.edited * 1000, context), false));
+			items.addView(propView(
+					context,
+					R.string.props_edited,
+					RRTime.formatDateTime((Long)post.edited * 1000, context),
+					false));
 		} else {
-			items.addView(propView(context, R.string.props_edited, R.string.props_never, false));
+			items.addView(propView(
+					context,
+					R.string.props_edited,
+					R.string.props_never,
+					false));
 		}
 
 		items.addView(propView(context, R.string.props_subreddit, post.subreddit, false));
-		items.addView(propView(context, R.string.props_score, String.valueOf(post.score), false));
-		items.addView(propView(context, R.string.props_num_comments, String.valueOf(post.num_comments), false));
+		items.addView(propView(
+				context,
+				R.string.props_score,
+				String.valueOf(post.score),
+				false));
+		items.addView(propView(
+				context,
+				R.string.props_num_comments,
+				String.valueOf(post.num_comments),
+				false));
 
 		if(post.selftext != null && post.selftext.length() > 0) {
-			items.addView(propView(context, R.string.props_self_markdown, StringEscapeUtils.unescapeHtml4(post.selftext), false));
+			items.addView(propView(
+					context,
+					R.string.props_self_markdown,
+					StringEscapeUtils.unescapeHtml4(post.selftext),
+					false));
 
 			if(post.selftext_html != null) {
 				items.addView(propView(

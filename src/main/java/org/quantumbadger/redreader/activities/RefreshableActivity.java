@@ -18,7 +18,9 @@
 package org.quantumbadger.redreader.activities;
 
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import androidx.annotation.NonNull;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.PrefsUtility;
@@ -28,7 +30,8 @@ import java.util.EnumSet;
 public abstract class RefreshableActivity extends BaseActivity {
 
 	private boolean paused = false;
-	private final EnumSet<RefreshableFragment> refreshOnResume = EnumSet.noneOf(RefreshableFragment.class);
+	private final EnumSet<RefreshableFragment> refreshOnResume = EnumSet.noneOf(
+			RefreshableFragment.class);
 
 	public enum RefreshableFragment {
 		MAIN, MAIN_RELAYOUT, POSTS, COMMENTS, RESTART, ALL
@@ -41,7 +44,9 @@ public abstract class RefreshableActivity extends BaseActivity {
 	}
 
 	@Override
-	protected void onSharedPreferenceChangedInner(final SharedPreferences prefs, final String key) {
+	protected void onSharedPreferenceChangedInner(
+			final SharedPreferences prefs,
+			final String key) {
 
 		if(PrefsUtility.isRestartRequired(this, key)) {
 			requestRefresh(RefreshableFragment.RESTART, false);
@@ -82,7 +87,13 @@ public abstract class RefreshableActivity extends BaseActivity {
 		}
 	}
 
-	protected void doRefreshNow(RefreshableFragment which, boolean force) {
+	@Override
+	public void onConfigurationChanged(@NonNull final Configuration newConfig) {
+		invalidateOptionsMenu();
+		super.onConfigurationChanged(newConfig);
+	}
+
+	protected void doRefreshNow(final RefreshableFragment which, final boolean force) {
 
 		if(which == RefreshableFragment.RESTART) {
 			General.recreateActivityNoAnimation(this);
@@ -92,18 +103,22 @@ public abstract class RefreshableActivity extends BaseActivity {
 		}
 	}
 
-	protected abstract void doRefresh(RefreshableFragment which, boolean force, final Bundle savedInstanceState);
+	protected abstract void doRefresh(
+			RefreshableFragment which,
+			boolean force,
+			final Bundle savedInstanceState);
 
-	public final void requestRefresh(final RefreshableFragment which, final boolean force) {
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				if(!paused) {
-					doRefreshNow(which, force);
-				} else {
-					refreshOnResume.add(which); // TODO this doesn't remember "force" (but it doesn't really matter...)
+	public final void requestRefresh(
+			final RefreshableFragment which,
+			final boolean force) {
+		runOnUiThread(() -> {
+					if(!paused) {
+						doRefreshNow(which, force);
+					} else {
+						// TODO this doesn't remember "force" //  (but it doesn't really matter...)
+						refreshOnResume.add(which);
+					}
 				}
-			}}
 		);
 	}
 }

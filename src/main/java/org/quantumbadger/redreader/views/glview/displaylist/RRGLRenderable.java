@@ -37,7 +37,9 @@ public abstract class RRGLRenderable {
 	}
 
 	public final void startRender(final RRGLMatrixStack stack, final long time) {
-		if(mVisible) renderInternal(stack, time);
+		if(mVisible) {
+			renderInternal(stack, time);
+		}
 	}
 
 	public void onAdded() {
@@ -58,7 +60,7 @@ public abstract class RRGLRenderable {
 		return false;
 	}
 
-	public void setOverallAlpha(float alpha) {
+	public void setOverallAlpha(final float alpha) {
 		throw new UnsupportedOperationException();
 	}
 }

@@ -17,17 +17,19 @@
 
 package org.quantumbadger.redreader.common.collections;
 
+import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
 
 public class Stack<E> {
 
 	private final ArrayList<E> mData;
 
-	public Stack(int initialCapacity) {
+	public Stack(final int initialCapacity) {
 		mData = new ArrayList<>(initialCapacity);
 	}
 
-	public void push(E obj) {
+	public void push(final E obj) {
 		mData.add(obj);
 	}
 
@@ -39,7 +41,17 @@ public class Stack<E> {
 		return mData.isEmpty();
 	}
 
-	public boolean remove(E obj) {
+	public boolean remove(final E obj) {
 		return mData.remove(obj);
+	}
+
+	@Nullable
+	public E peek() {
+
+		if(isEmpty()) {
+			return null;
+		}
+
+		return mData.get(mData.size() - 1);
 	}
 }

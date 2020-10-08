@@ -30,7 +30,9 @@ public class ImageViewTileLoaderThread {
 
 	public ImageViewTileLoaderThread() {
 
-		final int threadCount = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+		final int threadCount = Math.max(
+				1,
+				Runtime.getRuntime().availableProcessors() - 1);
 
 		Log.i("IViewTileLoaderThread", "Using thread count: " + threadCount);
 
@@ -39,7 +41,7 @@ public class ImageViewTileLoaderThread {
 				new InternalRunnable());
 	}
 
-	public void enqueue(ImageViewTileLoader tile) {
+	public void enqueue(final ImageViewTileLoader tile) {
 
 		synchronized(mQueue) {
 			mQueue.addLast(tile);

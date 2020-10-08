@@ -29,11 +29,11 @@ public class MultiScaleTileManager {
 
 	private final Object mLock = new Object();
 
-	public static int scaleIndexToSampleSize(int scaleIndex) {
+	public static int scaleIndexToSampleSize(final int scaleIndex) {
 		return 1 << scaleIndex;
 	}
 
-	public static int sampleSizeToScaleIndex(int sampleSize) {
+	public static int sampleSizeToScaleIndex(final int sampleSize) {
 		return Integer.numberOfTrailingZeros(sampleSize);
 	}
 
@@ -44,10 +44,18 @@ public class MultiScaleTileManager {
 			final int y,
 			final ImageViewTileLoader.Listener listener) {
 
-		mTileLoaders = new ImageViewTileLoader[sampleSizeToScaleIndex(MAX_SAMPLE_SIZE) + 1];
+		mTileLoaders =
+				new ImageViewTileLoader[sampleSizeToScaleIndex(MAX_SAMPLE_SIZE) + 1];
 
 		for(int s = 0; s < mTileLoaders.length; s++) {
-			mTileLoaders[s] = new ImageViewTileLoader(imageTileSource, thread, x, y, scaleIndexToSampleSize(s), listener, mLock);
+			mTileLoaders[s] = new ImageViewTileLoader(
+					imageTileSource,
+					thread,
+					x,
+					y,
+					scaleIndexToSampleSize(s),
+					listener,
+					mLock);
 		}
 	}
 
@@ -55,7 +63,7 @@ public class MultiScaleTileManager {
 		return mTileLoaders[mDesiredScaleIndex].get();
 	}
 
-	public void markAsWanted(int desiredScaleIndex) {
+	public void markAsWanted(final int desiredScaleIndex) {
 
 		if(desiredScaleIndex == mDesiredScaleIndex) {
 			return;

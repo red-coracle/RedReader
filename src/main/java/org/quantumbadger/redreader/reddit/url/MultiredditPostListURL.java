@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
+import org.quantumbadger.redreader.common.StringUtils;
 import org.quantumbadger.redreader.reddit.PostSort;
 
 import java.util.ArrayList;
@@ -34,8 +35,9 @@ public class MultiredditPostListURL extends PostListingURL {
 	public static RedditURLParser.RedditURL getMultireddit(
 			@NonNull final String name) {
 
-		Uri.Builder builder = new Uri.Builder();
-		builder.scheme(Constants.Reddit.getScheme()).authority(Constants.Reddit.getDomain());
+		final Uri.Builder builder = new Uri.Builder();
+		builder.scheme(Constants.Reddit.getScheme())
+				.authority(Constants.Reddit.getDomain());
 
 		builder.encodedPath("/me/m/");
 		builder.appendPath(name);
@@ -47,8 +49,9 @@ public class MultiredditPostListURL extends PostListingURL {
 			@NonNull final String username,
 			@NonNull final String name) {
 
-		Uri.Builder builder = new Uri.Builder();
-		builder.scheme(Constants.Reddit.getScheme()).authority(Constants.Reddit.getDomain());
+		final Uri.Builder builder = new Uri.Builder();
+		builder.scheme(Constants.Reddit.getScheme())
+				.authority(Constants.Reddit.getDomain());
 
 		builder.encodedPath("/user/");
 		builder.appendPath(username);
@@ -81,18 +84,21 @@ public class MultiredditPostListURL extends PostListingURL {
 		this.after = after;
 	}
 
-	public MultiredditPostListURL after(String newAfter) {
+	@Override
+	public MultiredditPostListURL after(final String newAfter) {
 		return new MultiredditPostListURL(username, name, order, limit, before, newAfter);
 	}
 
-	public MultiredditPostListURL limit(Integer newLimit) {
+	@Override
+	public MultiredditPostListURL limit(final Integer newLimit) {
 		return new MultiredditPostListURL(username, name, order, newLimit, before, after);
 	}
 
-	public MultiredditPostListURL sort(PostSort newOrder) {
+	public MultiredditPostListURL sort(final PostSort newOrder) {
 		return new MultiredditPostListURL(username, name, newOrder, limit, before, after);
 	}
 
+	@Override
 	public PostSort getOrder() {
 		return order;
 	}
@@ -100,8 +106,9 @@ public class MultiredditPostListURL extends PostListingURL {
 	@Override
 	public Uri generateJsonUri() {
 
-		Uri.Builder builder = new Uri.Builder();
-		builder.scheme(Constants.Reddit.getScheme()).authority(Constants.Reddit.getDomain());
+		final Uri.Builder builder = new Uri.Builder();
+		builder.scheme(Constants.Reddit.getScheme())
+				.authority(Constants.Reddit.getDomain());
 
 		if(username != null) {
 			builder.encodedPath("/user/");
@@ -135,7 +142,8 @@ public class MultiredditPostListURL extends PostListingURL {
 	}
 
 	@Override
-	public @RedditURLParser.PathType int pathType() {
+	public @RedditURLParser.PathType
+	int pathType() {
 		return RedditURLParser.MULTIREDDIT_POST_LISTING_URL;
 	}
 
@@ -155,7 +163,8 @@ public class MultiredditPostListURL extends PostListingURL {
 			} else if(parameterKey.equalsIgnoreCase("limit")) {
 				try {
 					limit = Integer.parseInt(uri.getQueryParameter(parameterKey));
-				} catch(Throwable ignored) {}
+				} catch(final Throwable ignored) {
+				}
 
 			}
 		}
@@ -164,10 +173,12 @@ public class MultiredditPostListURL extends PostListingURL {
 		{
 			final List<String> pathSegmentsList = uri.getPathSegments();
 
-			final ArrayList<String> pathSegmentsFiltered = new ArrayList<>(pathSegmentsList.size());
+			final ArrayList<String> pathSegmentsFiltered = new ArrayList<>(
+					pathSegmentsList.size());
 			for(String segment : pathSegmentsList) {
 
-				while(General.asciiLowercase(segment).endsWith(".json") || General.asciiLowercase(segment).endsWith(".xml")) {
+				while(StringUtils.asciiLowercase(segment).endsWith(".json")
+						|| StringUtils.asciiLowercase(segment).endsWith(".xml")) {
 					segment = segment.substring(0, segment.lastIndexOf('.'));
 				}
 
@@ -176,12 +187,15 @@ public class MultiredditPostListURL extends PostListingURL {
 				}
 			}
 
-			pathSegments = pathSegmentsFiltered.toArray(new String[pathSegmentsFiltered.size()]);
+			pathSegments
+					= pathSegmentsFiltered.toArray(new String[pathSegmentsFiltered.size()]);
 		}
 
 		final PostSort order;
 		if(pathSegments.length > 0) {
-			order = PostSort.parse(pathSegments[pathSegments.length - 1], uri.getQueryParameter("t"));
+			order = PostSort.parse(
+					pathSegments[pathSegments.length - 1],
+					uri.getQueryParameter("t"));
 		} else {
 			order = null;
 		}
@@ -226,7 +240,7 @@ public class MultiredditPostListURL extends PostListingURL {
 	@Override
 	public String humanReadablePath() {
 
-		String path = super.humanReadablePath();
+		final String path = super.humanReadablePath();
 
 		if(order == null) {
 			return path;
@@ -239,7 +253,7 @@ public class MultiredditPostListURL extends PostListingURL {
 			case TOP_MONTH:
 			case TOP_YEAR:
 			case TOP_ALL:
-				return path + "?t=" + General.asciiLowercase(order.name().split("_")[1]);
+				return path + "?t=" + StringUtils.asciiLowercase(order.name().split("_")[1]);
 
 			default:
 				return path;
@@ -247,7 +261,7 @@ public class MultiredditPostListURL extends PostListingURL {
 	}
 
 	@Override
-	public String humanReadableName(Context context, boolean shorter) {
+	public String humanReadableName(final Context context, final boolean shorter) {
 
 		if(username == null) {
 			return name;

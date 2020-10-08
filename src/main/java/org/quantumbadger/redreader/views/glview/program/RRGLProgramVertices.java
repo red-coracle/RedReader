@@ -27,35 +27,41 @@ public abstract class RRGLProgramVertices extends RRGLProgram {
 	private int mMatrixUniformHandle;
 	private int mPixelMatrixUniformHandle;
 
-	public RRGLProgramVertices(String vertexShaderSource, String fragmentShaderSource) {
+	public RRGLProgramVertices(final String vertexShaderSource, final String fragmentShaderSource) {
 		super(vertexShaderSource, fragmentShaderSource);
 	}
 
 	public final void activateVertexBuffer(final FloatBuffer vertexBuffer) {
-		GLES20.glVertexAttribPointer(mVertexBufferHandle, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+		GLES20.glVertexAttribPointer(
+				mVertexBufferHandle,
+				3,
+				GLES20.GL_FLOAT,
+				false,
+				0,
+				vertexBuffer);
 	}
 
-	public final void drawTriangleStrip(int vertices) {
+	public final void drawTriangleStrip(final int vertices) {
 		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, vertices);
 	}
 
-	protected final void setVertexBufferHandle(int handle) {
+	protected final void setVertexBufferHandle(final int handle) {
 		mVertexBufferHandle = handle;
 	}
 
-	protected final void setMatrixUniformHandle(int handle) {
+	protected final void setMatrixUniformHandle(final int handle) {
 		mMatrixUniformHandle = handle;
 	}
 
-	protected final void setPixelMatrixHandle(int handle) {
+	protected final void setPixelMatrixHandle(final int handle) {
 		mPixelMatrixUniformHandle = handle;
 	}
 
-	public final void activateMatrix(float[] buf, int offset) {
+	public final void activateMatrix(final float[] buf, final int offset) {
 		GLES20.glUniformMatrix4fv(mMatrixUniformHandle, 1, false, buf, offset);
 	}
 
-	public final void activatePixelMatrix(float[] buf, int offset) {
+	public final void activatePixelMatrix(final float[] buf, final int offset) {
 		GLES20.glUniformMatrix4fv(mPixelMatrixUniformHandle, 1, false, buf, offset);
 	}
 

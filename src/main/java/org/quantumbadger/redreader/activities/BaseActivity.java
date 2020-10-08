@@ -17,6 +17,7 @@
 
 package org.quantumbadger.redreader.activities;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -24,16 +25,17 @@ import android.content.res.TypedArray;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import androidx.annotation.LayoutRes;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.PrefsUtility;
@@ -42,14 +44,20 @@ import org.quantumbadger.redreader.common.TorCommon;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class BaseActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public abstract class BaseActivity extends AppCompatActivity
+		implements SharedPreferences.OnSharedPreferenceChangeListener {
 
 	private SharedPreferences mSharedPreferences;
 
 	private static boolean closingAll = false;
 
-	private final AtomicInteger mPermissionRequestIdGenerator = new AtomicInteger();
-	private final HashMap<Integer, PermissionCallback> mPermissionRequestCallbacks = new HashMap<>();
+	private final AtomicInteger mRequestIdGenerator = new AtomicInteger(10000);
+
+	private final HashMap<Integer, PermissionCallback> mPermissionRequestCallbacks
+			= new HashMap<>();
+
+	private final HashMap<Integer, ActivityResultCallback> mActivityResultCallbacks
+			= new HashMap<>();
 
 	private TextView mActionbarTitleTextView;
 	private FrameLayout mContentView;
@@ -81,7 +89,12 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 
 	public interface PermissionCallback {
 		void onPermissionGranted();
+
 		void onPermissionDenied();
+	}
+
+	public interface ActivityResultCallback {
+		void onActivityResult(int resultCode, @Nullable Intent data);
 	}
 
 	public void closeAllExceptMain() {
@@ -102,7 +115,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 		return result;
 	}
 
-	protected void configBackButton(boolean isVisible, View.OnClickListener listener) {
+	protected void configBackButton(final boolean isVisible, final View.OnClickListener listener) {
 		if(isVisible) {
 			mActionbarBackIconView.setVisibility(View.VISIBLE);
 			mActionbarTitleOuterView.setOnClickListener(listener);
@@ -114,7 +127,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 	}
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(final Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
 
@@ -135,14 +148,17 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 			final View outerView;
 			final Toolbar toolbar;
 
-			if(! PrefsUtility.pref_appearance_bottom_toolbar(this, mSharedPreferences)) {
+			if(!PrefsUtility.pref_appearance_bottom_toolbar(this, mSharedPreferences)) {
 				outerView = getLayoutInflater().inflate(R.layout.rr_actionbar, null);
-				toolbar = (Toolbar) outerView.findViewById(R.id.rr_actionbar_toolbar);
-				mContentView = (FrameLayout) outerView.findViewById(R.id.rr_actionbar_content);
+				toolbar = outerView.findViewById(R.id.rr_actionbar_toolbar);
+				mContentView
+						= outerView.findViewById(R.id.rr_actionbar_content);
 			} else {
-				outerView = getLayoutInflater().inflate(R.layout.rr_actionbar_reverse, null);
-				toolbar = (Toolbar) outerView.findViewById(R.id.rr_actionbar_reverse_toolbar);
-				mContentView = (FrameLayout) outerView.findViewById(R.id.rr_actionbar_reverse_content);
+				outerView = getLayoutInflater().inflate(
+						R.layout.rr_actionbar_reverse,
+						null);
+				toolbar = outerView.findViewById(R.id.rr_actionbar_reverse_toolbar);
+				mContentView = outerView.findViewById(R.id.rr_actionbar_reverse_content);
 			}
 
 			super.setContentView(outerView);
@@ -153,9 +169,8 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 			getSupportActionBarOrThrow().setDisplayShowTitleEnabled(false);
 			toolbar.setContentInsetsAbsolute(0, 0);
 
-			mActionbarTitleTextView = (TextView)toolbar.findViewById(R.id.actionbar_title_text);
-
-			mActionbarBackIconView = (ImageView)toolbar.findViewById(R.id.actionbar_title_back_image);
+			mActionbarTitleTextView = toolbar.findViewById(R.id.actionbar_title_text);
+			mActionbarBackIconView = toolbar.findViewById(R.id.actionbar_title_back_image);
 			mActionbarTitleOuterView = toolbar.findViewById(R.id.actionbar_title_outer);
 
 			if(getTitle() != null) {
@@ -163,16 +178,14 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 				setTitle(getTitle());
 			}
 
-			configBackButton(baseActivityIsActionBarBackEnabled(), new View.OnClickListener() {
-				@Override
-				public void onClick(final View v) {
-					finish();
-				}
-			});
+			configBackButton(
+					baseActivityIsActionBarBackEnabled(),
+					v -> finish());
 
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-				final PrefsUtility.AppearanceNavbarColour navbarColour = PrefsUtility.appearance_navbar_colour(
+				final PrefsUtility.AppearanceNavbarColour navbarColour
+						= PrefsUtility.appearance_navbar_colour(
 						this,
 						mSharedPreferences);
 
@@ -180,7 +193,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 
 					final int colour;
 					{
-						final TypedArray appearance = obtainStyledAttributes(new int[]{
+						final TypedArray appearance = obtainStyledAttributes(new int[] {
 								R.attr.colorPrimary,
 								R.attr.colorPrimaryDark});
 
@@ -199,7 +212,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 		}
 	}
 
-	public void setBaseActivityContentView(@LayoutRes int layoutResID) {
+	public void setBaseActivityContentView(@LayoutRes final int layoutResID) {
 		if(mContentView != null) {
 			mContentView.removeAllViews();
 			getLayoutInflater().inflate(layoutResID, mContentView, true);
@@ -242,9 +255,9 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 		}
 	}
 
-	public void requestPermissionWithCallback(
-				@NonNull final String permission,
-				@NonNull final PermissionCallback callback) {
+	public final void requestPermissionWithCallback(
+			@NonNull final String permission,
+			@NonNull final PermissionCallback callback) {
 
 		General.checkThisIsUIThread();
 
@@ -254,9 +267,9 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 				callback.onPermissionGranted();
 
 			} else {
-				final int requestCode = mPermissionRequestIdGenerator.incrementAndGet();
+				final int requestCode = mRequestIdGenerator.incrementAndGet();
 				mPermissionRequestCallbacks.put(requestCode, callback);
-				requestPermissions(new String[]{permission}, requestCode);
+				requestPermissions(new String[] {permission}, requestCode);
 			}
 
 		} else {
@@ -265,49 +278,85 @@ public abstract class BaseActivity extends AppCompatActivity implements SharedPr
 	}
 
 	@Override
-	public void onRequestPermissionsResult(
+	public final void onRequestPermissionsResult(
 			final int requestCode,
 			@NonNull final String[] permissions,
 			@NonNull final int[] grantResults) {
 
-		final PermissionCallback callback = mPermissionRequestCallbacks.remove(requestCode);
+		final PermissionCallback callback
+				= mPermissionRequestCallbacks.remove(requestCode);
 
-		if(callback != null) {
-			if(permissions.length != 1) {
-				throw new RuntimeException("Unexpected permission result");
-			}
+		if(callback == null) {
+			return;
+		}
 
-			if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-				callback.onPermissionGranted();
-			} else {
-				callback.onPermissionDenied();
-			}
+		if(permissions.length != 1) {
+			throw new RuntimeException("Unexpected permission result");
+		}
+
+		if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+			callback.onPermissionGranted();
+		} else {
+			callback.onPermissionDenied();
 		}
 	}
 
+	public final void startActivityForResultWithCallback(
+			@NonNull final Intent intent,
+			@NonNull final ActivityResultCallback callback) {
+
+		final int requestCode = mRequestIdGenerator.incrementAndGet();
+		mActivityResultCallbacks.put(requestCode, callback);
+		startActivityForResult(intent, requestCode);
+	}
+
+	@Override
+	protected final void onActivityResult(
+			final int requestCode,
+			final int resultCode,
+			@Nullable final Intent data) {
+
+		super.onActivityResult(requestCode, resultCode, data);
+
+		final ActivityResultCallback callback
+				= mActivityResultCallbacks.remove(requestCode);
+
+		if(callback == null) {
+			return;
+		}
+
+		callback.onActivityResult(resultCode, data);
+	}
+
 	private void setOrientationFromPrefs() {
-		PrefsUtility.ScreenOrientation orientation = PrefsUtility.pref_behaviour_screen_orientation(this,
+		final PrefsUtility.ScreenOrientation orientation
+				= PrefsUtility.pref_behaviour_screen_orientation(
+				this,
 				mSharedPreferences);
-		if (orientation == PrefsUtility.ScreenOrientation.AUTO)
+		if(orientation == PrefsUtility.ScreenOrientation.AUTO) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-		else if (orientation == PrefsUtility.ScreenOrientation.PORTRAIT)
+		} else if(orientation == PrefsUtility.ScreenOrientation.PORTRAIT) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		else if (orientation == PrefsUtility.ScreenOrientation.LANDSCAPE)
+		} else if(orientation == PrefsUtility.ScreenOrientation.LANDSCAPE) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		}
 	}
 
 
-
-	protected void onSharedPreferenceChangedInner(final SharedPreferences prefs, final String key) {
+	protected void onSharedPreferenceChangedInner(
+			final SharedPreferences prefs,
+			final String key) {
 		// Do nothing
 	}
 
 	@Override
-	public final void onSharedPreferenceChanged(final SharedPreferences prefs, final String key) {
+	public final void onSharedPreferenceChanged(
+			final SharedPreferences prefs,
+			final String key) {
 
 		onSharedPreferenceChangedInner(prefs, key);
 
-		if(key.equals(getString(R.string.pref_menus_optionsmenu_items_key))
+		if(key.startsWith(getString(R.string.pref_menus_appbar_prefix))
 				|| key.equals(getString(R.string.pref_pinned_subreddits_key))) {
 			invalidateOptionsMenu();
 		}

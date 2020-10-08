@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import androidx.annotation.NonNull;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.adapters.AlbumAdapter;
 import org.quantumbadger.redreader.cache.CacheRequest;
@@ -30,11 +31,13 @@ import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.PrefsUtility;
+import org.quantumbadger.redreader.common.RRError;
 import org.quantumbadger.redreader.image.AlbumInfo;
 import org.quantumbadger.redreader.image.GetAlbumInfoListener;
 import org.quantumbadger.redreader.image.GetImageInfoListener;
 import org.quantumbadger.redreader.image.ImageInfo;
 import org.quantumbadger.redreader.views.ScrollbarRecyclerViewManager;
+import org.quantumbadger.redreader.views.liststatus.ErrorView;
 
 import java.util.regex.Matcher;
 
@@ -44,7 +47,7 @@ public class AlbumListingActivity extends BaseActivity {
 	private boolean mHaveReverted = false;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(final Bundle savedInstanceState) {
 
 		PrefsUtility.applyTheme(this);
 
@@ -63,97 +66,189 @@ public class AlbumListingActivity extends BaseActivity {
 
 		Log.i("AlbumListingActivity", "Loading URL " + mUrl);
 
-		final ProgressBar progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+		final ProgressBar progressBar = new ProgressBar(
+				this,
+				null,
+				android.R.attr.progressBarStyleHorizontal);
 		progressBar.setIndeterminate(true);
 
 		final LinearLayout layout = new LinearLayout(this);
 		layout.setOrientation(LinearLayout.VERTICAL);
 		layout.addView(progressBar);
 
-		LinkHandler.getAlbumInfo(this, mUrl, Constants.Priority.IMAGE_VIEW, 0, new GetAlbumInfoListener() {
+		LinkHandler.getAlbumInfo(
+				this,
+				mUrl,
+				Constants.Priority.IMAGE_VIEW,
+				0,
+				new GetAlbumInfoListener() {
 
-			@Override
-			public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
-				Log.e("AlbumListingActivity", "getAlbumInfo call failed: " + type);
+					@Override
+					public void onGalleryRemoved() {
 
-				if(status != null) Log.e("AlbumListingActivity", "status was: " + status.toString());
-				if(t != null) Log.e("AlbumListingActivity", "exception was: ", t);
+						AndroidCommon.UI_THREAD_HANDLER.post(() -> {
+							layout.removeAllViews();
 
-				if(status == null) {
-					revertToWeb();
-					return;
-				}
-
-				// It might be a single image, not an album
-
-				final Matcher matchImgur = LinkHandler.imgurAlbumPattern.matcher(mUrl);
-
-				if(matchImgur.find()) {
-					final String albumId = matchImgur.group(2);
-
-					LinkHandler.getImgurImageInfo(AlbumListingActivity.this, albumId, Constants.Priority.IMAGE_VIEW, 0, false, new GetImageInfoListener() {
-						@Override
-						public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
-							Log.e("AlbumListingActivity", "Image info request also failed: " + type);
-							revertToWeb();
-						}
-
-						@Override
-						public void onSuccess(final ImageInfo info) {
-							Log.i("AlbumListingActivity", "Link was actually an image.");
-							LinkHandler.onLinkClicked(AlbumListingActivity.this, info.urlOriginal);
-							finish();
-						}
-
-						@Override
-						public void onNotAnImage() {
-							Log.i("AlbumListingActivity", "Not an image either");
-							revertToWeb();
-						}
-					});
-
-				} else {
-					Log.e("AlbumListingActivity", "Not an imgur album, not checking for single image");
-					revertToWeb();
-				}
-			}
-
-			@Override
-			public void onSuccess(final AlbumInfo info) {
-				Log.i("AlbumListingActivity", "Got album, " + info.images.size() + " image(s)");
-
-				AndroidCommon.UI_THREAD_HANDLER.post(() -> {
-
-					if(info.title != null && !info.title.trim().isEmpty()) {
-						setTitle(getString(R.string.image_gallery) + ": " + info.title);
+							layout.addView(new ErrorView(
+									AlbumListingActivity.this,
+									new RRError(
+											getApplicationContext().getString(
+													R.string.image_gallery_removed_title),
+											getApplicationContext().getString(
+													R.string.image_gallery_removed_message),
+											null,
+											null,
+											mUrl)));
+						});
 					}
 
-					layout.removeAllViews();
+					@Override
+					public void onGalleryDataNotPresent() {
 
-					if(info.images.size() == 1) {
-						LinkHandler.onLinkClicked(AlbumListingActivity.this, info.images.get(0).urlOriginal);
-						finish();
+						AndroidCommon.UI_THREAD_HANDLER.post(() -> {
+							layout.removeAllViews();
 
-					} else {
-						final ScrollbarRecyclerViewManager recyclerViewManager
-								= new ScrollbarRecyclerViewManager(AlbumListingActivity.this, null, false);
+							layout.addView(new ErrorView(
+									AlbumListingActivity.this,
+									new RRError(
+											getApplicationContext().getString(
+													R.string.image_gallery_no_data_present_title),
+											getApplicationContext().getString(
+													R.string.image_gallery_no_data_present_message),
+											null,
+											null,
+											mUrl)));
+						});
+					}
 
-						layout.addView(recyclerViewManager.getOuterView());
+					@Override
+					public void onFailure(
+							final @CacheRequest.RequestFailureType int type,
+							final Throwable t,
+							final Integer status,
+							final String readableMessage) {
+						Log.e(
+								"AlbumListingActivity",
+								"getAlbumInfo call failed: " + type);
 
-						recyclerViewManager.getRecyclerView().setAdapter(new AlbumAdapter(
-								AlbumListingActivity.this,
-								info));
+						if(status != null) {
+							Log.e(
+									"AlbumListingActivity",
+									"status was: " + status.toString());
+						}
+						if(t != null) {
+							Log.e("AlbumListingActivity", "exception was: ", t);
+						}
+
+						if(status == null) {
+							revertToWeb();
+							return;
+						}
+
+						// It might be a single image, not an album
+
+						final Matcher matchImgur = LinkHandler.imgurAlbumPattern.matcher(
+								mUrl);
+
+						if(matchImgur.find()) {
+							final String albumId = matchImgur.group(2);
+
+							LinkHandler.getImgurImageInfo(
+									AlbumListingActivity.this,
+									albumId,
+									Constants.Priority.IMAGE_VIEW,
+									0,
+									false,
+									new GetImageInfoListener() {
+										@Override
+										public void onFailure(
+												final @CacheRequest.RequestFailureType int type,
+												final Throwable t,
+												final Integer status,
+												final String readableMessage) {
+											Log.e(
+													"AlbumListingActivity",
+													"Image info request also failed: "
+															+ type);
+											revertToWeb();
+										}
+
+										@Override
+										public void onSuccess(final ImageInfo info) {
+											Log.i(
+													"AlbumListingActivity",
+													"Link was actually an image.");
+											LinkHandler.onLinkClicked(
+													AlbumListingActivity.this,
+													info.urlOriginal);
+											finish();
+										}
+
+										@Override
+										public void onNotAnImage() {
+											Log.i(
+													"AlbumListingActivity",
+													"Not an image either");
+											revertToWeb();
+										}
+									});
+
+						} else {
+							Log.e(
+									"AlbumListingActivity",
+									"Not an imgur album, not checking for single image");
+							revertToWeb();
+						}
+					}
+
+					@Override
+					public void onSuccess(@NonNull final AlbumInfo info) {
+						Log.i(
+								"AlbumListingActivity",
+								"Got album, " + info.images.size() + " image(s)");
+
+						AndroidCommon.UI_THREAD_HANDLER.post(() -> {
+
+							if(info.title != null && !info.title.trim().isEmpty()) {
+								setTitle(getString(R.string.image_gallery)
+										+ ": "
+										+ info.title);
+							}
+
+							layout.removeAllViews();
+
+							if(info.images.size() == 1) {
+								LinkHandler.onLinkClicked(
+										AlbumListingActivity.this,
+										info.images.get(0).urlOriginal);
+								finish();
+
+							} else {
+								final ScrollbarRecyclerViewManager recyclerViewManager
+										= new ScrollbarRecyclerViewManager(
+										AlbumListingActivity.this,
+										null,
+										false);
+
+								layout.addView(recyclerViewManager.getOuterView());
+
+								recyclerViewManager.getRecyclerView()
+										.setAdapter(new AlbumAdapter(
+												AlbumListingActivity.this,
+												info));
+							}
+						});
 					}
 				});
-			}
-		});
 
 		setBaseActivityContentView(layout);
 	}
 
 	@Override
 	public void onBackPressed() {
-		if(General.onBackPressed()) super.onBackPressed();
+		if(General.onBackPressed()) {
+			super.onBackPressed();
+		}
 	}
 
 	private void revertToWeb() {

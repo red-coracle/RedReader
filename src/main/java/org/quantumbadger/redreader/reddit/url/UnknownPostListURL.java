@@ -23,18 +23,24 @@ public class UnknownPostListURL extends PostListingURL {
 
 	private final Uri uri;
 
-	UnknownPostListURL(Uri uri) {
+	UnknownPostListURL(final Uri uri) {
 		this.uri = uri;
 	}
 
 	@Override
-	public PostListingURL after(String after) {
-		return new UnknownPostListURL(uri.buildUpon().appendQueryParameter("after", after).build());
+	public PostListingURL after(final String after) {
+		return new UnknownPostListURL(uri.buildUpon()
+				.appendQueryParameter("after", after)
+				.build());
 	}
 
 	@Override
-	public PostListingURL limit(Integer limit) {
-		return new UnknownPostListURL(uri.buildUpon().appendQueryParameter("limit", String.valueOf("limit")).build());
+	public PostListingURL limit(final Integer limit) {
+		return new UnknownPostListURL(uri.buildUpon()
+				.appendQueryParameter(
+						"limit",
+						String.valueOf("limit"))
+				.build());
 	}
 
 	// TODO handle this better
@@ -48,7 +54,8 @@ public class UnknownPostListURL extends PostListingURL {
 	}
 
 	@Override
-	public @RedditURLParser.PathType int pathType() {
+	public @RedditURLParser.PathType
+	int pathType() {
 		return RedditURLParser.UNKNOWN_POST_LISTING_URL;
 	}
 }

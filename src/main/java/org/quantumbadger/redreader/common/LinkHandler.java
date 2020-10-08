@@ -17,14 +17,12 @@
 
 package org.quantumbadger.redreader.common;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
@@ -60,8 +58,6 @@ import org.quantumbadger.redreader.image.ImgurAPIV3;
 import org.quantumbadger.redreader.image.RedditGalleryAPI;
 import org.quantumbadger.redreader.image.RedditVideosAPI;
 import org.quantumbadger.redreader.image.RedgifsAPI;
-import org.quantumbadger.redreader.image.SaveImageCallback;
-import org.quantumbadger.redreader.image.ShareImageCallback;
 import org.quantumbadger.redreader.image.StreamableAPI;
 import org.quantumbadger.redreader.reddit.things.RedditPost;
 import org.quantumbadger.redreader.reddit.url.RedditURLParser;
@@ -76,10 +72,13 @@ import java.util.regex.Pattern;
 public class LinkHandler {
 
 	public static final Pattern
-			youtubeDotComPattern = Pattern.compile("^https?://[\\.\\w]*youtube\\.\\w+/.*"),
-			youtuDotBePattern = Pattern.compile("^https?://[\\.\\w]*youtu\\.be/([A-Za-z0-9\\-_]+)(\\?.*|).*"),
+			youtubeDotComPattern
+			= Pattern.compile("^https?://[\\.\\w]*youtube\\.\\w+/.*"),
+			youtuDotBePattern = Pattern.compile(
+					"^https?://[\\.\\w]*youtu\\.be/([A-Za-z0-9\\-_]+)(\\?.*|).*"),
 			vimeoPattern = Pattern.compile("^https?://[\\.\\w]*vimeo\\.\\w+/.*"),
-			googlePlayPattern = Pattern.compile("^https?://[\\.\\w]*play\\.google\\.\\w+/.*");
+			googlePlayPattern = Pattern.compile(
+					"^https?://[\\.\\w]*play\\.google\\.\\w+/.*");
 
 	public enum LinkAction {
 		SHARE(R.string.action_share),
@@ -90,21 +89,25 @@ public class LinkHandler {
 
 		public final int descriptionResId;
 
-		LinkAction(final int descriptionResId){
+		LinkAction(final int descriptionResId) {
 			this.descriptionResId = descriptionResId;
 		}
 	}
-	public static void onLinkClicked(AppCompatActivity activity, String url) {
+
+	public static void onLinkClicked(final AppCompatActivity activity, final String url) {
 		onLinkClicked(activity, url, false);
 	}
 
-	public static void onLinkClicked(AppCompatActivity activity, String url, boolean forceNoImage) {
+	public static void onLinkClicked(
+			final AppCompatActivity activity,
+			final String url,
+			final boolean forceNoImage) {
 		onLinkClicked(activity, url, forceNoImage, null);
 	}
 
 	public static void onLinkClicked(
 			final AppCompatActivity activity,
-			String url,
+			final String url,
 			final boolean forceNoImage,
 			final RedditPost post) {
 
@@ -113,12 +116,19 @@ public class LinkHandler {
 
 	public static void onLinkClicked(
 			final AppCompatActivity activity,
-			String url,
+			final String url,
 			final boolean forceNoImage,
 			final RedditPost post,
 			final AlbumInfo albumInfo,
 			final int albumImageIndex) {
-		onLinkClicked(activity, url, forceNoImage, post, albumInfo, albumImageIndex, false);
+		onLinkClicked(
+				activity,
+				url,
+				forceNoImage,
+				post,
+				albumInfo,
+				albumImageIndex,
+				false);
 	}
 
 	public static void onLinkClicked(
@@ -130,7 +140,13 @@ public class LinkHandler {
 			final int albumImageIndex,
 			final boolean fromExternalIntent) {
 
-		final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+		if(url == null) {
+			General.quickToast(activity, R.string.link_does_not_exist);
+			return;
+		}
+
+		final SharedPreferences sharedPreferences
+				= PreferenceManager.getDefaultSharedPreferences(activity);
 
 		if(url.startsWith("rr://")) {
 
@@ -140,10 +156,11 @@ public class LinkHandler {
 				new Handler().post(new Runnable() {
 					@Override
 					public void run() {
-						final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+						final AlertDialog.Builder builder = new AlertDialog.Builder(
+								activity);
 						builder.setTitle(rrUri.getQueryParameter("title"));
 						builder.setMessage(rrUri.getQueryParameter("message"));
-						AlertDialog alert = builder.create();
+						final AlertDialog alert = builder.create();
 						alert.show();
 					}
 				});
@@ -182,12 +199,16 @@ public class LinkHandler {
 				|| redditGalleryPattern.matcher(url).matches())) {
 
 			final PrefsUtility.AlbumViewMode albumViewMode
-					= PrefsUtility.pref_behaviour_albumview_mode(activity, sharedPreferences);
+					= PrefsUtility.pref_behaviour_albumview_mode(
+					activity,
+					sharedPreferences);
 
 			switch(albumViewMode) {
 
 				case INTERNAL_LIST: {
-					final Intent intent = new Intent(activity, AlbumListingActivity.class);
+					final Intent intent = new Intent(
+							activity,
+							AlbumListingActivity.class);
 					intent.setData(Uri.parse(url));
 					intent.putExtra("post", post);
 					activity.startActivity(intent);
@@ -195,15 +216,12 @@ public class LinkHandler {
 				}
 
 				case INTERNAL_BROWSER: {
-					if (PrefsUtility.pref_behaviour_usecustomtabs(activity, sharedPreferences) &&
-							Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-						openCustomTab(activity, Uri.parse(url));
+					if(PrefsUtility.pref_behaviour_usecustomtabs(activity, sharedPreferences)
+							&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+						openCustomTab(activity, Uri.parse(url), post);
+
 					} else {
-						final Intent intent = new Intent();
-						intent.setClass(activity, WebViewActivity.class);
-						intent.putExtra("url", url);
-						intent.putExtra("post", post);
-						activity.startActivity(intent);
+						openInternalBrowser(activity, url, post);
 					}
 					return;
 				}
@@ -232,14 +250,17 @@ public class LinkHandler {
 
 				case RedditURLParser.POST_COMMENT_LISTING_URL:
 				case RedditURLParser.USER_COMMENT_LISTING_URL: {
-					final Intent intent = new Intent(activity, CommentListingActivity.class);
+					final Intent intent = new Intent(
+							activity,
+							CommentListingActivity.class);
 					intent.setData(redditURL.generateJsonUri());
 					activity.startActivityForResult(intent, 1);
 					return;
 				}
 
 				case RedditURLParser.USER_PROFILE_URL: {
-					UserProfileDialog.newInstance(redditURL.asUserProfileURL().username).show(activity.getSupportFragmentManager(), null);
+					UserProfileDialog.newInstance(redditURL.asUserProfileURL().username)
+							.show(activity.getSupportFragmentManager(), null);
 					return;
 				}
 			}
@@ -264,74 +285,90 @@ public class LinkHandler {
 		final Matcher youtuDotBeMatcher = youtuDotBePattern.matcher(url);
 
 		if(youtuDotBeMatcher.find() && youtuDotBeMatcher.group(1) != null) {
-			final String youtuBeUrl = "http://youtube.com/watch?v=" + youtuDotBeMatcher.group(1)
-					+ (youtuDotBeMatcher.group(2).length() > 0 ? "&" + youtuDotBeMatcher.group(2).substring(1) : "");
+			final String youtuBeUrl = "http://youtube.com/watch?v="
+					+ youtuDotBeMatcher.group(1)
+					+ (youtuDotBeMatcher.group(2).length() > 0
+							? "&" + youtuDotBeMatcher.group(2) .substring(1)
+							: "");
 			if(openWebBrowser(activity, Uri.parse(youtuBeUrl), fromExternalIntent)) {
 				return;
 			}
 		}
 
-		if (PrefsUtility.pref_behaviour_usecustomtabs(activity, sharedPreferences)
+		if(PrefsUtility.pref_behaviour_usecustomtabs(activity, sharedPreferences)
 				&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-			openCustomTab(activity, Uri.parse(url));
+			openCustomTab(activity, Uri.parse(url), post);
+
 		} else {
-			final Intent intent = new Intent();
-			intent.setClass(activity, WebViewActivity.class);
-			intent.putExtra("url", url);
-			intent.putExtra("post", post);
-			activity.startActivity(intent);
+			openInternalBrowser(activity, url, post);
 		}
 
 	}
 
-	public static void onLinkLongClicked(AppCompatActivity activity, String uri){
+	public static void onLinkLongClicked(final BaseActivity activity, final String uri) {
 		onLinkLongClicked(activity, uri, false);
 	}
 
-	public static void onLinkLongClicked(final AppCompatActivity activity,
-	                                        final String uri,
-	                                        final boolean forceNoImage) {
-		if (uri == null){
+	public static void onLinkLongClicked(
+			final BaseActivity activity,
+			final String uri,
+			final boolean forceNoImage) {
+		if(uri == null) {
 			return;
 		}
 
-		final EnumSet<LinkHandler.LinkAction> itemPref = PrefsUtility.pref_menus_link_context_items(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+		final EnumSet<LinkHandler.LinkAction> itemPref
+				= PrefsUtility.pref_menus_link_context_items(
+				activity,
+				PreferenceManager.getDefaultSharedPreferences(activity));
 
-		if (itemPref.isEmpty()) {
+		if(itemPref.isEmpty()) {
 			return;
 		}
 
 		final ArrayList<LinkMenuItem> menu = new ArrayList<>();
 
-		if (itemPref.contains(LinkAction.COPY_URL)) {
-			menu.add(new LinkMenuItem(activity, R.string.action_copy_link, LinkAction.COPY_URL));
+		if(itemPref.contains(LinkAction.COPY_URL)) {
+			menu.add(new LinkMenuItem(
+					activity,
+					R.string.action_copy_link,
+					LinkAction.COPY_URL));
 		}
-		if (itemPref.contains(LinkAction.EXTERNAL)) {
-			menu.add(new LinkMenuItem(activity, R.string.action_external, LinkAction.EXTERNAL));
+		if(itemPref.contains(LinkAction.EXTERNAL)) {
+			menu.add(new LinkMenuItem(
+					activity,
+					R.string.action_external,
+					LinkAction.EXTERNAL));
 		}
-		if (itemPref.contains(LinkAction.SAVE_IMAGE) && isProbablyAnImage(uri) && !forceNoImage) {
-			menu.add(new LinkMenuItem(activity, R.string.action_save_image, LinkAction.SAVE_IMAGE));
+		if(itemPref.contains(LinkAction.SAVE_IMAGE)
+				&& isProbablyAnImage(uri)
+				&& !forceNoImage) {
+			menu.add(new LinkMenuItem(
+					activity,
+					R.string.action_save_image,
+					LinkAction.SAVE_IMAGE));
 		}
-		if (itemPref.contains(LinkAction.SHARE)) {
+		if(itemPref.contains(LinkAction.SHARE)) {
 			menu.add(new LinkMenuItem(activity, R.string.action_share, LinkAction.SHARE));
 		}
-		if (itemPref.contains(LinkAction.SHARE_IMAGE) && isProbablyAnImage(uri) && !forceNoImage) {
-			menu.add(new LinkMenuItem(activity, R.string.action_share_image, LinkAction.SHARE_IMAGE));
+		if(itemPref.contains(LinkAction.SHARE_IMAGE)
+				&& isProbablyAnImage(uri)
+				&& !forceNoImage) {
+			menu.add(new LinkMenuItem(
+					activity,
+					R.string.action_share_image,
+					LinkAction.SHARE_IMAGE));
 		}
 		final String[] menuText = new String[menu.size()];
 
-		for (int i = 0; i < menuText.length; i++) {
+		for(int i = 0; i < menuText.length; i++) {
 			menuText[i] = menu.get(i).title;
 		}
 
 		final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
-		builder.setItems(menuText, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				onActionMenuItemSelected(uri, activity, menu.get(which).action);
-			}
-		});
+		builder.setItems(menuText,
+				(dialog, which) -> onActionMenuItemSelected(uri, activity, menu.get(which).action));
 
 		//builder.setNeutralButton(R.string.dialog_cancel, null);
 
@@ -340,19 +377,26 @@ public class LinkHandler {
 		alert.show();
 	}
 
-	public static void onActionMenuItemSelected(String uri, AppCompatActivity activity, LinkAction action){
-		switch (action){
+	public static void onActionMenuItemSelected(
+			final String uri,
+			final BaseActivity activity,
+			final LinkAction action) {
+		switch(action) {
 			case SHARE:
 				shareText(activity, null, uri);
 				break;
 			case COPY_URL:
-				ClipboardManager clipboardManager = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+				final ClipboardManager clipboardManager
+						= (ClipboardManager)activity.getSystemService(Context.CLIPBOARD_SERVICE);
 				if(clipboardManager != null) {
-					//Using newPlainText here instead of newRawUri because links from comments/self-text are often not valid URIs
-					ClipData data = ClipData.newPlainText(null, uri);
+					// Using newPlainText here instead of newRawUri because links from
+					// comments/self-text are often not valid URIs
+					final ClipData data = ClipData.newPlainText(null, uri);
 					clipboardManager.setPrimaryClip(data);
 
-					General.quickToast(activity.getApplicationContext(), R.string.link_copied_to_clipboard);
+					General.quickToast(
+							activity.getApplicationContext(),
+							R.string.link_copied_to_clipboard);
 				}
 				break;
 
@@ -362,18 +406,24 @@ public class LinkHandler {
 					intent.setData(Uri.parse(uri));
 					activity.startActivity(intent);
 				} catch(final ActivityNotFoundException e) {
-					General.quickToast(activity, R.string.error_no_suitable_apps_available);
+					General.quickToast(
+							activity,
+							R.string.error_no_suitable_apps_available);
 				}
 				break;
 			case SHARE_IMAGE:
-				((BaseActivity)activity).requestPermissionWithCallback(Manifest.permission.WRITE_EXTERNAL_STORAGE, new ShareImageCallback(activity, uri));
+				FileUtils.shareImageAtUri(activity, uri);
 				break;
 			case SAVE_IMAGE:
-				((BaseActivity)activity).requestPermissionWithCallback(Manifest.permission.WRITE_EXTERNAL_STORAGE, new SaveImageCallback(activity, uri));
+				FileUtils.saveImageAtUri(activity, uri);
 				break;
 		}
 	}
-	public static boolean openWebBrowser(AppCompatActivity activity, Uri uri, final boolean fromExternalIntent) {
+
+	public static boolean openWebBrowser(
+			final AppCompatActivity activity,
+			final Uri uri,
+			final boolean fromExternalIntent) {
 
 		if(!fromExternalIntent) {
 			try {
@@ -382,8 +432,13 @@ public class LinkHandler {
 				activity.startActivity(intent);
 				return true;
 
-			} catch(Exception e) {
-				General.quickToast(activity, String.format(activity.getString(R.string.error_toast_failed_open_external_browser), uri.toString()));
+			} catch(final Exception e) {
+				General.quickToast(
+						activity,
+						String.format(
+								activity.getString(
+										R.string.error_toast_failed_open_external_browser),
+								uri.toString()));
 			}
 
 		} else {
@@ -395,12 +450,14 @@ public class LinkHandler {
 
 			final ArrayList<Intent> targetIntents = new ArrayList<>();
 
-			for (final ResolveInfo info : activity.getPackageManager().queryIntentActivities(baseIntent, 0)) {
+			for(final ResolveInfo info : activity.getPackageManager()
+					.queryIntentActivities(baseIntent, 0)) {
 
 				final String packageName = info.activityInfo.packageName;
 				Log.i("RRDEBUG", "Considering " + packageName);
 
-				if (packageName != null && !packageName.startsWith("org.quantumbadger.redreader")) {
+				if(packageName != null && !packageName.startsWith(
+						"org.quantumbadger.redreader")) {
 					final Intent intent = new Intent(Intent.ACTION_VIEW);
 					intent.setData(uri);
 					intent.setPackage(packageName);
@@ -415,7 +472,9 @@ public class LinkHandler {
 						activity.getString(R.string.open_with));
 
 				if(!targetIntents.isEmpty()) {
-					chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toArray(new Parcelable[]{}));
+					chooserIntent.putExtra(
+							Intent.EXTRA_INITIAL_INTENTS,
+							targetIntents.toArray(new Parcelable[] {}));
 				}
 				activity.startActivity(chooserIntent);
 
@@ -426,43 +485,75 @@ public class LinkHandler {
 		return false;
 	}
 
-	@TargetApi(18)
-	public static void openCustomTab(AppCompatActivity activity, Uri uri) {
-		Intent intent = new Intent();
-		intent.setAction(Intent.ACTION_VIEW);
-		intent.setData(uri);
-		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	public static void openInternalBrowser(
+			final AppCompatActivity activity,
+			final String url,
+			@Nullable final RedditPost post) {
 
-		Bundle bundle = new Bundle();
-		bundle.putBinder("android.support.customtabs.extra.SESSION", null);
-		intent.putExtras(bundle);
-
-		intent.putExtra("android.support.customtabs.extra.SHARE_MENU_ITEM", true);
-
-		TypedValue typedValue = new TypedValue();
-		activity.getTheme().resolveAttribute(R.attr.colorPrimary, typedValue, true);
-
-		intent.putExtra("android.support.customtabs.extra.TOOLBAR_COLOR", typedValue.data);
-
-		intent.putExtra("android.support.customtabs.extra.ENABLE_URLBAR_HIDING", true);
-
+		final Intent intent = new Intent();
+		intent.setClass(activity, WebViewActivity.class);
+		intent.putExtra("url", url);
+		intent.putExtra("post", post);
 		activity.startActivity(intent);
 	}
 
-	public static final Pattern imgurPattern = Pattern.compile(".*[^A-Za-z]imgur\\.com/(\\w+).*"),
-			imgurAlbumPattern = Pattern.compile(".*[^A-Za-z]imgur\\.com/(a|gallery)/(\\w+).*"),
-			redditGalleryPattern = Pattern.compile(".*[^A-Za-z]reddit\\.com/gallery/(\\w+).*"),
+	@TargetApi(18)
+	public static void openCustomTab(
+			final AppCompatActivity activity,
+			final Uri uri,
+			@Nullable final RedditPost post) {
+
+		try {
+			final Intent intent = new Intent();
+			intent.setAction(Intent.ACTION_VIEW);
+			intent.setData(uri);
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+			final Bundle bundle = new Bundle();
+			bundle.putBinder("android.support.customtabs.extra.SESSION", null);
+			intent.putExtras(bundle);
+
+			intent.putExtra("android.support.customtabs.extra.SHARE_MENU_ITEM", true);
+
+			final TypedValue typedValue = new TypedValue();
+			activity.getTheme().resolveAttribute(R.attr.colorPrimary, typedValue, true);
+
+			intent.putExtra(
+					"android.support.customtabs.extra.TOOLBAR_COLOR",
+					typedValue.data);
+
+			intent.putExtra("android.support.customtabs.extra.ENABLE_URLBAR_HIDING", true);
+
+			activity.startActivity(intent);
+
+		} catch(final ActivityNotFoundException e) {
+			// No suitable web browser installed. Use internal browser.
+			openInternalBrowser(activity, uri.toString(), post);
+		}
+	}
+
+	public static final Pattern imgurPattern = Pattern.compile(
+			".*[^A-Za-z]imgur\\.com/(\\w+).*"),
+			imgurAlbumPattern = Pattern.compile(
+					".*[^A-Za-z]imgur\\.com/(a|gallery)/(\\w+).*"),
+			redditGalleryPattern = Pattern.compile(
+					".*[^A-Za-z]reddit\\.com/gallery/(\\w+).*"),
 			qkmePattern1 = Pattern.compile(".*[^A-Za-z]qkme\\.me/(\\w+).*"),
 			qkmePattern2 = Pattern.compile(".*[^A-Za-z]quickmeme\\.com/meme/(\\w+).*"),
 			lvmePattern = Pattern.compile(".*[^A-Za-z]livememe\\.com/(\\w+).*"),
-			gfycatPattern = Pattern.compile(".*[^A-Za-z]gfycat\\.com/(?:gifs/detail/)?(\\w+).*"),
-			redgifsPattern = Pattern.compile(".*[^A-Za-z]redgifs\\.com/watch/(?:gifs/detail/)?(\\w+).*"),
+			gfycatPattern = Pattern.compile(
+					".*[^A-Za-z]gfycat\\.com/(?:gifs/detail/)?(\\w+).*"),
+			redgifsPattern = Pattern.compile(
+					".*[^A-Za-z]redgifs\\.com/watch/(?:gifs/detail/)?(\\w+).*"),
 			streamablePattern = Pattern.compile(".*[^A-Za-z]streamable\\.com/(\\w+).*"),
-			reddituploadsPattern = Pattern.compile(".*[^A-Za-z]i\\.reddituploads\\.com/(\\w+).*"),
+			reddituploadsPattern = Pattern.compile(
+					".*[^A-Za-z]i\\.reddituploads\\.com/(\\w+).*"),
 			redditVideosPattern = Pattern.compile(".*[^A-Za-z]v.redd.it/(\\w+).*"),
 			imgflipPattern = Pattern.compile(".*[^A-Za-z]imgflip\\.com/i/(\\w+).*"),
-			makeamemePattern = Pattern.compile(".*[^A-Za-z]makeameme\\.org/meme/([\\w\\-]+).*"),
-			deviantartPattern = Pattern.compile("https://www\\.deviantart\\.com/([\\w\\-]+)/art/([\\w\\-]+)"),
+			makeamemePattern = Pattern.compile(
+					".*[^A-Za-z]makeameme\\.org/meme/([\\w\\-]+).*"),
+			deviantartPattern = Pattern.compile(
+					"https://www\\.deviantart\\.com/([\\w\\-]+)/art/([\\w\\-]+)"),
 			giphyPattern = Pattern.compile(".*[^A-Za-z]giphy\\.com/gifs/(\\w+).*");
 
 	public static boolean isProbablyAnImage(final String url) {
@@ -489,7 +580,7 @@ public class LinkHandler {
 			}
 		}
 
-        {
+		{
 			final Matcher matchRedgifs = redgifsPattern.matcher(url);
 
 			if(matchRedgifs.find()) {
@@ -578,7 +669,11 @@ public class LinkHandler {
 		}
 
 		@Override
-		public abstract void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage);
+		public abstract void onFailure(
+				final @CacheRequest.RequestFailureType int type,
+				final Throwable t,
+				final Integer status,
+				final String readableMessage);
 
 		@Override
 		public void onSuccess(final ImageInfo info) {
@@ -601,36 +696,82 @@ public class LinkHandler {
 
 		Log.i("getImgurImageInfo", "Image " + imgId + ": trying API v3 with auth");
 
-		ImgurAPIV3.getImageInfo(context, imgId, priority, listId, true, new ImageInfoRetryListener(listener) {
-			@Override
-			public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
-
-				Log.i("getImgurImageInfo", "Image " + imgId + ": trying API v3 without auth");
-
-				ImgurAPIV3.getImageInfo(context, imgId, priority, listId, false, new ImageInfoRetryListener(listener) {
+		ImgurAPIV3.getImageInfo(
+				context,
+				imgId,
+				priority,
+				listId,
+				true,
+				new ImageInfoRetryListener(listener) {
 					@Override
-					public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
+					public void onFailure(
+							final @CacheRequest.RequestFailureType int type,
+							final Throwable t,
+							final Integer status,
+							final String readableMessage) {
 
-						Log.i("getImgurImageInfo", "Image " + imgId + ": trying API v2");
+						Log.i(
+								"getImgurImageInfo",
+								"Image " + imgId + ": trying API v3 without auth");
 
-						ImgurAPI.getImageInfo(context, imgId, priority, listId, new ImageInfoRetryListener(listener) {
-							@Override
-							public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
+						ImgurAPIV3.getImageInfo(
+								context,
+								imgId,
+								priority,
+								listId,
+								false,
+								new ImageInfoRetryListener(listener) {
+									@Override
+									public void onFailure(
+											final @CacheRequest.RequestFailureType int type,
+											final Throwable t,
+											final Integer status,
+											final String readableMessage) {
 
-								Log.i("getImgurImageInfo", "All API requests failed!");
+										Log.i(
+												"getImgurImageInfo",
+												"Image " + imgId + ": trying API v2");
 
-								if(returnUrlOnFailure) {
-									listener.onSuccess(new ImageInfo("https://i.imgur.com/" + imgId + ".jpg", null, ImageInfo.HasAudio.MAYBE_AUDIO));
+										ImgurAPI.getImageInfo(
+												context,
+												imgId,
+												priority,
+												listId,
+												new ImageInfoRetryListener(listener) {
+													@Override
+													public void onFailure(
+															final @CacheRequest.RequestFailureType
+																	int type,
+															final Throwable t,
+															final Integer status,
+															final String readableMessage) {
 
-								} else {
-									listener.onFailure(type, t, status, readableMessage);
-								}
-							}
-						});
+														Log.i(
+																"getImgurImageInfo",
+																"All API requests failed!");
+
+														if(returnUrlOnFailure) {
+															listener.onSuccess(new ImageInfo(
+																	"https://i.imgur.com/"
+																			+ imgId
+																			+ ".jpg",
+																	null,
+																	ImageInfo.HasAudio.MAYBE_AUDIO
+															));
+
+														} else {
+															listener.onFailure(
+																	type,
+																	t,
+																	status,
+																	readableMessage);
+														}
+													}
+												});
+									}
+								});
 					}
 				});
-			}
-		});
 	}
 
 	private static abstract class AlbumInfoRetryListener implements GetAlbumInfoListener {
@@ -642,10 +783,24 @@ public class LinkHandler {
 		}
 
 		@Override
-		public abstract void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage);
+		public abstract void onFailure(
+				final @CacheRequest.RequestFailureType int type,
+				final Throwable t,
+				final Integer status,
+				final String readableMessage);
 
 		@Override
-		public void onSuccess(final AlbumInfo info) {
+		public void onGalleryRemoved() {
+			mListener.onGalleryRemoved();
+		}
+
+		@Override
+		public void onGalleryDataNotPresent() {
+			mListener.onGalleryDataNotPresent();
+		}
+
+		@Override
+		public void onSuccess(@NonNull final AlbumInfo info) {
 			mListener.onSuccess(info);
 		}
 	}
@@ -660,31 +815,74 @@ public class LinkHandler {
 
 		Log.i("getImgurAlbumInfo", "Album " + albumId + ": trying API v3 with auth");
 
-		ImgurAPIV3.getAlbumInfo(context, albumUrl, albumId, priority, listId, true, new AlbumInfoRetryListener(listener) {
-			@Override
-			public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
-
-				Log.i("getImgurAlbumInfo", "Album " + albumId + ": trying API v3 without auth");
-
-				ImgurAPIV3.getAlbumInfo(context, albumUrl, albumId, priority, listId, false, new AlbumInfoRetryListener(listener) {
+		ImgurAPIV3.getAlbumInfo(
+				context,
+				albumUrl,
+				albumId,
+				priority,
+				listId,
+				true,
+				new AlbumInfoRetryListener(listener) {
 					@Override
-					public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
+					public void onFailure(
+							final @CacheRequest.RequestFailureType int type,
+							final Throwable t,
+							final Integer status,
+							final String readableMessage) {
 
-						Log.i("getImgurAlbumInfo", "Album " + albumId + ": trying API v2");
+						Log.i(
+								"getImgurAlbumInfo",
+								"Album " + albumId + ": trying API v3 without auth");
 
-						ImgurAPI.getAlbumInfo(context, albumUrl, albumId, priority, listId, new AlbumInfoRetryListener(listener) {
-							@Override
-							public void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
+						ImgurAPIV3.getAlbumInfo(
+								context,
+								albumUrl,
+								albumId,
+								priority,
+								listId,
+								false,
+								new AlbumInfoRetryListener(listener) {
+									@Override
+									public void onFailure(
+											final @CacheRequest.RequestFailureType int type,
+											final Throwable t,
+											final Integer status,
+											final String readableMessage) {
 
-								Log.i("getImgurImageInfo", "All API requests failed!");
-								listener.onFailure(type, t, status, readableMessage);
-							}
-						});
+										Log.i(
+												"getImgurAlbumInfo",
+												"Album " + albumId + ": trying API v2");
 
+										ImgurAPI.getAlbumInfo(
+												context,
+												albumUrl,
+												albumId,
+												priority,
+												listId,
+												new AlbumInfoRetryListener(listener) {
+													@Override
+													public void onFailure(
+															final @CacheRequest.RequestFailureType
+																	int type,
+															final Throwable t,
+															final Integer status,
+															final String readableMessage) {
+
+														Log.i(
+																"getImgurImageInfo",
+																"All API requests failed!");
+														listener.onFailure(
+																type,
+																t,
+																status,
+																readableMessage);
+													}
+												});
+
+									}
+								});
 					}
 				});
-			}
-		});
 	}
 
 	public static void getAlbumInfo(
@@ -712,7 +910,13 @@ public class LinkHandler {
 			if(matchReddit.find()) {
 				final String albumId = matchReddit.group(1);
 				if(albumId.length() > 2) {
-					RedditGalleryAPI.getAlbumInfo(context, url, albumId, priority, listId, listener);
+					RedditGalleryAPI.getAlbumInfo(
+							context,
+							url,
+							albumId,
+							priority,
+							listId,
+							listener);
 					return;
 				}
 			}
@@ -774,7 +978,12 @@ public class LinkHandler {
 			if(matchStreamable.find()) {
 				final String imgId = matchStreamable.group(1);
 				if(imgId.length() > 2) {
-					StreamableAPI.getImageInfo(context, imgId, priority, listId, listener);
+					StreamableAPI.getImageInfo(
+							context,
+							imgId,
+							priority,
+							listId,
+							listener);
 					return;
 				}
 			}
@@ -785,7 +994,12 @@ public class LinkHandler {
 			if(matchDeviantart.find()) {
 				final String imgId = url;
 				if(imgId.length() > 40) {
-					DeviantArtAPI.getImageInfo(context, imgId, priority, listId, listener);
+					DeviantArtAPI.getImageInfo(
+							context,
+							imgId,
+							priority,
+							listId,
+							listener);
 					return;
 				}
 			}
@@ -797,7 +1011,12 @@ public class LinkHandler {
 
 				final String imgId = matchRedditVideos.group(1);
 				if(imgId.length() > 3) {
-					RedditVideosAPI.getImageInfo(context, imgId, priority, listId, listener);
+					RedditVideosAPI.getImageInfo(
+							context,
+							imgId,
+							priority,
+							listId,
+							listener);
 					return;
 				}
 			}
@@ -814,7 +1033,7 @@ public class LinkHandler {
 
 	private static ImageInfo getImageUrlPatternMatch(final String url) {
 
-		final String urlLower = General.asciiLowercase(url);
+		final String urlLower = StringUtils.asciiLowercase(url);
 
 		{
 			final Matcher matchRedditUploads = reddituploadsPattern.matcher(url);
@@ -822,7 +1041,10 @@ public class LinkHandler {
 			if(matchRedditUploads.find()) {
 				final String imgId = matchRedditUploads.group(1);
 				if(imgId.length() > 10) {
-					return new ImageInfo(url, ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.NO_AUDIO);
+					return new ImageInfo(
+							url,
+							ImageInfo.MediaType.IMAGE,
+							ImageInfo.HasAudio.NO_AUDIO);
 				}
 			}
 		}
@@ -834,7 +1056,10 @@ public class LinkHandler {
 				final String imgId = matchImgflip.group(1);
 				if(imgId.length() > 3) {
 					final String imageUrl = "https://i.imgflip.com/" + imgId + ".jpg";
-					return new ImageInfo(imageUrl, ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.NO_AUDIO);
+					return new ImageInfo(
+							imageUrl,
+							ImageInfo.MediaType.IMAGE,
+							ImageInfo.HasAudio.NO_AUDIO);
 				}
 			}
 		}
@@ -845,8 +1070,13 @@ public class LinkHandler {
 			if(matchMakeameme.find()) {
 				final String imgId = matchMakeameme.group(1);
 				if(imgId.length() > 3) {
-					final String imageUrl = "https://media.makeameme.org/created/" + imgId + ".jpg";
-					return new ImageInfo(imageUrl, ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.NO_AUDIO);
+					final String imageUrl = "https://media.makeameme.org/created/"
+							+ imgId
+							+ ".jpg";
+					return new ImageInfo(
+							imageUrl,
+							ImageInfo.MediaType.IMAGE,
+							ImageInfo.HasAudio.NO_AUDIO);
 				}
 			}
 		}
@@ -855,7 +1085,8 @@ public class LinkHandler {
 			final Matcher matchGiphy = giphyPattern.matcher(url);
 
 			if(matchGiphy.find()) {
-				return new ImageInfo("https://media.giphy.com/media/"
+				return new ImageInfo(
+						"https://media.giphy.com/media/"
 								+ matchGiphy.group(1)
 								+ "/giphy.mp4",
 						ImageInfo.MediaType.VIDEO,
@@ -865,22 +1096,37 @@ public class LinkHandler {
 
 		final String[] imageExtensions = {".jpg", ".jpeg", ".png"};
 
-		final String[] videoExtensions = {".webm", ".mp4", ".h264", ".gifv", ".mkv", ".3gp"};
+		final String[] videoExtensions = {
+				".webm",
+				".mp4",
+				".h264",
+				".gifv",
+				".mkv",
+				".3gp"};
 
-		for(final String ext: imageExtensions) {
+		for(final String ext : imageExtensions) {
 			if(urlLower.endsWith(ext)) {
-				return new ImageInfo(url, ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.MAYBE_AUDIO);
+				return new ImageInfo(
+						url,
+						ImageInfo.MediaType.IMAGE,
+						ImageInfo.HasAudio.MAYBE_AUDIO);
 			}
 		}
 
-		for(final String ext: videoExtensions) {
+		for(final String ext : videoExtensions) {
 			if(urlLower.endsWith(ext)) {
-				return new ImageInfo(url, ImageInfo.MediaType.VIDEO, ImageInfo.HasAudio.MAYBE_AUDIO);
+				return new ImageInfo(
+						url,
+						ImageInfo.MediaType.VIDEO,
+						ImageInfo.HasAudio.MAYBE_AUDIO);
 			}
 		}
 
 		if(urlLower.endsWith(".gif")) {
-			return new ImageInfo(url, ImageInfo.MediaType.GIF, ImageInfo.HasAudio.MAYBE_AUDIO);
+			return new ImageInfo(
+					url,
+					ImageInfo.MediaType.GIF,
+					ImageInfo.HasAudio.MAYBE_AUDIO);
 		}
 
 
@@ -888,20 +1134,29 @@ public class LinkHandler {
 
 			final String urlBeforeQ = urlLower.split("\\?")[0];
 
-			for(final String ext: imageExtensions) {
+			for(final String ext : imageExtensions) {
 				if(urlBeforeQ.endsWith(ext)) {
-					return new ImageInfo(url, ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.MAYBE_AUDIO);
+					return new ImageInfo(
+							url,
+							ImageInfo.MediaType.IMAGE,
+							ImageInfo.HasAudio.MAYBE_AUDIO);
 				}
 			}
 
-			for(final String ext: videoExtensions) {
+			for(final String ext : videoExtensions) {
 				if(urlBeforeQ.endsWith(ext)) {
-					return new ImageInfo(url, ImageInfo.MediaType.VIDEO, ImageInfo.HasAudio.MAYBE_AUDIO);
+					return new ImageInfo(
+							url,
+							ImageInfo.MediaType.VIDEO,
+							ImageInfo.HasAudio.MAYBE_AUDIO);
 				}
 			}
 
 			if(urlBeforeQ.endsWith(".gif")) {
-				return new ImageInfo(url, ImageInfo.MediaType.GIF, ImageInfo.HasAudio.MAYBE_AUDIO);
+				return new ImageInfo(
+						url,
+						ImageInfo.MediaType.GIF,
+						ImageInfo.HasAudio.MAYBE_AUDIO);
 			}
 		}
 
@@ -910,7 +1165,10 @@ public class LinkHandler {
 		if(matchQkme1.find()) {
 			final String imgId = matchQkme1.group(1);
 			if(imgId.length() > 2) {
-				return new ImageInfo(String.format(Locale.US, "http://i.qkme.me/%s.jpg", imgId), ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.NO_AUDIO);
+				return new ImageInfo(String.format(
+						Locale.US,
+						"http://i.qkme.me/%s.jpg",
+						imgId), ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.NO_AUDIO);
 			}
 		}
 
@@ -918,8 +1176,11 @@ public class LinkHandler {
 
 		if(matchQkme2.find()) {
 			final String imgId = matchQkme2.group(1);
-			if (imgId.length() > 2) {
-				return new ImageInfo(String.format(Locale.US, "http://i.qkme.me/%s.jpg", imgId), ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.NO_AUDIO);
+			if(imgId.length() > 2) {
+				return new ImageInfo(String.format(
+						Locale.US,
+						"http://i.qkme.me/%s.jpg",
+						imgId), ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.NO_AUDIO);
 			}
 		}
 
@@ -927,8 +1188,11 @@ public class LinkHandler {
 
 		if(matchLvme.find()) {
 			final String imgId = matchLvme.group(1);
-			if (imgId.length() > 2) {
-				return new ImageInfo(String.format(Locale.US, "http://www.livememe.com/%s.jpg", imgId), ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.NO_AUDIO);
+			if(imgId.length() > 2) {
+				return new ImageInfo(String.format(
+						Locale.US,
+						"http://www.livememe.com/%s.jpg",
+						imgId), ImageInfo.MediaType.IMAGE, ImageInfo.HasAudio.NO_AUDIO);
 			}
 		}
 
@@ -942,16 +1206,17 @@ public class LinkHandler {
 
 		// From http://stackoverflow.com/a/1806161/1526861
 		// TODO may not handle .co.uk, similar (but should handle .co/.us/.it/etc fine)
-		final Pattern urlPattern = Pattern.compile("\\b((((ht|f)tp(s?)\\:\\/\\/|~\\/|\\/)|www.)" +
-				"(\\w+:\\w+@)?(([-\\w]+\\.)+(com|org|net|gov" +
-				"|mil|biz|info|mobi|name|aero|jobs|museum" +
-				"|travel|[a-z]{2}))(:[\\d]{1,5})?" +
-				"(((\\/([-\\w~!$+|.,=]|%[a-f\\d]{2})+)+|\\/)+|\\?|#)?" +
-				"((\\?([-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
-				"([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)" +
-				"(&(?:[-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
-				"([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)*)*" +
-				"(#([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)?)\\b");
+		final Pattern urlPattern = Pattern.compile(
+				"\\b((((ht|f)tp(s?)\\:\\/\\/|~\\/|\\/)|www.)" +
+						"(\\w+:\\w+@)?(([-\\w]+\\.)+(com|org|net|gov" +
+						"|mil|biz|info|mobi|name|aero|jobs|museum" +
+						"|travel|[a-z]{2}))(:[\\d]{1,5})?" +
+						"(((\\/([-\\w~!$+|.,=]|%[a-f\\d]{2})+)+|\\/)+|\\?|#)?" +
+						"((\\?([-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
+						"([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)" +
+						"(&(?:[-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
+						"([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)*)*" +
+						"(#([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)?)\\b");
 
 		final Matcher urlMatcher = urlPattern.matcher(text);
 
@@ -959,7 +1224,8 @@ public class LinkHandler {
 			result.add(urlMatcher.group(1));
 		}
 
-		final Matcher subredditMatcher = Pattern.compile("(?<!\\w)(/?[ru]/\\w+)\\b").matcher(text);
+		final Matcher subredditMatcher = Pattern.compile("(?<!\\w)(/?[ru]/\\w+)\\b")
+				.matcher(text);
 
 		while(subredditMatcher.find()) {
 			result.add(subredditMatcher.group(1));
@@ -972,7 +1238,7 @@ public class LinkHandler {
 		public final String title;
 		public final LinkAction action;
 
-		private LinkMenuItem(Context context, int titleRes, LinkAction action) {
+		private LinkMenuItem(final Context context, final int titleRes, final LinkAction action) {
 			this.title = context.getString(titleRes);
 			this.action = action;
 		}

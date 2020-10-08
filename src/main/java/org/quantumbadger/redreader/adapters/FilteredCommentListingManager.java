@@ -19,7 +19,7 @@ package org.quantumbadger.redreader.adapters;
 
 import android.content.Context;
 import androidx.annotation.Nullable;
-import org.quantumbadger.redreader.common.General;
+import org.quantumbadger.redreader.common.StringUtils;
 import org.quantumbadger.redreader.reddit.RedditCommentListItem;
 
 import java.util.ArrayList;
@@ -42,33 +42,39 @@ public class FilteredCommentListingManager extends RedditListingManager {
 	}
 
 	public void addComments(final Collection<RedditCommentListItem> comments) {
-		final Collection<GroupedRecyclerViewAdapter.Item> filteredComments = filter(comments);
+		final Collection<GroupedRecyclerViewAdapter.Item> filteredComments = filter(
+				comments);
 		addItems(filteredComments);
 		mCommentCount += filteredComments.size();
 	}
 
-	private Collection<GroupedRecyclerViewAdapter.Item> filter(Collection<RedditCommentListItem> comments) {
+	private Collection<GroupedRecyclerViewAdapter.Item> filter(
+			final Collection<RedditCommentListItem> comments) {
 
 		final Collection<RedditCommentListItem> searchComments;
 
-		if (mSearchString == null) {
+		if(mSearchString == null) {
 			searchComments = comments;
 
 		} else {
-		 	searchComments = new ArrayList<>();
-			for (RedditCommentListItem comment : comments) {
-				if (!comment.isComment()) continue;
-				String commentStr = comment.asComment().getParsedComment().getRawComment().body;
-				if (commentStr != null) {
-					commentStr = General.asciiLowercase(commentStr);
-					if (commentStr.contains(mSearchString)) {
+			searchComments = new ArrayList<>();
+			for(final RedditCommentListItem comment : comments) {
+				if(!comment.isComment()) {
+					continue;
+				}
+				String commentStr = comment.asComment()
+						.getParsedComment()
+						.getRawComment().body;
+				if(commentStr != null) {
+					commentStr = StringUtils.asciiLowercase(commentStr);
+					if(commentStr.contains(mSearchString)) {
 						searchComments.add(comment);
 					}
 				}
 			}
 		}
 
-		return Collections.<GroupedRecyclerViewAdapter.Item>unmodifiableCollection(searchComments);
+		return Collections.unmodifiableCollection(searchComments);
 	}
 
 	public boolean isSearchListing() {

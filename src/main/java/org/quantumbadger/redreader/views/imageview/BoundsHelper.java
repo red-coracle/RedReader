@@ -28,9 +28,9 @@ public class BoundsHelper {
 	private final float mMinScale;
 
 	public BoundsHelper(
-			int resolutionX, int resolutionY,
-			int imageResolutionX, int imageResolutionY,
-			CoordinateHelper coordinateHelper) {
+			final int resolutionX, final int resolutionY,
+			final int imageResolutionX, final int imageResolutionY,
+			final CoordinateHelper coordinateHelper) {
 
 		mResolutionX = resolutionX;
 		mResolutionY = resolutionY;
@@ -39,8 +39,8 @@ public class BoundsHelper {
 		mCoordinateHelper = coordinateHelper;
 
 		mMinScale = Math.min(
-				(float) mResolutionX / (float) mImageResolutionX,
-				(float) mResolutionY / (float) mImageResolutionY
+				(float)mResolutionX / (float)mImageResolutionX,
+				(float)mResolutionY / (float)mImageResolutionY
 		);
 	}
 

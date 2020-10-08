@@ -118,7 +118,7 @@
     <!-- Menu Prefs -->
 
     <string name="pref_menus_post_context_items_key" translatable="false">pref_menus_post_context_items_2</string>
-    <string name="pref_menus_post_context_items_title">Long-press menu items</string>
+    <string name="pref_menus_post_context_items_title">Action menu items</string>
 
     <string name="pref_menus_post_toolbar_items_key" translatable="false">pref_menus_post_toolbar_items</string>
     <string name="pref_menus_post_toolbar_items_title">Side-toolbar items</string>
@@ -453,11 +453,6 @@
     <string name="subtitle_points">pts</string>
     <string name="subtitle_by">by</string>
     <string name="subtitle_to">to</string>
-	<plurals name="subtitle_replies">
-		<item quantity="zero">…</item>
-		<item quantity="one">" (%d reply)"</item>
-		<item quantity="other">" (%d replies)"</item>
-	</plurals>
 
     <string name="general_unknown">unknown</string>
 
@@ -605,7 +600,6 @@
     <string name="comment_header_specific_thread_message">Click here to view all comments for this post.</string>
 
     <!-- 2014-12-18 -->
-    <string name="more_comments_button_text">Load more comments</string>
     <string name="action_comment_context">Context</string>
     <string name="action_comment_go_to">Go to Comment</string>
 
@@ -962,13 +956,13 @@
 
 	<!-- 2017-03-02 -->
 	<string name="pref_menus_link_context_items_key" translatable="false">pref_menus_link_context_items</string>
-	<string name="pref_menus_link_context_items_title">Link long-press menu items</string>
+	<string name="pref_menus_link_context_items_title">Link action menu items</string>
 	<string name="lang_eo" translatable="false">Esperanto</string>
 	<string name="lang_pl" translatable="false">Polski</string>
 
 	<!-- 2017-03-07 -->
 	<string name="pref_menus_subreddit_context_items_key" translatable="false">pref_menus_subreddit_context_items</string>
-	<string name="pref_menus_subreddit_context_items_title">Subreddit long-press menu items</string>
+	<string name="pref_menus_subreddit_context_items_title">Subreddit action menu items</string>
 	<string name="mainmenu_toast_not_subscribed">You are not subscribed to this subreddit yet!</string>
 	<string name="mainmenu_toast_subscribed">You are already subscribed to this subreddit!</string>
 	<string name="mainmenu_toast_not_pinned">This subreddit is not pinned to the main menu!</string>
@@ -1153,9 +1147,9 @@
 	<string name="pref_appearance_post_header_subtitle_items_title">Opened post subtitle entries</string>
 
 	<!-- 2020-02-05 -->
-	<string name="pref_cache_precache_images_list_key">pref_cache_precache_images_list_key</string>
-	<string name="pref_cache_precache_comments_list_key">pref_cache_precache_comments_list_key</string>
-	<string name="pref_appearance_thumbnails_show_list_key">pref_appearance_thumbnails_show_list_key</string>
+	<string name="pref_cache_precache_images_list_key" translatable="false">pref_cache_precache_images_list_key</string>
+	<string name="pref_cache_precache_comments_list_key" translatable="false">pref_cache_precache_comments_list_key</string>
+	<string name="pref_appearance_thumbnails_show_list_key" translatable="false">pref_appearance_thumbnails_show_list_key</string>
 	<string name="list_yes_no_or_wifi_always">Always</string>
 	<string name="list_yes_no_or_wifi_wifionly">On Wi-Fi Only</string>
 	<string name="list_yes_no_or_wifi_never">Never</string>
@@ -1226,10 +1220,92 @@
 	<string name="comment_text_copied_to_clipboard">Comment text copied to clipboard</string>
 	<string name="subreddit_link_copied_to_clipboard">Subreddit link copied to clipboard</string>
 
-	<!-- 2020-07-16 -->
+  <!-- 2020-07-16 -->
 	<string name="copied_to_clipboard">Copied to clipboard</string>
+
+	<!-- 2020-07-19 -->
+	<string name="pref_menus_appbar_screen_title">Action bar items</string>
+	<string name="pref_menus_appbar_items_always">Always show button</string>
+	<string name="pref_menus_appbar_items_if_room">Show button if room</string>
+	<string name="pref_menus_appbar_items_overflow_only">Only show in three-dot menu</string>
+	<string name="pref_menus_appbar_items_never">Do not show</string>
+	<string name="pref_menus_appbar_prefix" translatable="false">pref_menus_appbar</string>
+	<string name="pref_menus_appbar_sort_key" translatable="false">pref_menus_appbar_sort</string>
+	<string name="pref_menus_appbar_refresh_key" translatable="false">pref_menus_appbar_refresh</string>
+	<string name="pref_menus_appbar_past_key" translatable="false">pref_menus_appbar_past</string>
+	<string name="pref_menus_appbar_submit_post_key" translatable="false">pref_menus_appbar_submit_post</string>
+	<string name="pref_menus_appbar_pin_key" translatable="false">pref_menus_appbar_pin</string>
+	<string name="pref_menus_appbar_block_key" translatable="false">pref_menus_appbar_block</string>
+	<string name="pref_menus_appbar_subscribe_key" translatable="false">pref_menus_appbar_subscribe</string>
+	<string name="pref_menus_appbar_sidebar_key" translatable="false">pref_menus_appbar_sidebar</string>
+	<string name="pref_menus_appbar_accounts_key" translatable="false">pref_menus_appbar_accounts</string>
+	<string name="pref_menus_appbar_theme_key" translatable="false">pref_menus_appbar_theme</string>
+	<string name="pref_menus_appbar_settings_key" translatable="false">pref_menus_appbar_settings</string>
+	<string name="pref_menus_appbar_close_all_key" translatable="false">pref_menus_appbar_close_all</string>
+	<string name="pref_menus_appbar_reply_key" translatable="false">pref_menus_appbar_reply</string>
+	<string name="pref_menus_appbar_search_key" translatable="false">pref_menus_appbar_search</string>
+	<string name="action_search_posts">Search Posts</string>
 
 	<!-- 2020-07-25 -->
 	<string name="image_gallery">Gallery</string>
+
+	<!-- 2020-07-28 -->
+	<string name="pref_appearance_post_show_comments_button_title">Show comments button</string>
+	<string name="pref_appearance_post_show_comments_button_key" translatable="false">pref_appearance_show_comments_button</string>
+	<string name="action_comments_with_count">View Comments (%d)</string>
+
+	<!-- 2020-08-17 -->
+	<string name="pref_behaviour_user_postsort_key" translatable="false">pref_behaviour_user_postsort</string>
+	<string name="pref_behaviour_user_postsort_title">User posts (default)</string>
+	<string name="pref_behaviour_multi_postsort_key" translatable="false">pref_behaviour_multi_postsort</string>
+	<string name="pref_behaviour_multi_postsort_title">Multireddit posts (default)</string>
+	<string name="pref_behaviour_user_commentsort_key" translatable="false">pref_behaviour_user_commentsort</string>
+	<string name="pref_behaviour_user_commentsort_title">User comments (default)</string>
+	<string name="sort_comments_top_hour">Top: This Hour</string>
+	<string name="sort_comments_top_today">Top: Today</string>
+	<string name="sort_comments_top_week">Top: This Week</string>
+	<string name="sort_comments_top_month">Top: This Month</string>
+	<string name="sort_comments_top_year">Top: This Year</string>
+	<string name="sort_comments_top_all">Top: All Time</string>
+
+	<!-- 2020-08-18 -->
+	<string name="pref_behaviour_video_zoom_default_key" translatable="false">pref_behaviour_video_zoom_default</string>
+	<string name="pref_behaviour_video_zoom_default_title">Zoom into videos by default</string>
+
+	<!-- 2020-08-23 -->
+	<string name="image_gallery_removed_title">Gallery removed</string>
+	<string name="image_gallery_removed_message">This gallery has been removed and is no longer accessible.</string>
+	<string name="image_gallery_no_data_present_title">Gallery not found</string>
+	<string name="image_gallery_no_data_present_message">No image gallery was found at the specified link. It may have been deleted.</string>
+
+	<string name="button_error_details">Details</string>
+	<string name="button_error_send_report">Report</string>
+
+	<!-- 2020-08-27 -->
+	<string name="image_gallery_no_image_present_title">Image not found</string>
+	<string name="image_gallery_no_image_present_message">The specified image could not be found. It may have been deleted.</string>
+
+	<!-- 2020-09-04 -->
+	<string name="reddit_login_browser_popup_line_1">To login, you will now be taken to Reddit in a web browser.</string>
+	<string name="reddit_login_browser_popup_line_2">When the login is complete, you should be redirected back to RedReader. If the login fails, you can try a different browser using the checkbox below.</string>
+
+	<string name="reddit_login_browser_popup_use_internal_browser">Use internal browser (recommended)</string>
+	<string name="reddit_login_browser_popup_use_external_browser">Use external browser (recommended)</string>
+
+	<string name="dialog_continue">Continue</string>
+
+	<string name="title_attribution">Attribution</string>
+
+	<!-- 2020-09-15 -->
+	<string name="link_does_not_exist">This link does not exist. It may have been deleted.</string>
+
+	<!-- 2020-09-18 -->
+	<plurals name="load_more_comments_button_reply_count">
+		<item quantity="one">"Load more comments (%d reply)"</item>
+		<item quantity="other">"Load more comments (%d replies)"</item>
+	</plurals>
+
+	<!-- 2020-09-19 -->
+	<string name="action_save_image_success_no_path">Image saved successfully</string>
 
 </resources>

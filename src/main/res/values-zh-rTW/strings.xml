@@ -27,9 +27,7 @@
     <string name="prefs_category_menus">選單</string>
 
     <string name="pref_appearance_theme_header">主題</string>
-    <string name="pref_appearance_font_header">字體</string>
     <string name="pref_appearance_thumbnails_header">縮圖</string>
-    <string name="pref_appearance_tabletmode_header">平板電腦模式</string>
     <string name="pref_appearance_comments_header">評論</string>
     <string name="pref_appearance_other_header">其他</string>
 
@@ -41,7 +39,6 @@
 
     <string name="pref_appearance_fontscale_posts_title">帖子字體大小</string>
 
-    <string name="pref_appearance_fontscale_comments_title">評論字體大小</string>
 
     <string name="pref_appearance_thumbnails_show_title">顯示縮圖</string>
 
@@ -375,9 +372,6 @@
     <string name="subtitle_points">分</string>
     <string name="subtitle_by">發表自</string>
     <string name="subtitle_to">至</string>
-	<plurals name="subtitle_replies">
-	<item quantity="other">（%d個回覆）</item>
-</plurals>
 
     <string name="general_unknown">不明</string>
 
@@ -464,7 +458,6 @@
     <string name="comment_header_specific_thread_title">您正在瀏覽一則評論和其回覆。</string>
     <string name="comment_header_specific_thread_message">按此檢視本帖的所有評論。</string>
 
-    <string name="more_comments_button_text">載入更多評論</string>
     <string name="action_comment_context">前言後語</string>
     <string name="action_comment_go_to">前往評論</string>
 
@@ -508,7 +501,6 @@
 	<string name="pref_behaviour_view_mode_internal_browser">內部瀏覽器</string>
     <string name="pref_behaviour_view_mode_external_browser">外部瀏覽器</string>
 
-    <string name="pref_appearance_fontscale_inbox_title">郵箱字體大小</string>
 
     <string name="action_delete">刪除</string>
     <string name="delete_confirm">您確定要删除嗎？</string>

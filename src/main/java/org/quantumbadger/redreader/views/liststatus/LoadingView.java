@@ -39,18 +39,11 @@ public final class LoadingView extends StatusListItemView {
 		public void handleMessage(final Message msg) {
 
 			if(textView != null) {
-				textView.setText(((String) msg.obj).toUpperCase(Locale.getDefault()));
+				textView.setText(((String)msg.obj).toUpperCase(Locale.getDefault()));
 			}
 
-			if(msg.what == LOADING_INDETERMINATE) {
-				// TODO
-
-			} else if(msg.what == LOADING_DONE) {
-				// TODO
+			if(msg.what == LOADING_DONE) {
 				hideNoAnim();
-
-			} else {
-				// TODO progress is msg.what
 			}
 		}
 	};
@@ -78,11 +71,23 @@ public final class LoadingView extends StatusListItemView {
 		this(context, R.string.download_waiting, true, true);
 	}
 
-	public LoadingView(final Context context, final int initialTextRes, final boolean progressBarEnabled, final boolean indeterminate) {
-		this(context, context.getString(initialTextRes), progressBarEnabled, indeterminate);
+	public LoadingView(
+			final Context context,
+			final int initialTextRes,
+			final boolean progressBarEnabled,
+			final boolean indeterminate) {
+		this(
+				context,
+				context.getString(initialTextRes),
+				progressBarEnabled,
+				indeterminate);
 	}
 
-	public LoadingView(final Context context, final String initialText, final boolean progressBarEnabled, final boolean indeterminate) {
+	public LoadingView(
+			final Context context,
+			final String initialText,
+			final boolean progressBarEnabled,
+			final boolean indeterminate) {
 
 		super(context);
 
@@ -92,7 +97,11 @@ public final class LoadingView extends StatusListItemView {
 		textView = new TextView(context);
 		textView.setText(initialText.toUpperCase(Locale.getDefault()));
 		textView.setTextSize(13.0f);
-		textView.setPadding((int)(15 * dpScale), (int)(10 * dpScale), (int)(10 * dpScale), (int)(10 * dpScale));
+		textView.setPadding(
+				(int)(15 * dpScale),
+				(int)(10 * dpScale),
+				(int)(10 * dpScale),
+				(int)(10 * dpScale));
 		textView.setSingleLine(true);
 		textView.setEllipsize(TextUtils.TruncateAt.END);
 		layout.addView(textView);

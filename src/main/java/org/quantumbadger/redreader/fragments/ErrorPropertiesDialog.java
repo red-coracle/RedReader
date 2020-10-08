@@ -17,19 +17,31 @@
 
 package org.quantumbadger.redreader.fragments;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.widget.LinearLayout;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import org.quantumbadger.redreader.R;
+import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.activities.BugReportActivity;
 import org.quantumbadger.redreader.common.RRError;
 
+import java.net.UnknownHostException;
+
 public final class ErrorPropertiesDialog extends PropertiesDialog {
+
+	private AppCompatActivity mContext;
+	@NonNull private final RRError mError;
+
+	private ErrorPropertiesDialog(@NonNull final RRError error) {
+		mError = error;
+	}
 
 	public static ErrorPropertiesDialog newInstance(final RRError error) {
 
-		final ErrorPropertiesDialog dialog = new ErrorPropertiesDialog();
+		final ErrorPropertiesDialog dialog = new ErrorPropertiesDialog(error);
 
 		final Bundle args = new Bundle();
 
@@ -56,26 +68,61 @@ public final class ErrorPropertiesDialog extends PropertiesDialog {
 	}
 
 	@Override
-	protected String getTitle(Context context) {
+	protected void interceptBuilder(@NonNull final AlertDialog.Builder builder) {
+
+		if(!(mError.t instanceof UnknownHostException)) {
+
+			builder.setPositiveButton(
+					R.string.button_error_send_report,
+					(dialog, which) -> BugReportActivity.sendBugReport(mContext, mError));
+		}
+	}
+
+	@Override
+	protected String getTitle(final Context context) {
 		return context.getString(R.string.props_error_title);
 	}
 
 	@Override
-	protected void prepare(AppCompatActivity context, LinearLayout items) {
+	protected void prepare(
+			@NonNull final BaseActivity context,
+			@NonNull final LinearLayout items) {
 
-		items.addView(propView(context, R.string.props_title, getArguments().getString("title"), true));
-		items.addView(propView(context, "Message", getArguments().getString("message"), false));
+		mContext = context;
+
+		items.addView(propView(
+				context,
+				R.string.props_title,
+				getArguments().getString("title"),
+				true));
+		items.addView(propView(
+				context,
+				"Message",
+				getArguments().getString("message"),
+				false));
 
 		if(getArguments().containsKey("httpStatus")) {
-			items.addView(propView(context, "HTTP status", getArguments().getString("httpStatus"), false));
+			items.addView(propView(
+					context,
+					"HTTP status",
+					getArguments().getString("httpStatus"),
+					false));
 		}
 
 		if(getArguments().containsKey("url")) {
-			items.addView(propView(context, "URL", getArguments().getString("url"), false));
+			items.addView(propView(
+					context,
+					"URL",
+					getArguments().getString("url"),
+					false));
 		}
 
 		if(getArguments().containsKey("t")) {
-			items.addView(propView(context, "Exception", getArguments().getString("t"), false));
+			items.addView(propView(
+					context,
+					"Exception",
+					getArguments().getString("t"),
+					false));
 		}
 	}
 }

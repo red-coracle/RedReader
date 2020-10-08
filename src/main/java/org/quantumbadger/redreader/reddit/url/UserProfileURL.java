@@ -20,7 +20,7 @@ package org.quantumbadger.redreader.reddit.url;
 import android.content.Context;
 import android.net.Uri;
 import org.quantumbadger.redreader.common.Constants;
-import org.quantumbadger.redreader.common.General;
+import org.quantumbadger.redreader.common.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,20 +29,22 @@ public class UserProfileURL extends RedditURLParser.RedditURL {
 
 	public final String username;
 
-	public UserProfileURL(String username) {
+	public UserProfileURL(final String username) {
 		this.username = username;
 	}
 
-	public static UserProfileURL parse(Uri uri) {
+	public static UserProfileURL parse(final Uri uri) {
 
 		final String[] pathSegments;
 		{
 			final List<String> pathSegmentsList = uri.getPathSegments();
 
-			final ArrayList<String> pathSegmentsFiltered = new ArrayList<>(pathSegmentsList.size());
+			final ArrayList<String> pathSegmentsFiltered = new ArrayList<>(
+					pathSegmentsList.size());
 			for(String segment : pathSegmentsList) {
 
-				while(General.asciiLowercase(segment).endsWith(".json") || General.asciiLowercase(segment).endsWith(".xml")) {
+				while(StringUtils.asciiLowercase(segment).endsWith(".json")
+						|| StringUtils.asciiLowercase(segment).endsWith(".xml")) {
 					segment = segment.substring(0, segment.lastIndexOf('.'));
 				}
 
@@ -51,14 +53,16 @@ public class UserProfileURL extends RedditURLParser.RedditURL {
 				}
 			}
 
-			pathSegments = pathSegmentsFiltered.toArray(new String[pathSegmentsFiltered.size()]);
+			pathSegments
+					= pathSegmentsFiltered.toArray(new String[pathSegmentsFiltered.size()]);
 		}
 
 		if(pathSegments.length != 2) {
 			return null;
 		}
 
-		if(!pathSegments[0].equalsIgnoreCase("user") && !pathSegments[0].equalsIgnoreCase("u")) {
+		if(!pathSegments[0].equalsIgnoreCase("user") && !pathSegments[0].equalsIgnoreCase(
+				"u")) {
 			return null;
 		}
 
@@ -71,8 +75,9 @@ public class UserProfileURL extends RedditURLParser.RedditURL {
 	@Override
 	public Uri generateJsonUri() {
 
-		Uri.Builder builder = new Uri.Builder();
-		builder.scheme(Constants.Reddit.getScheme()).authority(Constants.Reddit.getDomain());
+		final Uri.Builder builder = new Uri.Builder();
+		builder.scheme(Constants.Reddit.getScheme())
+				.authority(Constants.Reddit.getDomain());
 
 		builder.appendEncodedPath("user");
 		builder.appendPath(username);
@@ -83,12 +88,13 @@ public class UserProfileURL extends RedditURLParser.RedditURL {
 	}
 
 	@Override
-	public @RedditURLParser.PathType int pathType() {
+	public @RedditURLParser.PathType
+	int pathType() {
 		return RedditURLParser.USER_PROFILE_URL;
 	}
 
 	@Override
-	public String humanReadableName(Context context, boolean shorter) {
+	public String humanReadableName(final Context context, final boolean shorter) {
 		return username;
 	}
 }

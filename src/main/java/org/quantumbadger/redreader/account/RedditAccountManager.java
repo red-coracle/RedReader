@@ -17,6 +17,7 @@
 
 package org.quantumbadger.redreader.account;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -37,11 +38,16 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 	private List<RedditAccount> accountsCache = null;
 	private RedditAccount defaultAccountCache = null;
 
-	private static final RedditAccount ANON = new RedditAccount("", null, 10);
+	private static final RedditAccount ANON = new RedditAccount(
+			"",
+			null,
+			true,
+			10);
 
 	private final Context context;
 
-	private final UpdateNotifier<RedditAccountChangeListener> updateNotifier = new UpdateNotifier<RedditAccountChangeListener>() {
+	private final UpdateNotifier<RedditAccountChangeListener> updateNotifier
+			= new UpdateNotifier<RedditAccountChangeListener>() {
 		@Override
 		protected void notifyListener(final RedditAccountChangeListener listener) {
 			listener.onRedditAccountChanged();
@@ -52,18 +58,17 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 			TABLE = "accounts_oauth2",
 			FIELD_USERNAME = "username",
 			FIELD_REFRESH_TOKEN = "refresh_token",
-			FIELD_PRIORITY = "priority";
+			FIELD_PRIORITY = "priority",
+			FIELD_USES_NEW_CLIENT_ID = "uses_new_client_id";
 
-	private static final int ACCOUNTS_DB_VERSION = 2;
+	private static final int ACCOUNTS_DB_VERSION = 3;
 
-	private static RedditAccountManager singleton;
+	@SuppressLint("StaticFieldLeak") private static RedditAccountManager singleton;
 
 	public static synchronized RedditAccountManager getInstance(final Context context) {
-		if(singleton == null) singleton = new RedditAccountManager(context.getApplicationContext());
-		return singleton;
-	}
-
-	public static synchronized RedditAccountManager getInstanceOrNull() {
+		if(singleton == null) {
+			singleton = new RedditAccountManager(context.getApplicationContext());
+		}
 		return singleton;
 	}
 
@@ -72,7 +77,11 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 	}
 
 	private RedditAccountManager(final Context context) {
-		super(context.getApplicationContext(), ACCOUNTS_DB_FILENAME, null, ACCOUNTS_DB_VERSION);
+		super(
+				context.getApplicationContext(),
+				ACCOUNTS_DB_FILENAME,
+				null,
+				ACCOUNTS_DB_VERSION);
 		this.context = context;
 	}
 
@@ -83,11 +92,13 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 				"CREATE TABLE %s (" +
 						"%s TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE," +
 						"%s TEXT," +
-						"%s INTEGER)",
+						"%s INTEGER," +
+						"%s BOOLEAN NOT NULL)",
 				TABLE,
 				FIELD_USERNAME,
 				FIELD_REFRESH_TOKEN,
-				FIELD_PRIORITY);
+				FIELD_PRIORITY,
+				FIELD_USES_NEW_CLIENT_ID);
 
 		db.execSQL(queryString);
 
@@ -95,14 +106,28 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 	}
 
 	@Override
-	public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+	public void onUpgrade(
+			final SQLiteDatabase db,
+			final int oldVersion,
+			final int newVersion) {
 
-		if(oldVersion == 1 && newVersion == 2) {
+		if(oldVersion < 2) {
 
-			db.execSQL(String.format(Locale.US, "UPDATE %s SET %2$s=TRIM(%2$s) WHERE %2$s <> TRIM(%2$s)", TABLE, FIELD_USERNAME));
+			db.execSQL(String.format(
+					Locale.US,
+					"UPDATE %s SET %2$s=TRIM(%2$s) WHERE %2$s <> TRIM(%2$s)",
+					TABLE,
+					FIELD_USERNAME));
 
-		} else {
-			throw new RuntimeException("Invalid accounts DB update: " + oldVersion + " to " + newVersion);
+		}
+
+		if(oldVersion < 3) {
+
+			db.execSQL(String.format(
+					Locale.US,
+					"ALTER TABLE %s ADD COLUMN %s BOOLEAN NOT NULL DEFAULT 0",
+					TABLE,
+					FIELD_USES_NEW_CLIENT_ID));
 		}
 	}
 
@@ -110,11 +135,16 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 		addAccount(account, null);
 	}
 
-	private synchronized void addAccount(final RedditAccount account, final SQLiteDatabase inDb) {
+	private synchronized void addAccount(
+			final RedditAccount account,
+			final SQLiteDatabase inDb) {
 
 		final SQLiteDatabase db;
-		if(inDb == null) db = getWritableDatabase();
-		else db = inDb;
+		if(inDb == null) {
+			db = getWritableDatabase();
+		} else {
+			db = inDb;
+		}
 
 		final ContentValues row = new ContentValues();
 
@@ -127,13 +157,16 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 		}
 
 		row.put(FIELD_PRIORITY, account.priority);
+		row.put(FIELD_USES_NEW_CLIENT_ID, account.usesNewClientId);
 
 		db.insert(TABLE, null, row);
 
 		reloadAccounts(db);
 		updateNotifier.updateAllListeners();
 
-		if(inDb == null) db.close();
+		if(inDb == null) {
+			db.close();
+		}
 	}
 
 	public synchronized ArrayList<RedditAccount> getAccounts() {
@@ -156,7 +189,7 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 		final ArrayList<RedditAccount> accounts = getAccounts();
 		RedditAccount selectedAccount = null;
 
-		for(RedditAccount account : accounts) {
+		for(final RedditAccount account : accounts) {
 			if(!account.isAnonymous() && account.username.equalsIgnoreCase(username)) {
 				selectedAccount = account;
 				break;
@@ -182,8 +215,15 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 		final SQLiteDatabase db = getWritableDatabase();
 
 		db.execSQL(
-				String.format(Locale.US, "UPDATE %s SET %s=(SELECT MIN(%s)-1 FROM %s) WHERE %s=?", TABLE, FIELD_PRIORITY, FIELD_PRIORITY, TABLE, FIELD_USERNAME),
-				new String[]{newDefault.username});
+				String.format(
+						Locale.US,
+						"UPDATE %s SET %s=(SELECT MIN(%s)-1 FROM %s) WHERE %s=?",
+						TABLE,
+						FIELD_PRIORITY,
+						FIELD_PRIORITY,
+						TABLE,
+						FIELD_USERNAME),
+				new String[] {newDefault.username});
 
 		reloadAccounts(db);
 		db.close();
@@ -193,15 +233,26 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 
 	private synchronized void reloadAccounts(final SQLiteDatabase db) {
 
-		final String[] fields = new String[] {FIELD_USERNAME, FIELD_REFRESH_TOKEN, FIELD_PRIORITY};
+		final String[] fields = new String[] {
+				FIELD_USERNAME,
+				FIELD_REFRESH_TOKEN,
+				FIELD_PRIORITY,
+				FIELD_USES_NEW_CLIENT_ID};
 
-		final Cursor cursor = db.query(TABLE, fields, null, null, null, null, FIELD_PRIORITY + " ASC");
+		final Cursor cursor = db.query(
+				TABLE,
+				fields,
+				null,
+				null,
+				null,
+				null,
+				FIELD_PRIORITY + " ASC");
 
 		accountsCache = new LinkedList<>();
 		defaultAccountCache = null;
 
 		// TODO handle null? can this even happen?
-		if (cursor != null) {
+		if(cursor != null) {
 
 			while(cursor.moveToNext()) {
 
@@ -215,11 +266,18 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 				}
 
 				final long priority = cursor.getLong(2);
+				final boolean usesNewClientId = cursor.getInt(3) != 0;
 
-				final RedditAccount account = new RedditAccount(username, refreshToken, priority);
+				final RedditAccount account = new RedditAccount(
+						username,
+						refreshToken,
+						usesNewClientId,
+						priority);
+
 				accountsCache.add(account);
 
-				if(defaultAccountCache == null || account.priority < defaultAccountCache.priority) {
+				if(defaultAccountCache == null
+						|| account.priority < defaultAccountCache.priority) {
 					defaultAccountCache = account;
 				}
 			}
@@ -235,10 +293,10 @@ public final class RedditAccountManager extends SQLiteOpenHelper {
 		updateNotifier.addListener(listener);
 	}
 
-	public void deleteAccount(RedditAccount account) {
+	public void deleteAccount(final RedditAccount account) {
 
 		final SQLiteDatabase db = getWritableDatabase();
-		db.delete(TABLE, FIELD_USERNAME + "=?", new String[]{account.username});
+		db.delete(TABLE, FIELD_USERNAME + "=?", new String[] {account.username});
 		reloadAccounts(db);
 		updateNotifier.updateAllListeners();
 		db.close();

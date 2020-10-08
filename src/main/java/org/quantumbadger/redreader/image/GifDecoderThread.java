@@ -21,6 +21,7 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.InputStream;
@@ -35,7 +36,7 @@ public class GifDecoderThread extends Thread {
 	private ImageView view;
 	private final OnGifLoadedListener listener;
 
-	public void setView(ImageView view) {
+	public void setView(final ImageView view) {
 		this.view = view;
 	}
 
@@ -49,12 +50,14 @@ public class GifDecoderThread extends Thread {
 
 	private final Handler handler = new Handler(Looper.getMainLooper()) {
 		@Override
-		public void handleMessage(Message msg) {
-			if(playing && view != null) view.setImageBitmap((Bitmap)msg.obj);
+		public void handleMessage(final Message msg) {
+			if(playing && view != null) {
+				view.setImageBitmap((Bitmap)msg.obj);
+			}
 		}
 	};
 
-	public GifDecoderThread(InputStream is, OnGifLoadedListener listener) {
+	public GifDecoderThread(final InputStream is, final OnGifLoadedListener listener) {
 		super("GIF playing thread");
 		this.is = is;
 		this.listener = listener;
@@ -66,7 +69,9 @@ public class GifDecoderThread extends Thread {
 
 		try {
 			is.close();
-		} catch(Throwable t) {}
+		} catch(final Throwable t) {
+			Log.e("GifDecoderThread", "Exception while stopping", t);
+		}
 	}
 
 	@Override
@@ -83,7 +88,7 @@ public class GifDecoderThread extends Thread {
 				try {
 					decoder.read(is);
 					loaded.set(true);
-				} catch(Throwable t) {
+				} catch(final Throwable t) {
 					t.printStackTrace();
 					failed.set(true);
 				}
@@ -92,7 +97,9 @@ public class GifDecoderThread extends Thread {
 
 		try {
 
-			if(!playing) return;
+			if(!playing) {
+				return;
+			}
 
 			listener.onGifLoaded();
 
@@ -100,10 +107,12 @@ public class GifDecoderThread extends Thread {
 
 			while(playing) {
 
-				while(decoder.getFrameCount() <= frame + 1 && !loaded.get() && !failed.get()) {
+				while(decoder.getFrameCount() <= frame + 1
+						&& !loaded.get()
+						&& !failed.get()) {
 					try {
 						sleep(100);
-					} catch(InterruptedException e) {
+					} catch(final InterruptedException e) {
 						return;
 					}
 				}
@@ -118,7 +127,7 @@ public class GifDecoderThread extends Thread {
 
 				try {
 					sleep(Math.max(32, decoder.getDelay(frame)));
-				} catch(InterruptedException e) {
+				} catch(final InterruptedException e) {
 					return;
 				}
 
@@ -130,10 +139,10 @@ public class GifDecoderThread extends Thread {
 				frame++;
 			}
 
-		} catch(OutOfMemoryError e) {
+		} catch(final OutOfMemoryError e) {
 			listener.onOutOfMemory();
 
-		} catch(Throwable t) {
+		} catch(final Throwable t) {
 			listener.onGifInvalid();
 		}
 	}

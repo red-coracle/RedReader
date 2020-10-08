@@ -64,7 +64,7 @@ public class PMSendActivity extends BaseActivity {
 	private static String lastText, lastRecipient, lastSubject;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(final Bundle savedInstanceState) {
 
 		PrefsUtility.applyTheme(this);
 
@@ -72,7 +72,8 @@ public class PMSendActivity extends BaseActivity {
 
 		setTitle(R.string.pm_send_actionbar);
 
-		final LinearLayout layout = (LinearLayout) getLayoutInflater().inflate(R.layout.pm_send, null);
+		final LinearLayout layout
+				= (LinearLayout)getLayoutInflater().inflate(R.layout.pm_send, null);
 
 		usernameSpinner = (Spinner)layout.findViewById(R.id.pm_send_username);
 		recipientEdit = (EditText)layout.findViewById(R.id.pm_send_recipient);
@@ -83,7 +84,8 @@ public class PMSendActivity extends BaseActivity {
 		final String initialSubject;
 		final String initialText;
 
-		if(savedInstanceState != null && savedInstanceState.containsKey(SAVED_STATE_TEXT)) {
+		if(savedInstanceState != null
+				&& savedInstanceState.containsKey(SAVED_STATE_TEXT)) {
 			initialRecipient = savedInstanceState.getString(SAVED_STATE_RECIPIENT);
 			initialSubject = savedInstanceState.getString(SAVED_STATE_SUBJECT);
 			initialText = savedInstanceState.getString(SAVED_STATE_TEXT);
@@ -119,10 +121,11 @@ public class PMSendActivity extends BaseActivity {
 			textEdit.setText(initialText);
 		}
 
-		final ArrayList<RedditAccount> accounts = RedditAccountManager.getInstance(this).getAccounts();
+		final ArrayList<RedditAccount> accounts = RedditAccountManager.getInstance(this)
+				.getAccounts();
 		final ArrayList<String> usernames = new ArrayList<>();
 
-		for(RedditAccount account : accounts) {
+		for(final RedditAccount account : accounts) {
 			if(!account.isAnonymous()) {
 				usernames.add(account.username);
 			}
@@ -133,7 +136,10 @@ public class PMSendActivity extends BaseActivity {
 			finish();
 		}
 
-		usernameSpinner.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, usernames));
+		usernameSpinner.setAdapter(new ArrayAdapter<>(
+				this,
+				android.R.layout.simple_list_item_1,
+				usernames));
 
 		final ScrollView sv = new ScrollView(this);
 		sv.addView(layout);
@@ -141,7 +147,7 @@ public class PMSendActivity extends BaseActivity {
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
+	protected void onSaveInstanceState(final Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putString(SAVED_STATE_RECIPIENT, recipientEdit.getText().toString());
 		outState.putString(SAVED_STATE_SUBJECT, subjectEdit.getText().toString());
@@ -149,7 +155,7 @@ public class PMSendActivity extends BaseActivity {
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onCreateOptionsMenu(final Menu menu) {
 
 		final MenuItem send = menu.add(R.string.comment_reply_send);
 		send.setIcon(R.drawable.ic_action_send_dark);
@@ -161,7 +167,7 @@ public class PMSendActivity extends BaseActivity {
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		if(item.getTitle().equals(getString(R.string.comment_reply_send))) {
 
@@ -173,17 +179,26 @@ public class PMSendActivity extends BaseActivity {
 			progressDialog.setCanceledOnTouchOutside(false);
 
 			progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+				@Override
 				public void onCancel(final DialogInterface dialogInterface) {
-					General.quickToast(PMSendActivity.this, getString(R.string.comment_reply_oncancel));
+					General.quickToast(
+							PMSendActivity.this,
+							getString(R.string.comment_reply_oncancel));
 					General.safeDismissDialog(progressDialog);
 				}
 			});
 
 			progressDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-				public boolean onKey(final DialogInterface dialogInterface, final int keyCode, final KeyEvent keyEvent) {
+				@Override
+				public boolean onKey(
+						final DialogInterface dialogInterface,
+						final int keyCode,
+						final KeyEvent keyEvent) {
 
 					if(keyCode == KeyEvent.KEYCODE_BACK) {
-						General.quickToast(PMSendActivity.this, getString(R.string.comment_reply_oncancel));
+						General.quickToast(
+								PMSendActivity.this,
+								getString(R.string.comment_reply_oncancel));
 						General.safeDismissDialog(progressDialog);
 					}
 
@@ -191,7 +206,8 @@ public class PMSendActivity extends BaseActivity {
 				}
 			});
 
-			final APIResponseHandler.ActionResponseHandler handler = new APIResponseHandler.ActionResponseHandler(this) {
+			final APIResponseHandler.ActionResponseHandler handler
+					= new APIResponseHandler.ActionResponseHandler(this) {
 				@Override
 				protected void onSuccess(@Nullable final String redirectUrl) {
 					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
@@ -206,21 +222,32 @@ public class PMSendActivity extends BaseActivity {
 							lastRecipient = null;
 							lastSubject = null;
 
-							General.quickToast(PMSendActivity.this, getString(R.string.pm_send_done));
+							General.quickToast(
+									PMSendActivity.this,
+									getString(R.string.pm_send_done));
 							finish();
 						}
 					});
 				}
 
 				@Override
-				protected void onCallbackException(Throwable t) {
+				protected void onCallbackException(final Throwable t) {
 					BugReportActivity.handleGlobalError(PMSendActivity.this, t);
 				}
 
 				@Override
-				protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+				protected void onFailure(
+						@CacheRequest.RequestFailureType final int type,
+						final Throwable t,
+						final Integer status,
+						final String readableMessage) {
 
-					final RRError error = General.getGeneralErrorForFailure(context, type, t, status, null);
+					final RRError error = General.getGeneralErrorForFailure(
+							context,
+							type,
+							t,
+							status,
+							null);
 
 					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
@@ -234,7 +261,9 @@ public class PMSendActivity extends BaseActivity {
 				@Override
 				protected void onFailure(final APIFailureType type) {
 
-					final RRError error = General.getGeneralErrorForFailure(context, type);
+					final RRError error = General.getGeneralErrorForFailure(
+							context,
+							type);
 
 					AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
 						@Override
@@ -248,11 +277,14 @@ public class PMSendActivity extends BaseActivity {
 
 			final CacheManager cm = CacheManager.getInstance(this);
 
-			final ArrayList<RedditAccount> accounts = RedditAccountManager.getInstance(this).getAccounts();
+			final ArrayList<RedditAccount> accounts = RedditAccountManager.getInstance(
+					this).getAccounts();
 			RedditAccount selectedAccount = null;
 
-			for(RedditAccount account : accounts) {
-				if(!account.isAnonymous() && account.username.equalsIgnoreCase((String)usernameSpinner.getSelectedItem())) {
+			for(final RedditAccount account : accounts) {
+				if(!account.isAnonymous()
+						&& account.username.equalsIgnoreCase(
+						(String)usernameSpinner.getSelectedItem())) {
 					selectedAccount = account;
 					break;
 				}
@@ -274,7 +306,8 @@ public class PMSendActivity extends BaseActivity {
 			progressDialog.show();
 
 		} else if(item.getTitle().equals(getString(R.string.comment_reply_preview))) {
-			MarkdownPreviewDialog.newInstance(textEdit.getText().toString()).show(getSupportFragmentManager(), "MarkdownPreviewDialog");
+			MarkdownPreviewDialog.newInstance(textEdit.getText().toString())
+					.show(getSupportFragmentManager(), "MarkdownPreviewDialog");
 		}
 
 		return true;
@@ -293,6 +326,8 @@ public class PMSendActivity extends BaseActivity {
 
 	@Override
 	public void onBackPressed() {
-		if(General.onBackPressed()) super.onBackPressed();
+		if(General.onBackPressed()) {
+			super.onBackPressed();
+		}
 	}
 }

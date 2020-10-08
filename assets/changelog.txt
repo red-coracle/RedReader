@@ -1,3 +1,24 @@
+94/1.14
+Allows saving images to custom location (only on Android 5.0+)
+Uses newer image sharing APIs to avoid permissions issues
+Fixed crash when opening video controls
+Fixed ANR caused by legacy GIF decoding
+Fixed crash when swiping to a deleted image in an album
+Translation updates (thanks to Allan Nordhøy, Bopol, Dan McElroy, Emerson Castaneda, Eric, Fırat Altay, Matthias Paulmier, xGigaa, and zmni)
+
+93/1.13
+Ability to customise action bar buttons (thanks to Cameron Merkel)
+Preferences to hide comments button, and add post context menu item to view comments (thanks to Cameron Merkel)
+Ability to zoom videos to fit the screen (thanks to Cameron Merkel)
+Logins now use external browser by default on old devices
+Restored old behaviour when selecting text in properties dialog
+Fixed redirect loop when visiting deleted Reddit galleries
+Added ability to send reports from the error details dialog
+Improved responsiveness of video seek bar (thanks to Cameron Merkel)
+Enable swipe-to-refresh in the main menu (thanks to Cameron Merkel)
+Add default sort preference for multireddits and user posts/comments (thanks to Cameron Merkel)
+Translation updates (thanks to Allan Nordhøy, Bopol, Emerson Castaneda, Eric, Fırat Altay, Gerry, JoC, Matthias Paulmier, Meiru, Verdulo, zeritti, and zmni)
+
 92/1.12
 Reddit image gallery support
 Internal image viewer now supports Giphy

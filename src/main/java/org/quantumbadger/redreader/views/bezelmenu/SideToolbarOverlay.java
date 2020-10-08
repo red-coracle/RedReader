@@ -32,23 +32,26 @@ public class SideToolbarOverlay extends FrameLayout {
 		LEFT, RIGHT
 	}
 
-	public SideToolbarOverlay(Context context) {
+	public SideToolbarOverlay(final Context context) {
 		super(context);
 	}
 
-	public void setContents(View contents) {
+	public void setContents(final View contents) {
 		this.contents = contents;
 		if(shownPosition != null) {
 			show(shownPosition);
 		}
 	}
 
-	public void show(SideToolbarPosition pos) {
+	public void show(final SideToolbarPosition pos) {
 
 		removeAllViews();
 		addView(contents);
 
-		((LayoutParams)contents.getLayoutParams()).gravity = (pos == SideToolbarPosition.LEFT ? Gravity.LEFT : Gravity.RIGHT);
+		((LayoutParams)contents.getLayoutParams()).gravity = (pos
+				== SideToolbarPosition.LEFT
+				? Gravity.LEFT
+				: Gravity.RIGHT);
 		contents.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
 		contents.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
 
@@ -60,6 +63,7 @@ public class SideToolbarOverlay extends FrameLayout {
 		removeAllViews();
 	}
 
+	@Override
 	public boolean isShown() {
 		return shownPosition != null;
 	}

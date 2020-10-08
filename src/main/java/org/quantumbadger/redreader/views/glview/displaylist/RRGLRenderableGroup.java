@@ -25,13 +25,17 @@ public class RRGLRenderableGroup extends RRGLRenderable {
 
 	private final ArrayList<RRGLRenderable> mChildren = new ArrayList<>(16);
 
-	public final void add(RRGLRenderable child) {
+	public final void add(final RRGLRenderable child) {
 		mChildren.add(child);
-		if(isAdded()) child.onAdded();
+		if(isAdded()) {
+			child.onAdded();
+		}
 	}
 
-	public final void remove(RRGLRenderable child) {
-		if(isAdded()) child.onRemoved();
+	public final void remove(final RRGLRenderable child) {
+		if(isAdded()) {
+			child.onRemoved();
+		}
 		mChildren.remove(child);
 	}
 
@@ -39,7 +43,7 @@ public class RRGLRenderableGroup extends RRGLRenderable {
 	public void onAdded() {
 
 		if(!isAdded()) {
-			for(RRGLRenderable entity : mChildren) {
+			for(final RRGLRenderable entity : mChildren) {
 				entity.onAdded();
 			}
 		}
@@ -50,7 +54,7 @@ public class RRGLRenderableGroup extends RRGLRenderable {
 	@Override
 	protected void renderInternal(final RRGLMatrixStack matrixStack, final long time) {
 		for(int i = 0; i < mChildren.size(); i++) {
-			RRGLRenderable entity = mChildren.get(i);
+			final RRGLRenderable entity = mChildren.get(i);
 			entity.startRender(matrixStack, time);
 		}
 	}
@@ -61,23 +65,27 @@ public class RRGLRenderableGroup extends RRGLRenderable {
 		super.onRemoved();
 
 		if(!isAdded()) {
-			for(RRGLRenderable entity : mChildren) entity.onRemoved();
+			for(final RRGLRenderable entity : mChildren) {
+				entity.onRemoved();
+			}
 		}
 	}
 
 	@Override
 	public boolean isAnimating() {
 		for(int i = 0; i < mChildren.size(); i++) {
-			RRGLRenderable entity = mChildren.get(i);
-			if(entity.isAnimating()) return true;
+			final RRGLRenderable entity = mChildren.get(i);
+			if(entity.isAnimating()) {
+				return true;
+			}
 		}
 		return false;
 	}
 
 	@Override
-	public void setOverallAlpha(float alpha) {
+	public void setOverallAlpha(final float alpha) {
 		for(int i = 0; i < mChildren.size(); i++) {
-			RRGLRenderable entity = mChildren.get(i);
+			final RRGLRenderable entity = mChildren.get(i);
 			entity.setOverallAlpha(alpha);
 		}
 	}

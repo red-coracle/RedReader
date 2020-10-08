@@ -17,6 +17,7 @@
 
 package org.quantumbadger.redreader.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.webkit.CookieManager;
@@ -117,6 +118,8 @@ public class OAuthLoginActivity extends BaseActivity {
 		cookieManager.removeAllCookie();
 	}
 
+	@SuppressLint("SetJavaScriptEnabled")
+	@Override
 	public void onCreate(final Bundle savedInstanceState) {
 
 		PrefsUtility.applyTheme(this);
@@ -127,11 +130,18 @@ public class OAuthLoginActivity extends BaseActivity {
 
 		if(TorCommon.isTorEnabled()) {
 			try {
-				boolean result = WebkitProxy.setProxy(RedReader.class.getCanonicalName(), getApplicationContext(), mWebView, "127.0.0.1", 8118);
+				final boolean result = WebkitProxy.setProxy(
+						RedReader.class.getCanonicalName(),
+						getApplicationContext(),
+						mWebView,
+						"127.0.0.1",
+						8118);
 				if(!result) {
-					BugReportActivity.handleGlobalError(this, getResources().getString(R.string.error_tor_setting_failed));
+					BugReportActivity.handleGlobalError(
+							this,
+							getResources().getString(R.string.error_tor_setting_failed));
 				}
-			} catch (Exception e) {
+			} catch(final Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -155,9 +165,12 @@ public class OAuthLoginActivity extends BaseActivity {
 
 		mWebView.setWebViewClient(new WebViewClient() {
 			@Override
-			public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
+			public boolean shouldOverrideUrlLoading(
+					final WebView view,
+					final String url) {
 
-				if(url.startsWith("http://rr_oauth_redir")) { // TODO constant
+				if(url.startsWith("http://rr_oauth_redir")
+						|| url.startsWith("redreader://rr_oauth_redir")) { // TODO constant
 
 					final Intent intent = new Intent();
 					intent.putExtra("url", url);
@@ -173,10 +186,15 @@ public class OAuthLoginActivity extends BaseActivity {
 			}
 
 			@Override
-			public WebResourceResponse shouldInterceptRequest(final WebView view, final String url) {
+			public WebResourceResponse shouldInterceptRequest(
+					final WebView view,
+					final String url) {
 
 				if(url.matches(".*compact.*\\.css")) {
-					return new WebResourceResponse("text/css", "UTF-8", new ByteArrayInputStream(CSS_FIXES.getBytes()));
+					return new WebResourceResponse(
+							"text/css",
+							"UTF-8",
+							new ByteArrayInputStream(CSS_FIXES.getBytes()));
 				}
 
 				return null;

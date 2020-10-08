@@ -19,12 +19,12 @@ package org.quantumbadger.redreader.views;
 
 import android.graphics.Color;
 import android.preference.PreferenceManager;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.PrefsUtility;
 import org.quantumbadger.redreader.common.RRThemeAttributes;
@@ -43,10 +43,10 @@ public class RedditInboxItemView extends LinearLayout {
 
 	private RedditRenderableInboxItem currentItem = null;
 
-	private final AppCompatActivity mActivity;
+	private final BaseActivity mActivity;
 
 	public RedditInboxItemView(
-			final AppCompatActivity activity,
+			final BaseActivity activity,
 			final RRThemeAttributes theme) {
 
 		super(activity);
@@ -78,33 +78,31 @@ public class RedditInboxItemView extends LinearLayout {
 		mBodyHolder.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
 
 		final int paddingPixels = General.dpToPixels(activity, 8.0f);
-		inner.setPadding(paddingPixels + paddingPixels, paddingPixels, paddingPixels, paddingPixels);
+		inner.setPadding(
+				paddingPixels + paddingPixels,
+				paddingPixels,
+				paddingPixels,
+				paddingPixels);
 
 		addView(inner);
 		inner.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
 
 		setDescendantFocusability(FOCUS_BLOCK_DESCENDANTS);
 
-		showLinkButtons = PrefsUtility.pref_appearance_linkbuttons(activity, PreferenceManager.getDefaultSharedPreferences(activity));
+		showLinkButtons = PrefsUtility.pref_appearance_linkbuttons(
+				activity,
+				PreferenceManager.getDefaultSharedPreferences(activity));
 
-		setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				handleInboxClick(mActivity);
-			}
-		});
+		setOnClickListener(v -> handleInboxClick(mActivity));
 
-		setOnLongClickListener(new OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View v) {
-				handleInboxLongClick(mActivity);
-				return true;
-			}
+		setOnLongClickListener(v -> {
+			handleInboxLongClick(mActivity);
+			return true;
 		});
 	}
 
 	public void reset(
-			final AppCompatActivity context,
+			final BaseActivity context,
 			final RedditChangeDataManager changeDataManager,
 			final RRThemeAttributes theme,
 			final RedditRenderableInboxItem item,
@@ -116,21 +114,25 @@ public class RedditInboxItemView extends LinearLayout {
 		mHeader.setText(item.getHeader(theme, changeDataManager, context));
 
 		final View body = item.getBody(
-			context,
-			mTheme.rrCommentBodyCol,
-			13.0f * mTheme.rrCommentFontScale,
-			showLinkButtons);
+				context,
+				mTheme.rrCommentBodyCol,
+				13.0f * mTheme.rrCommentFontScale,
+				showLinkButtons);
 
 		mBodyHolder.removeAllViews();
 		mBodyHolder.addView(body);
 		body.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
 	}
 
-	public void handleInboxClick(AppCompatActivity activity) {
-		if(currentItem != null) currentItem.handleInboxClick(activity);
+	public void handleInboxClick(final BaseActivity activity) {
+		if(currentItem != null) {
+			currentItem.handleInboxClick(activity);
+		}
 	}
 
-	public void handleInboxLongClick(AppCompatActivity activity) {
-		if(currentItem != null) currentItem.handleInboxLongClick(activity);
+	public void handleInboxLongClick(final BaseActivity activity) {
+		if(currentItem != null) {
+			currentItem.handleInboxLongClick(activity);
+		}
 	}
 }

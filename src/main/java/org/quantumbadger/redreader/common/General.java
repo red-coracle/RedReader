@@ -20,7 +20,6 @@ package org.quantumbadger.redreader.common;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -29,20 +28,17 @@ import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Looper;
 import android.os.Message;
-import android.os.StatFs;
 import android.os.SystemClock;
-import android.preference.PreferenceManager;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.BugReportActivity;
 import org.quantumbadger.redreader.cache.CacheRequest;
@@ -53,8 +49,6 @@ import org.quantumbadger.redreader.reddit.APIResponseHandler;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,7 +56,6 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -72,6 +65,7 @@ import java.util.regex.Pattern;
 
 public final class General {
 
+	@SuppressWarnings("CharsetObjectCanBeUsed")
 	public static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 
 	public static final String LTR_OVERRIDE_MARK = "\u202D";
@@ -92,98 +86,43 @@ public final class General {
 
 	private static Typeface monoTypeface;
 
-	public static Typeface getMonoTypeface(Context context) {
+	public static Typeface getMonoTypeface(final Context context) {
 
 		if(monoTypeface == null) {
-			monoTypeface = Typeface.createFromAsset(context.getAssets(), "fonts/VeraMono.ttf");
+			monoTypeface = Typeface.createFromAsset(
+					context.getAssets(),
+					"fonts/VeraMono.ttf");
 		}
 
 		return monoTypeface;
 	}
 
-	public static Message handlerMessage(int what, Object obj) {
+	public static Message handlerMessage(final int what, final Object obj) {
 		final Message msg = Message.obtain();
 		msg.what = what;
 		msg.obj = obj;
 		return msg;
 	}
 
-	public static void moveFile(final File src, final File dst) throws IOException {
-
-		if(!src.renameTo(dst)) {
-
-			copyFile(src, dst);
-
-			if(!src.delete()) {
-				src.deleteOnExit();
-			}
-		}
-	}
-
-	public static void copyFile(final File src, final File dst) throws IOException {
-
-		try(FileInputStream fis = new FileInputStream(src)) {
-			try(FileOutputStream fos = new FileOutputStream(dst)) {
-				copyFile(fis, fos);
-			}
-		}
-	}
-
-	public static void copyFile(final InputStream fis, final File dst) throws IOException {
-		try(FileOutputStream fos = new FileOutputStream(dst)) {
-			copyFile(fis, fos);
-		}
-	}
-
-	public static void copyFile(final InputStream fis, final OutputStream fos) throws IOException {
-
-		final byte[] buf = new byte[32 * 1024];
-
-		int bytesRead;
-		while((bytesRead = fis.read(buf)) > 0) {
-			fos.write(buf, 0, bytesRead);
-		}
-
-		fis.close();
-		fos.close();
-	}
-
-	public static boolean isCacheDiskFull(final Context context) {
-		final long space = getFreeSpaceAvailable(PrefsUtility.pref_cache_location(context,
-				PreferenceManager.getDefaultSharedPreferences(context)));
-		return space < 128 * 1024 * 1024;
-	}
-
-	/// Get the number of free bytes that are available on the external storage.
-	@SuppressWarnings("deprecation")
-	public static long getFreeSpaceAvailable(String path) {
-		StatFs stat = new StatFs(path);
-		long availableBlocks;
-		long blockSize;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-			availableBlocks = stat.getAvailableBlocksLong();
-			blockSize = stat.getBlockSizeLong();
-		} else {
-			availableBlocks = stat.getAvailableBlocks();
-			blockSize = stat.getBlockSize();
-		}
-		return availableBlocks * blockSize;
-	}
-
-	/** Takes a size in bytes and converts it into a human-readable
-	 * String with units.
+	/**
+	 * Takes a size in bytes and converts it into a human-readable String with units.
 	 */
 	public static String addUnits(final long input) {
 		int i = 0;
 		long result = input;
-		while (i <= 3 && result >= 1024)
-			result = input / (long) Math.pow(1024, ++i);
+		while(i <= 3 && result >= 1024) {
+			result = input / (long)Math.pow(1024, ++i);
+		}
 
-		switch (i) {
-		case 1: return result + " KiB";
-		case 2: return result + " MiB";
-		case 3: return result + " GiB";
-		default: return result + " B";
+		switch(i) {
+			case 1:
+				return result + " KiB";
+			case 2:
+				return result + " MiB";
+			case 3:
+				return result + " GiB";
+			default:
+				return result + " B";
 		}
 	}
 
@@ -195,11 +134,17 @@ public final class General {
 	}
 
 	public static int dpToPixels(final Context context, final float dp) {
-		return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics()));
+		return Math.round(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP,
+				dp,
+				context.getResources().getDisplayMetrics()));
 	}
 
 	public static int spToPixels(final Context context, final float sp) {
-		return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics()));
+		return Math.round(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_SP,
+				sp,
+				context.getResources().getDisplayMetrics()));
 	}
 
 	public static void quickToast(final Context context, final int textRes) {
@@ -207,26 +152,25 @@ public final class General {
 	}
 
 	public static void quickToast(final Context context, final String text) {
-		AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
-			@Override
-			public void run() {
-				Toast.makeText(context, text, Toast.LENGTH_LONG).show();
-			}
-		});
+		AndroidCommon.UI_THREAD_HANDLER.post(
+				() -> Toast.makeText(context, text, Toast.LENGTH_LONG).show());
 	}
 
-	public static void quickToast(final Context context, final String text, final int duration) {
-		AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
-			@Override
-			public void run() {
-				Toast.makeText(context, text, duration).show();
-			}
-		});
+	public static void quickToast(
+			final Context context,
+			final String text,
+			final int duration) {
+		AndroidCommon.UI_THREAD_HANDLER.post(
+				() -> Toast.makeText(context, text, duration).show());
 	}
 
-	public static boolean isTablet(final Context context, final SharedPreferences sharedPreferences) {
+	public static boolean isTablet(
+			final Context context,
+			final SharedPreferences sharedPreferences) {
 
-		final PrefsUtility.AppearanceTwopane pref = PrefsUtility.appearance_twopane(context, sharedPreferences);
+		final PrefsUtility.AppearanceTwopane pref = PrefsUtility.appearance_twopane(
+				context,
+				sharedPreferences);
 
 		switch(pref) {
 			case AUTO:
@@ -238,28 +182,38 @@ public final class General {
 			case FORCE:
 				return true;
 			default:
-				BugReportActivity.handleGlobalError(context, "Unknown AppearanceTwopane value " + pref.name());
+				BugReportActivity.handleGlobalError(
+						context,
+						"Unknown AppearanceTwopane value " + pref.name());
 				return false;
 		}
 	}
 
-	public static boolean isConnectionWifi(final Context context){
-		final ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+	public static boolean isConnectionWifi(final Context context) {
+		final ConnectivityManager cm = (ConnectivityManager)context.getSystemService(
+				Context.CONNECTIVITY_SERVICE);
 		final NetworkInfo info = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-		return info != null && info.getDetailedState() == NetworkInfo.DetailedState.CONNECTED;
+		return info != null
+				&& info.getDetailedState() == NetworkInfo.DetailedState.CONNECTED;
 	}
 
 	public static boolean isNetworkConnected(final Context context) {
-		final ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		final ConnectivityManager cm = (ConnectivityManager)context.getSystemService(
+				Context.CONNECTIVITY_SERVICE);
 		final NetworkInfo activeNetworkInfo = cm.getActiveNetworkInfo();
 		return activeNetworkInfo != null && activeNetworkInfo.isConnected();
 	}
 
-	public static RRError getGeneralErrorForFailure(Context context, @CacheRequest.RequestFailureType int type, Throwable t, Integer status, String url) {
+	public static RRError getGeneralErrorForFailure(
+			final Context context,
+			@CacheRequest.RequestFailureType final int type,
+			final Throwable t,
+			final Integer status,
+			final String url) {
 
 		final int title, message;
 
-		switch (type) {
+		switch(type) {
 			case CacheRequest.REQUEST_FAILURE_CANCELLED:
 				title = R.string.error_cancelled_title;
 				message = R.string.error_cancelled_message;
@@ -296,16 +250,16 @@ public final class General {
 			case CacheRequest.REQUEST_FAILURE_REQUEST:
 
 				if(status != null) {
-					switch (status) {
+					switch(status) {
 						case 400:
 						case 401:
 						case 403: {
 							final URI uri = General.uriFromString(url);
 							final boolean isRedditRequest
 									= uri != null
-											&& uri.getHost() != null
-											&& ("reddit.com".equalsIgnoreCase(uri.getHost())
-													|| uri.getHost().endsWith(".reddit.com"));
+									&& uri.getHost() != null
+									&& ("reddit.com".equalsIgnoreCase(uri.getHost())
+									|| uri.getHost().endsWith(".reddit.com"));
 
 							if(isRedditRequest) {
 								title = R.string.error_403_title;
@@ -359,16 +313,24 @@ public final class General {
 				break;
 		}
 
-		return new RRError(context.getString(title), context.getString(message), t, status, url);
+		return new RRError(
+				context.getString(title),
+				context.getString(message),
+				t,
+				status,
+				url);
 	}
 
-	public static RRError getGeneralErrorForFailure(Context context, final APIResponseHandler.APIFailureType type) {
+	public static RRError getGeneralErrorForFailure(
+			final Context context,
+			final APIResponseHandler.APIFailureType type) {
 
 		final int title, message;
 
 		switch(type) {
 
 			case INVALID_USER:
+			case NOTALLOWED:
 				title = R.string.error_403_title;
 				message = R.string.error_403_message;
 				break;
@@ -376,11 +338,6 @@ public final class General {
 			case BAD_CAPTCHA:
 				title = R.string.error_bad_captcha_title;
 				message = R.string.error_bad_captcha_message;
-				break;
-
-			case NOTALLOWED:
-				title = R.string.error_403_title;
-				message = R.string.error_403_message;
 				break;
 
 			case SUBREDDIT_REQUIRED:
@@ -417,36 +374,39 @@ public final class General {
 		return new RRError(context.getString(title), context.getString(message));
 	}
 
-	// TODO add button to show more detail
-	public static void showResultDialog(final AppCompatActivity context, final RRError error) {
-		AndroidCommon.UI_THREAD_HANDLER.post(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(context);
-					alertBuilder.setNeutralButton(R.string.dialog_close, null);
-					alertBuilder.setNegativeButton(R.string.button_moredetail, new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							ErrorPropertiesDialog.newInstance(error).show(context.getSupportFragmentManager(), "ErrorPropertiesDialog");
-						}
-					});
-					alertBuilder.setTitle(error.title);
-					alertBuilder.setMessage(error.message);
-					alertBuilder.create().show();
-				} catch(final WindowManager.BadTokenException e) {
-					Log.e("General", "Tried to show result dialog after activity closed", e);
-				}
+	public static void showResultDialog(
+			final AppCompatActivity context,
+			final RRError error) {
+		AndroidCommon.UI_THREAD_HANDLER.post(() -> {
+			try {
+				final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(
+						context);
+				alertBuilder.setNeutralButton(R.string.dialog_close, null);
+				alertBuilder.setNegativeButton(
+						R.string.button_moredetail,
+						(dialog, which) -> ErrorPropertiesDialog.newInstance(error).show(
+								context.getSupportFragmentManager(),
+								"ErrorPropertiesDialog"));
+				alertBuilder.setTitle(error.title);
+				alertBuilder.setMessage(error.message);
+				alertBuilder.create().show();
+
+			} catch(final WindowManager.BadTokenException e) {
+				Log.e(
+						"General",
+						"Tried to show result dialog after activity closed",
+						e);
 			}
 		});
 	}
 
-	private static final Pattern urlPattern = Pattern.compile("^(https?)://([^/]+)/+([^\\?#]+)((?:\\?[^#]+)?)((?:#.+)?)$");
+	private static final Pattern urlPattern = Pattern.compile(
+			"^(https?)://([^/]+)/+([^\\?#]+)((?:\\?[^#]+)?)((?:#.+)?)$");
 
-	public static String filenameFromString(String url) {
+	public static String filenameFromString(final String url) {
 		final URI uri = uriFromString(url);
 		String filename = uri.getPath().replace(File.separator, "");
-		String[] parts = filename.substring(1).split("\\.", 2);
+		final String[] parts = filename.substring(1).split("\\.", 2);
 		if(parts.length < 2) {
 			if("v.redd.it".equals(uri.getHost())) {
 				filename += ".mp4";
@@ -457,15 +417,14 @@ public final class General {
 		return filename;
 	}
 
-	public static URI uriFromString(String url) {
+	@Nullable
+	public static URI uriFromString(final String url) {
 
 		try {
 			return new URI(url);
 
-		} catch(Throwable t1) {
+		} catch(final Throwable t1) {
 			try {
-
-				Log.i("RR DEBUG uri", "Beginning aggressive parse of '" + url + "'");
 
 				final Matcher urlMatcher = urlPattern.matcher(url);
 
@@ -473,16 +432,27 @@ public final class General {
 
 					final String scheme = urlMatcher.group(1);
 					final String authority = urlMatcher.group(2);
-					final String path = urlMatcher.group(3).length() == 0 ? null : "/" + urlMatcher.group(3);
-					final String query = urlMatcher.group(4).length() == 0 ? null : urlMatcher.group(4);
-					final String fragment = urlMatcher.group(5).length() == 0 ? null : urlMatcher.group(5);
+					final String path = urlMatcher.group(3).length() == 0
+							? null
+							: "/" + urlMatcher.group(3);
+					final String query = urlMatcher.group(4).length() == 0
+							? null
+							: urlMatcher.group(4);
+					final String fragment = urlMatcher.group(5).length() == 0
+							? null
+							: urlMatcher.group(5);
 
 					try {
 						return new URI(scheme, authority, path, query, fragment);
-					} catch(Throwable t3) {
+					} catch(final Throwable t3) {
 
 						if(path != null && path.contains(" ")) {
-							return new URI(scheme, authority, path.replace(" ", "%20"), query, fragment);
+							return new URI(
+									scheme,
+									authority,
+									path.replace(" ", "%20"),
+									query,
+									fragment);
 						} else {
 							return null;
 						}
@@ -492,7 +462,7 @@ public final class General {
 					return null;
 				}
 
-			} catch(Throwable t2) {
+			} catch(final Throwable t2) {
 				return null;
 			}
 		}
@@ -503,14 +473,16 @@ public final class General {
 		final MessageDigest digest;
 		try {
 			digest = MessageDigest.getInstance("SHA-1");
-		} catch(Exception e) {
+		} catch(final Exception e) {
 			throw new RuntimeException(e);
 		}
 
 		digest.update(plaintext, 0, plaintext.length);
 		final byte[] hash = digest.digest();
 		final StringBuilder result = new StringBuilder(hash.length * 2);
-		for(byte b : hash) result.append(String.format(Locale.US, "%02X", b));
+		for(final byte b : hash) {
+			result.append(String.format(Locale.US, "%02X", b));
+		}
 		return result.toString();
 	}
 
@@ -530,15 +502,15 @@ public final class General {
 		final Set<String> names = new LinkedHashSet<>();
 		int pos = 0;
 		while(pos < query.length()) {
-			int next = query.indexOf('&', pos);
-			int end = (next == -1) ? query.length() : next;
+			final int next = query.indexOf('&', pos);
+			final int end = (next == -1) ? query.length() : next;
 
 			int separator = query.indexOf('=', pos);
-			if (separator > end || separator == -1) {
+			if(separator > end || separator == -1) {
 				separator = end;
 			}
 
-			String name = query.substring(pos, separator);
+			final String name = query.substring(pos, separator);
 			names.add(Uri.decode(name));
 
 			// Move start to end of name.
@@ -548,7 +520,7 @@ public final class General {
 		return Collections.unmodifiableSet(names);
 	}
 
-	public static int divideCeil(int num, int divisor) {
+	public static int divideCeil(final int num, final int divisor) {
 		return (num + divisor - 1) / divisor;
 	}
 
@@ -562,42 +534,14 @@ public final class General {
 		return Looper.getMainLooper().getThread() == Thread.currentThread();
 	}
 
-	public static <E> ArrayList<E> listOfOne(E obj) {
+	public static <E> ArrayList<E> listOfOne(final E obj) {
 		final ArrayList<E> result = new ArrayList<>(1);
 		result.add(obj);
 		return result;
 	}
 
-	public static String asciiUppercase(final String input) {
-
-		final char[] chars = input.toCharArray();
-
-		for(int i = 0; i < chars.length; i++) {
-			if(chars[i] >= 'a' && chars[i] <= 'z') {
-				chars[i] -= 'a';
-				chars[i] += 'A';
-			}
-		}
-
-		return new String(chars);
-	}
-
-	@NonNull
-	public static String asciiLowercase(@NonNull final String input) {
-
-		final char[] chars = input.toCharArray();
-
-		for(int i = 0; i < chars.length; i++) {
-			if(chars[i] >= 'A' && chars[i] <= 'Z') {
-				chars[i] -= 'A';
-				chars[i] += 'a';
-			}
-		}
-
-		return new String(chars);
-	}
-
-	public static void copyStream(final InputStream in, final OutputStream out) throws IOException {
+	public static void copyStream(final InputStream in, final OutputStream out) throws
+			IOException {
 
 		int bytesRead;
 		final byte[] buffer = new byte[64 * 1024];
@@ -618,9 +562,13 @@ public final class General {
 		return new String(readWholeStream(in), CHARSET_UTF8);
 	}
 
-	public static void setAllMarginsDp(final Context context, final View view, final int marginDp) {
+	public static void setAllMarginsDp(
+			final Context context,
+			final View view,
+			final int marginDp) {
 
-		final ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams)view.getLayoutParams();
+		final ViewGroup.MarginLayoutParams layoutParams
+				= (ViewGroup.MarginLayoutParams)view.getLayoutParams();
 
 		final int marginPx = dpToPixels(context, marginDp);
 
@@ -681,7 +629,9 @@ public final class General {
 
 	public static void safeDismissDialog(final Dialog dialog) {
 		try {
-			if(dialog.isShowing()) dialog.dismiss();
+			if(dialog.isShowing()) {
+				dialog.dismiss();
+			}
 		} catch(final Exception e) {
 			Log.e("safeDismissDialog", "Caught exception while dismissing dialog", e);
 		}
@@ -696,31 +646,13 @@ public final class General {
 		}
 	}
 
-	public static String join(final Collection<?> elements, final String separator) {
-
-		final StringBuilder result = new StringBuilder();
-
-		boolean first = true;
-
-		for(final Object element : elements) {
-
-			if(!first) {
-				result.append(separator);
-			}
-
-			result.append(element.toString());
-			first = false;
-		}
-
-		return result.toString();
-	}
-
 	public static void showMustBeLoggedInDialog(final AppCompatActivity activity) {
 
 		new AlertDialog.Builder(activity)
 				.setTitle(R.string.firstrun_login_title)
 				.setMessage(R.string.must_login_message)
-				.setPositiveButton(R.string.firstrun_login_button_now,
+				.setPositiveButton(
+						R.string.firstrun_login_button_now,
 						(dialog, which) -> new AccountListDialog().show(
 								activity.getSupportFragmentManager(),
 								null))

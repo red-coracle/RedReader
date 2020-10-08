@@ -20,7 +20,6 @@ package org.quantumbadger.redreader.views;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -28,7 +27,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-
 import org.apache.commons.lang3.StringUtils;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.PostListingActivity;
@@ -42,50 +40,55 @@ public final class SearchListingHeader extends FrameLayout {
 	EditText mSubreddit;
 	Button mSearchButton;
 
-	public SearchListingHeader(final Activity parentActivity, final SearchPostListURL url) {
+	public SearchListingHeader(
+			final Activity parentActivity,
+			final SearchPostListURL url) {
 		super(parentActivity);
 		mUrl = url;
 
-		LayoutInflater layoutInflater = (LayoutInflater) parentActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		final LayoutInflater layoutInflater = (LayoutInflater)parentActivity.getSystemService(
+				Context.LAYOUT_INFLATER_SERVICE);
 		layoutInflater.inflate(R.layout.search_listing_header, this, true);
 
-		mQuery = (EditText) findViewById(R.id.search_listing_header_query_editText);
+		mQuery = (EditText)findViewById(R.id.search_listing_header_query_editText);
 		mQuery.setText(url.query);
 		mQuery.setImeOptions(EditorInfo.IME_ACTION_NEXT);
 
-		mSubreddit = (EditText) findViewById(R.id.search_listing_header_sub_editText);
+		mSubreddit = (EditText)findViewById(R.id.search_listing_header_sub_editText);
 		// null and "all" are isomorphic; but SearchPostListURL takes null
-        if (url.subreddit == null) {
+		if(url.subreddit == null) {
 			mSubreddit.setText("all");
 		} else {
 			mSubreddit.setText(url.subreddit);
 		}
 
-		TextView.OnEditorActionListener onEnter = new TextView.OnEditorActionListener() {
-			@Override
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				performSearch(parentActivity, mSubreddit, mQuery);
-				return true;
-			}
+		final TextView.OnEditorActionListener onEnter = (v, actionId, event) -> {
+			performSearch(parentActivity, mSubreddit, mQuery);
+			return true;
 		};
-        mSubreddit.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+		mSubreddit.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
 		mSubreddit.setOnEditorActionListener(onEnter);
 
-		mSearchButton = (Button) findViewById(R.id.search_listing_header_search);
+		mSearchButton = (Button)findViewById(R.id.search_listing_header_search);
 		mSearchButton.setOnClickListener(new View.OnClickListener() {
 			@Override
-			public void onClick(View v) {
+			public void onClick(final View v) {
 				performSearch(parentActivity, mSubreddit, mQuery);
 			}
 		});
 	}
 
-	private static void performSearch(final Activity parentActivity, final EditText mSubreddit, final EditText mQuery) {
+	private static void performSearch(
+			final Activity parentActivity,
+			final EditText mSubreddit,
+			final EditText mQuery) {
 		String subreddit = mSubreddit.getText().toString().trim();
-		if (StringUtils.isEmpty(subreddit)) {
+		if(StringUtils.isEmpty(subreddit)) {
 			subreddit = null;
 		}
-		SearchPostListURL url = SearchPostListURL.build(subreddit, mQuery.getText().toString().trim());
+		final SearchPostListURL url = SearchPostListURL.build(
+				subreddit,
+				mQuery.getText().toString().trim());
 
 		final Intent intent = new Intent(parentActivity, PostListingActivity.class);
 		intent.setData(url.generateJsonUri());

@@ -25,23 +25,31 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public final class WeakCache<K, V extends WritableObject<K>, F> implements CacheDataSource<K, V, F> {
+public final class WeakCache<K, V extends WritableObject<K>, F>
+		implements CacheDataSource<K, V, F> {
 
 	private final HashMap<K, CacheEntry> cached = new HashMap<>();
 	private final CacheDataSource<K, V, F> cacheDataSource;
 
-	private final UpdatedVersionListenerNotifier<K, V> updatedVersionListenerNotifier = new UpdatedVersionListenerNotifier<>();
+	private final UpdatedVersionListenerNotifier<K, V> updatedVersionListenerNotifier
+			= new UpdatedVersionListenerNotifier<>();
 
-	public WeakCache(CacheDataSource<K, V, F> cacheDataSource) {
+	public WeakCache(final CacheDataSource<K, V, F> cacheDataSource) {
 		this.cacheDataSource = cacheDataSource;
 	}
 
-	public void performRequest(K key, TimestampBound timestampBound, RequestResponseHandler<V, F> handler) {
+	@Override
+	public void performRequest(
+			final K key,
+			final TimestampBound timestampBound,
+			final RequestResponseHandler<V, F> handler) {
 		performRequest(key, timestampBound, handler, null);
 	}
 
-	public synchronized void performRequest(final Collection<K> keys, final TimestampBound timestampBound,
-											final RequestResponseHandler<HashMap<K, V>, F> handler) {
+	@Override
+	public synchronized void performRequest(
+			final Collection<K> keys, final TimestampBound timestampBound,
+			final RequestResponseHandler<HashMap<K, V>, F> handler) {
 
 		final HashSet<K> keysRemaining = new HashSet<>(keys);
 		final HashMap<K, V> cacheResult = new HashMap<>(keys.size());
@@ -53,7 +61,8 @@ public final class WeakCache<K, V extends WritableObject<K>, F> implements Cache
 			if(entry != null) {
 
 				final V value = entry.data.get();
-				if(value != null && timestampBound.verifyTimestamp(value.getTimestamp())) {
+				if(value != null
+						&& timestampBound.verifyTimestamp(value.getTimestamp())) {
 					keysRemaining.remove(key);
 					cacheResult.put(key, value);
 					oldestTimestamp = Math.min(oldestTimestamp, value.getTimestamp());
@@ -65,111 +74,143 @@ public final class WeakCache<K, V extends WritableObject<K>, F> implements Cache
 
 			final long outerOldestTimestamp = oldestTimestamp;
 
-			cacheDataSource.performRequest(keysRemaining, timestampBound, new RequestResponseHandler<HashMap<K, V>, F>() {
-				public void onRequestFailed(F failureReason) {
-					handler.onRequestFailed(failureReason);
-				}
+			cacheDataSource.performRequest(
+					keysRemaining,
+					timestampBound,
+					new RequestResponseHandler<HashMap<K, V>, F>() {
+						@Override
+						public void onRequestFailed(final F failureReason) {
+							handler.onRequestFailed(failureReason);
+						}
 
-				public void onRequestSuccess(HashMap<K, V> result, long timeCached) {
-					cacheResult.putAll(result);
-					handler.onRequestSuccess(cacheResult, Math.min(timeCached, outerOldestTimestamp));
-				}
-			});
+						@Override
+						public void onRequestSuccess(
+								final HashMap<K, V> result,
+								final long timeCached) {
+							cacheResult.putAll(result);
+							handler.onRequestSuccess(
+									cacheResult,
+									Math.min(timeCached, outerOldestTimestamp));
+						}
+					});
 
 		} else {
 			handler.onRequestSuccess(cacheResult, oldestTimestamp);
 		}
 	}
 
-	public synchronized void performWrite(V value) {
+	@Override
+	public synchronized void performWrite(final V value) {
 		put(value, true);
 	}
 
-	public void performWrite(Collection<V> values) {
+	@Override
+	public void performWrite(final Collection<V> values) {
 		put(values, true);
 	}
 
-	public synchronized void performRequest(final K key, final TimestampBound timestampBound,
-											final RequestResponseHandler<V, F> handler,
-											final UpdatedVersionListener<K, V> updatedVersionListener) {
+	public synchronized void performRequest(
+			final K key, final TimestampBound timestampBound,
+			final RequestResponseHandler<V, F> handler,
+			final UpdatedVersionListener<K, V> updatedVersionListener) {
 		if(timestampBound != null) {
 			final CacheEntry existingEntry = cached.get(key);
 			if(existingEntry != null) {
 				final V existing = existingEntry.data.get();
-				if(existing != null && timestampBound.verifyTimestamp(existing.getTimestamp())) {
+				if(existing != null
+						&& timestampBound.verifyTimestamp(existing.getTimestamp())) {
 					handler.onRequestSuccess(existing, existing.getTimestamp());
 					return;
 				}
 			}
 		}
 
-		cacheDataSource.performRequest(key, timestampBound, new RequestResponseHandler<V, F>() {
+		cacheDataSource.performRequest(
+				key,
+				timestampBound,
+				new RequestResponseHandler<V, F>() {
 
-			public void onRequestFailed(F failureReason) {
-				handler.onRequestFailed(failureReason);
-			}
+					@Override
+					public void onRequestFailed(final F failureReason) {
+						handler.onRequestFailed(failureReason);
+					}
 
-			public void onRequestSuccess(V result, long timeCached) {
-				synchronized(WeakCache.this) {
-					put(result, false);
-					if(updatedVersionListener != null) cached.get(key).listeners.add(updatedVersionListener);
-					handler.onRequestSuccess(result, timeCached);
-				}
-			}
-		});
+					@Override
+					public void onRequestSuccess(final V result, final long timeCached) {
+						synchronized(WeakCache.this) {
+							put(result, false);
+							if(updatedVersionListener != null) {
+								cached.get(key).listeners.add(updatedVersionListener);
+							}
+							handler.onRequestSuccess(result, timeCached);
+						}
+					}
+				});
 	}
 
 	public synchronized void forceUpdate(final K key) {
 		cacheDataSource.performRequest(key, null, new RequestResponseHandler<V, F>() {
 
-			public void onRequestFailed(F failureReason) {}
+			@Override
+			public void onRequestFailed(final F failureReason) {
+			}
 
-			public void onRequestSuccess(V result, long timeCached) {
+			@Override
+			public void onRequestSuccess(final V result, final long timeCached) {
 				put(result, false);
 			}
 		});
 	}
 
-	private synchronized void put(final V value, boolean writeDown) {
+	private synchronized void put(final V value, final boolean writeDown) {
 		final CacheEntry oldEntry = cached.get(value.getKey());
 
 		if(oldEntry != null) {
-			cached.put(value.getKey(), new CacheEntry(new WeakReference<>(value), oldEntry.listeners));
+			cached.put(
+					value.getKey(),
+					new CacheEntry(new WeakReference<>(value), oldEntry.listeners));
 			oldEntry.listeners.map(updatedVersionListenerNotifier, value);
 		} else {
 			cached.put(value.getKey(), new CacheEntry(new WeakReference<>(value)));
 		}
 
-		if(writeDown) cacheDataSource.performWrite(value);
+		if(writeDown) {
+			cacheDataSource.performWrite(value);
+		}
 	}
 
-	private synchronized void put(final Collection<V> values, boolean writeDown) {
+	private synchronized void put(final Collection<V> values, final boolean writeDown) {
 
 		for(final V value : values) {
 			final CacheEntry oldEntry = cached.get(value.getKey());
 
 			if(oldEntry != null) {
-				cached.put(value.getKey(), new CacheEntry(new WeakReference<>(value), oldEntry.listeners));
+				cached.put(
+						value.getKey(),
+						new CacheEntry(new WeakReference<>(value), oldEntry.listeners));
 				oldEntry.listeners.map(updatedVersionListenerNotifier, value);
 			} else {
 				cached.put(value.getKey(), new CacheEntry(new WeakReference<>(value)));
 			}
 		}
 
-		if(writeDown) cacheDataSource.performWrite(values);
+		if(writeDown) {
+			cacheDataSource.performWrite(values);
+		}
 	}
 
 	private final class CacheEntry {
 		public final WeakReference<V> data;
 		public final WeakReferenceListManager<UpdatedVersionListener<K, V>> listeners;
 
-		private CacheEntry(WeakReference<V> data,
-						   WeakReferenceListManager<UpdatedVersionListener<K, V>> listeners) {
+		private CacheEntry(
+				final WeakReference<V> data,
+				final WeakReferenceListManager<UpdatedVersionListener<K, V>> listeners) {
 			this.data = data;
 			this.listeners = listeners;
 		}
 
-		private CacheEntry(WeakReference<V> data) {
+		private CacheEntry(final WeakReference<V> data) {
 			this(data, new WeakReferenceListManager<UpdatedVersionListener<K, V>>());
 		}
 	}

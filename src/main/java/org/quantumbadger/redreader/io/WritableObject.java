@@ -28,17 +28,33 @@ public interface WritableObject<K> {
 		public final String key;
 		public final long timestamp;
 
-		public CreationData(String key, long timestamp) {
+		public CreationData(final String key, final long timestamp) {
 			this.key = key;
 			this.timestamp = timestamp;
 		}
 	}
 
 	K getKey();
+
 	long getTimestamp();
 
-	@Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD) @interface WritableObjectVersion {}
-	@Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD) @interface WritableObjectKey {}
-	@Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD) @interface WritableObjectTimestamp {}
-	@Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD) @interface WritableField {}
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	@interface WritableObjectVersion {
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	@interface WritableObjectKey {
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	@interface WritableObjectTimestamp {
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	@interface WritableField {
+	}
 }

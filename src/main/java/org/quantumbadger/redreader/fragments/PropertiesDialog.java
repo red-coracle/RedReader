@@ -19,19 +19,18 @@ package org.quantumbadger.redreader.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDialogFragment;
 import org.quantumbadger.redreader.R;
+import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.common.General;
 
 import java.util.Locale;
@@ -44,19 +43,24 @@ public abstract class PropertiesDialog extends AppCompatDialogFragment {
 	private volatile boolean alreadyCreated = false;
 
 	protected abstract String getTitle(Context context);
-	protected abstract void prepare(AppCompatActivity context, LinearLayout items);
+
+	protected abstract void prepare(
+			@NonNull BaseActivity context,
+			@NonNull LinearLayout items);
 
 	@NonNull
 	@Override
 	public final Dialog onCreateDialog(final Bundle savedInstanceState) {
 		super.onCreateDialog(savedInstanceState);
 
-		if(alreadyCreated) return getDialog();
+		if(alreadyCreated) {
+			return getDialog();
+		}
 		alreadyCreated = true;
 
-		final AppCompatActivity context = (AppCompatActivity)getActivity();
+		final BaseActivity activity = (BaseActivity)getActivity();
 
-		final TypedArray attr = context.obtainStyledAttributes(new int[] {
+		final TypedArray attr = activity.obtainStyledAttributes(new int[] {
 				R.attr.rrListHeaderTextCol,
 				R.attr.rrListDividerCol,
 				R.attr.rrMainTextCol
@@ -68,50 +72,60 @@ public abstract class PropertiesDialog extends AppCompatDialogFragment {
 
 		attr.recycle();
 
-		final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
-		final LinearLayout items = new LinearLayout(context);
+		final LinearLayout items = new LinearLayout(activity);
 		items.setOrientation(LinearLayout.VERTICAL);
 
-		prepare(context, items);
-		builder.setTitle(getTitle(context));
+		prepare(activity, items);
+		builder.setTitle(getTitle(activity));
 
-		final ScrollView sv = new ScrollView(context);
+		final ScrollView sv = new ScrollView(activity);
 		sv.addView(items);
 		builder.setView(sv);
 
 		builder.setNeutralButton(R.string.dialog_close, null);
 
+		interceptBuilder(builder);
+
 		return builder.create();
 	}
 
-	protected final LinearLayout propView(final Context context, final int titleRes, final int textRes, final boolean firstInList) {
-		return propView(context, context.getString(titleRes), getString(textRes), firstInList);
+	protected void interceptBuilder(@NonNull final AlertDialog.Builder builder) {
+		// Do nothing by default
 	}
 
-	protected final LinearLayout propView(final Context context, final int titleRes, final CharSequence text, final boolean firstInList) {
+	protected final LinearLayout propView(
+			final Context context,
+			final int titleRes,
+			final int textRes,
+			final boolean firstInList) {
+		return propView(
+				context,
+				context.getString(titleRes),
+				getString(textRes),
+				firstInList);
+	}
+
+	protected final LinearLayout propView(
+			final Context context,
+			final int titleRes,
+			final CharSequence text,
+			final boolean firstInList) {
 		return propView(context, context.getString(titleRes), text, firstInList);
 	}
 
 	// TODO xml?
-	protected final LinearLayout propView(final Context context, final String title, final CharSequence text, final boolean firstInList) {
+	protected final LinearLayout propView(
+			final Context context,
+			final String title,
+			final CharSequence text,
+			final boolean firstInList) {
 
 		final int paddingPixels = General.dpToPixels(context, 12);
 
 		final LinearLayout prop = new LinearLayout(context);
 		prop.setOrientation(LinearLayout.VERTICAL);
-		prop.setFocusable(true);
-
-		prop.setOnLongClickListener(v -> {
-			ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-			if(clipboardManager != null) {
-				ClipData data = ClipData.newPlainText(title, text);
-				clipboardManager.setPrimaryClip(data);
-
-				General.quickToast(context, R.string.copied_to_clipboard);
-			}
-			return true;
-		});
 
 		if(!firstInList) {
 			final View divider = new View(context);
@@ -132,7 +146,14 @@ public abstract class PropertiesDialog extends AppCompatDialogFragment {
 		textView.setTextColor(rrCommentBodyCol);
 		textView.setTextSize(15.0f);
 		textView.setPadding(paddingPixels, 0, paddingPixels, paddingPixels);
+		textView.setTextIsSelectable(true);
 		prop.addView(textView);
+
+		prop.setContentDescription(title + "\n" + text);
+
+		if(Build.VERSION.SDK_INT >= 16) {
+			textView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+		}
 
 		return prop;
 	}

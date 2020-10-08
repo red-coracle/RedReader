@@ -38,37 +38,55 @@ public class Alarms {
 	 */
 
 	public enum Alarm {
-		MESSAGE_CHECKER (AlarmManager.INTERVAL_HALF_HOUR, NewMessageChecker.class, true),
-		CACHE_PRUNER (AlarmManager.INTERVAL_HOUR, RegularCachePruner.class, true);
+		MESSAGE_CHECKER(AlarmManager.INTERVAL_HALF_HOUR, NewMessageChecker.class, true),
+		CACHE_PRUNER(AlarmManager.INTERVAL_HOUR, RegularCachePruner.class, true);
 
 		private final long interval;
 		private final Class alarmClass;
 		private final boolean startOnBoot;
 
-		Alarm(long interval, Class alarmClass, boolean startOnBoot) {
+		Alarm(final long interval, final Class alarmClass, final boolean startOnBoot) {
 			this.interval = interval;
 			this.alarmClass = alarmClass;
 			this.startOnBoot = startOnBoot;
 		}
 
-		private long interval() { return interval; }
-		private Class alarmClass() { return alarmClass; }
-		private boolean startOnBoot() { return startOnBoot; }
+		private long interval() {
+			return interval;
+		}
+
+		private Class alarmClass() {
+			return alarmClass;
+		}
+
+		private boolean startOnBoot() {
+			return startOnBoot;
+		}
 	}
 
 	/**
 	 * Starts the specified alarm
-	 * @param alarm alarm to start
+	 *
+	 * @param alarm   alarm to start
 	 * @param context
 	 */
 
-	public static void startAlarm (Alarm alarm, Context context) {
+	public static void startAlarm(final Alarm alarm, final Context context) {
 		if(!alarmMap.containsKey(alarm)) {
-			Intent alarmIntent = new Intent(context, alarm.alarmClass());
-			PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+			final Intent alarmIntent = new Intent(context, alarm.alarmClass());
+			final PendingIntent pendingIntent = PendingIntent.getBroadcast(
+					context,
+					0,
+					alarmIntent,
+					0);
 
-			AlarmManager alarmManager = (AlarmManager)(context.getSystemService(Context.ALARM_SERVICE));
-			alarmManager.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis(), alarm.interval(), pendingIntent);
+			final AlarmManager alarmManager
+					= (AlarmManager)(context.getSystemService(Context.ALARM_SERVICE));
+			alarmManager.setInexactRepeating(
+					AlarmManager.RTC,
+					System.currentTimeMillis(),
+					alarm.interval(),
+					pendingIntent);
 
 			alarmMap.put(alarm, alarmManager);
 			intentMap.put(alarm, pendingIntent);
@@ -77,11 +95,12 @@ public class Alarms {
 
 	/**
 	 * Stops the specified alarm
+	 *
 	 * @param alarm alarm to stop
 	 */
 
-	public static void stopAlarm (Alarm alarm) {
-		if (alarmMap.containsKey(alarm)) {
+	public static void stopAlarm(final Alarm alarm) {
+		if(alarmMap.containsKey(alarm)) {
 			alarmMap.get(alarm).cancel(intentMap.get(alarm));
 			alarmMap.remove(alarm);
 			intentMap.remove(alarm);
@@ -90,12 +109,13 @@ public class Alarms {
 
 	/**
 	 * Starts all alarms that are supposed to start at device boot
+	 *
 	 * @param context
 	 */
 
-	public static void onBoot(Context context) {
-		for (Alarm alarm : Alarm.values()) {
-			if (alarm.startOnBoot()) {
+	public static void onBoot(final Context context) {
+		for(final Alarm alarm : Alarm.values()) {
+			if(alarm.startOnBoot()) {
 				startAlarm(alarm, context);
 			}
 		}

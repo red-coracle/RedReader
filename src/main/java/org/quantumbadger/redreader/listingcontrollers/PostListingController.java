@@ -40,7 +40,7 @@ public class PostListingController {
 	private UUID session = null;
 	private PostListingURL url;
 
-	public void setSession(UUID session) {
+	public void setSession(final UUID session) {
 		this.session = session;
 	}
 
@@ -53,10 +53,11 @@ public class PostListingController {
 		if(url.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL) {
 			if(url.asSubredditPostListURL().order == null) {
 
-				PostSort order = defaultOrder(context);
+				PostSort order = defaultSubredditOrder(context);
 
 				if(order == PostSort.BEST
-						&& url.asSubredditPostListURL().type != SubredditPostListURL.Type.FRONTPAGE) {
+						&& url.asSubredditPostListURL().type
+						!= SubredditPostListURL.Type.FRONTPAGE) {
 
 					order = PostSort.HOT;
 				}
@@ -65,7 +66,12 @@ public class PostListingController {
 			}
 		} else if(url.pathType() == RedditURLParser.USER_POST_LISTING_URL) {
 			if(url.asUserPostListURL().order == null) {
-				url = url.asUserPostListURL().sort(PostSort.NEW);
+				url = url.asUserPostListURL().sort(defaultUserOrder(context));
+			}
+		} else if(url.pathType() == RedditURLParser.MULTIREDDIT_POST_LISTING_URL) {
+			if(url.asMultiredditPostListURL().order == null) {
+				url = url.asMultiredditPostListURL()
+						.sort(defaultMultiredditOrder(context));
 			}
 		}
 
@@ -83,7 +89,8 @@ public class PostListingController {
 
 	public boolean isFrontPage() {
 		return url.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL
-				&& url.asSubredditPostListURL().type == SubredditPostListURL.Type.FRONTPAGE;
+				&& url.asSubredditPostListURL().type
+				== SubredditPostListURL.Type.FRONTPAGE;
 	}
 
 	public final void setSort(final PostSort order) {
@@ -104,8 +111,22 @@ public class PostListingController {
 		}
 	}
 
-	private PostSort defaultOrder(final Context context) {
-		return PrefsUtility.pref_behaviour_postsort(context, PreferenceManager.getDefaultSharedPreferences(context));
+	private PostSort defaultSubredditOrder(final Context context) {
+		return PrefsUtility.pref_behaviour_postsort(
+				context,
+				PreferenceManager.getDefaultSharedPreferences(context));
+	}
+
+	private PostSort defaultUserOrder(final Context context) {
+		return PrefsUtility.pref_behaviour_user_postsort(
+				context,
+				PreferenceManager.getDefaultSharedPreferences(context));
+	}
+
+	private PostSort defaultMultiredditOrder(final Context context) {
+		return PrefsUtility.pref_behaviour_multi_postsort(
+				context,
+				PreferenceManager.getDefaultSharedPreferences(context));
 	}
 
 	public final PostSort getSort() {
@@ -133,14 +154,25 @@ public class PostListingController {
 		return url.generateJsonUri();
 	}
 
-	public final PostListingFragment get(final AppCompatActivity parent, final boolean force, final Bundle savedInstanceState) {
-		if(force) session = null;
-		return new PostListingFragment(parent, savedInstanceState, getUri(), session, force);
+	public final PostListingFragment get(
+			final AppCompatActivity parent,
+			final boolean force,
+			final Bundle savedInstanceState) {
+		if(force) {
+			session = null;
+		}
+		return new PostListingFragment(
+				parent,
+				savedInstanceState,
+				getUri(),
+				session,
+				force);
 	}
 
 	public final boolean isSubreddit() {
 		return url.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL
-				&& url.asSubredditPostListURL().type == SubredditPostListURL.Type.SUBREDDIT;
+				&& url.asSubredditPostListURL().type
+				== SubredditPostListURL.Type.SUBREDDIT;
 	}
 
 	public final boolean isRandomSubreddit() {
@@ -163,18 +195,20 @@ public class PostListingController {
 	public final SubredditCanonicalId subredditCanonicalName() {
 
 		if(url.pathType() == RedditURLParser.SUBREDDIT_POST_LISTING_URL
-				&& (url.asSubredditPostListURL().type == SubredditPostListURL.Type.SUBREDDIT
-				|| url.asSubredditPostListURL().type == SubredditPostListURL.Type.RANDOM)) {
+				&& (url.asSubredditPostListURL().type
+				== SubredditPostListURL.Type.SUBREDDIT
+				|| url.asSubredditPostListURL().type
+				== SubredditPostListURL.Type.RANDOM)) {
 			try {
 				return new SubredditCanonicalId(url.asSubredditPostListURL().subreddit);
-			} catch(InvalidSubredditNameException e) {
+			} catch(final InvalidSubredditNameException e) {
 				throw new RuntimeException(e);
 			}
 		} else if(url.pathType() == RedditURLParser.SEARCH_POST_LISTING_URL
 				&& url.asSearchPostListURL().subreddit != null) {
 			try {
 				return new SubredditCanonicalId(url.asSearchPostListURL().subreddit);
-			} catch(InvalidSubredditNameException e) {
+			} catch(final InvalidSubredditNameException e) {
 				throw new RuntimeException(e);
 			}
 		}

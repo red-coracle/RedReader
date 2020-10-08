@@ -34,7 +34,8 @@ import java.util.Set;
 /**
  * A JSON object, which may be partially or fully received.
  */
-public final class JsonBufferedObject extends JsonBuffered implements Iterable<Map.Entry<String, JsonValue>> {
+public final class JsonBufferedObject extends JsonBuffered
+		implements Iterable<Map.Entry<String, JsonValue>> {
 
 	private final HashMap<String, JsonValue> properties = new HashMap<>();
 
@@ -45,9 +46,10 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 
 		while((jt = jp.nextToken()) != JsonToken.END_OBJECT) {
 
-			if(jt != JsonToken.FIELD_NAME)
+			if(jt != JsonToken.FIELD_NAME) {
 				throw new JsonParseException(jp, "Expecting field name, got " + jt.name(),
 						jp.getCurrentLocation());
+			}
 
 			final String fieldName = jp.getCurrentName();
 			final JsonValue value = new JsonValue(jp);
@@ -62,12 +64,10 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 	}
 
 	/**
-	 * This method will block until either: the specified field is received, the
-	 * object fails to parse, or the object is fully received and there is no
-	 * such field.
+	 * This method will block until either: the specified field is received, the object fails to
+	 * parse, or the object is fully received and there is no such field.
 	 *
-	 * @param name
-	 *			The name of the field
+	 * @param name The name of the field
 	 * @return The value contained in the specified field
 	 * @throws InterruptedException
 	 * @throws java.io.IOException
@@ -93,12 +93,10 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 	}
 
 	/**
-	 * This method will block until either: the specified field is received, the
-	 * object fails to parse, or the object is fully received and there is no
-	 * such field.
+	 * This method will block until either: the specified field is received, the object fails to
+	 * parse, or the object is fully received and there is no such field.
 	 *
-	 * @param name
-	 *			The name of the field
+	 * @param name The name of the field
 	 * @return The value contained in the specified field
 	 * @throws InterruptedException
 	 * @throws java.io.IOException
@@ -109,12 +107,10 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 	}
 
 	/**
-	 * This method will block until either: the specified field is received, the
-	 * object fails to parse, or the object is fully received and there is no
-	 * such field.
+	 * This method will block until either: the specified field is received, the object fails to
+	 * parse, or the object is fully received and there is no such field.
 	 *
-	 * @param name
-	 *			The name of the field
+	 * @param name The name of the field
 	 * @return The value contained in the specified field
 	 * @throws InterruptedException
 	 * @throws java.io.IOException
@@ -124,12 +120,10 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 	}
 
 	/**
-	 * This method will block until either: the specified field is received, the
-	 * object fails to parse, or the object is fully received and there is no
-	 * such field.
+	 * This method will block until either: the specified field is received, the object fails to
+	 * parse, or the object is fully received and there is no such field.
 	 *
-	 * @param name
-	 *			The name of the field
+	 * @param name The name of the field
 	 * @return The value contained in the specified field
 	 * @throws InterruptedException
 	 * @throws java.io.IOException
@@ -139,56 +133,64 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 	}
 
 	/**
-	 * This method will block until either: the specified field is received, the
-	 * object fails to parse, or the object is fully received and there is no
-	 * such field.
+	 * This method will block until either: the specified field is received, the object fails to
+	 * parse, or the object is fully received and there is no such field.
 	 *
-	 * @param name
-	 *			The name of the field
+	 * @param name The name of the field
 	 * @return The value contained in the specified field
 	 * @throws InterruptedException
 	 * @throws java.io.IOException
 	 */
-	public Boolean getBoolean(final String name) throws InterruptedException, IOException {
+	public Boolean getBoolean(final String name) throws
+			InterruptedException,
+			IOException {
 		return get(name).asBoolean();
 	}
 
 	/**
-	 * This method will block until either: the specified field is received, the
-	 * object fails to parse, or the object is fully received and there is no
-	 * such field.
+	 * This method will block until either: the specified field is received, the object fails to
+	 * parse, or the object is fully received and there is no such field.
 	 *
-	 * @param name
-	 *			The name of the field
+	 * @param name The name of the field
 	 * @return The value contained in the specified field
 	 * @throws InterruptedException
 	 * @throws java.io.IOException
 	 */
-	public JsonBufferedObject getObject(final String name) throws InterruptedException, IOException {
+	public JsonBufferedObject getObject(final String name) throws
+			InterruptedException,
+			IOException {
 		return get(name).asObject();
 	}
 
-	public <E> E getObject(final String name, final Class<E> clazz) throws InterruptedException, IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+	public <E> E getObject(final String name, final Class<E> clazz) throws
+			InterruptedException,
+			IOException,
+			InstantiationException,
+			IllegalAccessException,
+			NoSuchMethodException,
+			InvocationTargetException {
 		return get(name).asObject(clazz);
 	}
 
 	/**
-	 * This method will block until either: the specified field is received, the
-	 * object fails to parse, or the object is fully received and there is no
-	 * such field.
+	 * This method will block until either: the specified field is received, the object fails to
+	 * parse, or the object is fully received and there is no such field.
 	 *
-	 * @param name
-	 *			The name of the field
+	 * @param name The name of the field
 	 * @return The value contained in the specified field
 	 * @throws InterruptedException
 	 * @throws java.io.IOException
 	 */
-	public JsonBufferedArray getArray(final String name) throws InterruptedException, IOException {
+	public JsonBufferedArray getArray(final String name) throws
+			InterruptedException,
+			IOException {
 		return get(name).asArray();
 	}
 
 	@Override
-	protected void prettyPrint(final int indent, final StringBuilder sb) throws InterruptedException, IOException {
+	protected void prettyPrint(final int indent, final StringBuilder sb) throws
+			InterruptedException,
+			IOException {
 
 		if(join() != STATUS_LOADED) {
 			throwFailReasonException();
@@ -197,28 +199,49 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 		sb.append('{');
 
 		final Set<String> propertyKeySet = properties.keySet();
-		final String[] fieldNames = propertyKeySet.toArray(new String[propertyKeySet.size()]);
+		final String[] fieldNames =
+				propertyKeySet.toArray(new String[propertyKeySet.size()]);
 
 		for(int prop = 0; prop < fieldNames.length; prop++) {
-			if(prop != 0) sb.append(',');
+			if(prop != 0) {
+				sb.append(',');
+			}
 			sb.append('\n');
-			for(int i = 0; i < indent + 1; i++) sb.append("   ");
-			sb.append("\"").append(fieldNames[prop].replace("\\", "\\\\").replace("\"", "\\\"")).append("\": ");
+			for(int i = 0; i < indent + 1; i++) {
+				sb.append("   ");
+			}
+			sb.append("\"")
+					.append(fieldNames[prop].replace("\\", "\\\\").replace("\"", "\\\""))
+					.append("\": ");
 			properties.get(fieldNames[prop]).prettyPrint(indent + 1, sb);
 		}
 
 		sb.append('\n');
-		for(int i = 0; i < indent; i++) sb.append("   ");
+		for(int i = 0; i < indent; i++) {
+			sb.append("   ");
+		}
 		sb.append('}');
 	}
 
-	public <E> E asObject(final Class<E> clazz) throws InstantiationException, IllegalAccessException, InterruptedException, IOException, NoSuchMethodException, InvocationTargetException {
+	public <E> E asObject(final Class<E> clazz) throws
+			InstantiationException,
+			IllegalAccessException,
+			InterruptedException,
+			IOException,
+			NoSuchMethodException,
+			InvocationTargetException {
 		final E obj = clazz.getConstructor().newInstance();
 		populateObject(obj);
 		return obj;
 	}
 
-	public void populateObject(final Object o) throws InterruptedException, IOException, IllegalArgumentException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+	public void populateObject(final Object o) throws
+			InterruptedException,
+			IOException,
+			IllegalArgumentException,
+			InstantiationException,
+			NoSuchMethodException,
+			InvocationTargetException {
 
 		if(join() != STATUS_LOADED) {
 			throwFailReasonException();
@@ -240,7 +263,8 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 					val = properties.get(objectField.getName());
 
 				} else if(objectField.getName().startsWith("_json_")) {
-					val = properties.get(objectField.getName().substring("_json_".length()));
+					val = properties.get(objectField.getName()
+							.substring("_json_".length()));
 				} else {
 					val = null;
 				}
@@ -285,11 +309,27 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 					final Object result;
 
 					switch(val.getType()) {
-						case JsonValue.TYPE_BOOLEAN: result = val.asBoolean(); break;
-						case JsonValue.TYPE_INTEGER: result = val.asLong(); break;
-						case JsonValue.TYPE_STRING: result = val.asString(); break;
-						case JsonValue.TYPE_FLOAT: result = val.asDouble(); break;
-						default: result = val;
+						case JsonValue.TYPE_BOOLEAN:
+							result = val.asBoolean();
+							break;
+						case JsonValue.TYPE_INTEGER:
+							result = val.asLong();
+							break;
+						case JsonValue.TYPE_STRING:
+							result = val.asString();
+							break;
+						case JsonValue.TYPE_FLOAT:
+							result = val.asDouble();
+							break;
+						case JsonValue.TYPE_NULL:
+							result = null;
+							break;
+
+						case JsonValue.TYPE_OBJECT:
+						case JsonValue.TYPE_ARRAY:
+						default:
+							result = val;
+							break;
 					}
 
 					objectField.set(o, result);
@@ -299,15 +339,16 @@ public final class JsonBufferedObject extends JsonBuffered implements Iterable<M
 				}
 			}
 
-		} catch(IllegalAccessException e) {
+		} catch(final IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
+	@Override
 	public Iterator<Map.Entry<String, JsonValue>> iterator() {
 		try {
 			join();
-		} catch (InterruptedException e) {
+		} catch(final InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 		return properties.entrySet().iterator();

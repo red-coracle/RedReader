@@ -24,8 +24,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.apache.commons.text.StringEscapeUtils;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.activities.HtmlViewActivity;
-import org.quantumbadger.redreader.common.General;
 import org.quantumbadger.redreader.common.PrefsUtility;
+import org.quantumbadger.redreader.common.StringUtils;
 import org.quantumbadger.redreader.common.UnexpectedInternalStateException;
 import org.quantumbadger.redreader.io.WritableObject;
 
@@ -33,16 +33,22 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>, WritableObject<SubredditCanonicalId> {
+public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
+		WritableObject<SubredditCanonicalId> {
 
+	@Override
 	public SubredditCanonicalId getKey() {
 		try {
 			return getCanonicalId();
-		} catch(InvalidSubredditNameException e) {
-			throw new UnexpectedInternalStateException(String.format(Locale.US, "Cannot save subreddit '%s'", url));
+		} catch(final InvalidSubredditNameException e) {
+			throw new UnexpectedInternalStateException(String.format(
+					Locale.US,
+					"Cannot save subreddit '%s'",
+					url));
 		}
 	}
 
+	@Override
 	public long getTimestamp() {
 		return downloadTime;
 	}
@@ -58,15 +64,17 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 
 	@WritableObjectTimestamp public long downloadTime;
 
-	private static final Pattern NAME_PATTERN = Pattern.compile("(/)?(r/)?([\\w\\+\\-\\.:]+)/?");
-	private static final Pattern USER_PATTERN = Pattern.compile("(/)?(u/|user/)([\\w\\+\\-\\.:]+)/?");
+	private static final Pattern NAME_PATTERN = Pattern.compile(
+			"(/)?(r/)?([\\w\\+\\-\\.:]+)/?");
+	private static final Pattern USER_PATTERN = Pattern.compile(
+			"(/)?(u/|user/)([\\w\\+\\-\\.:]+)/?");
 
-	public RedditSubreddit(CreationData creationData) {
+	public RedditSubreddit(final CreationData creationData) {
 		this();
 		downloadTime = creationData.timestamp;
 	}
 
-	public static String stripRPrefix(String name) throws InvalidSubredditNameException {
+	public static String stripRPrefix(final String name) throws InvalidSubredditNameException {
 		final Matcher matcher = NAME_PATTERN.matcher(name);
 		if(matcher.matches()) {
 			return matcher.group(3);
@@ -75,7 +83,7 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 		}
 	}
 
-	public static String stripUserPrefix(String name) {
+	public static String stripUserPrefix(final String name) {
 		final Matcher matcher = USER_PATTERN.matcher(name);
 		if(matcher.matches()) {
 			return matcher.group(3);
@@ -88,10 +96,12 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 		return new SubredditCanonicalId(url);
 	}
 
+	@Override
 	public int describeContents() {
 		return 0;
 	}
 
+	@Override
 	public void writeToParcel(final Parcel out, final int flags) {
 		out.writeString(header_img);
 		out.writeString(header_title);
@@ -110,9 +120,10 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 		out.writeInt(over18 ? 1 : 0);
 	}
 
-	public RedditSubreddit() {}
+	public RedditSubreddit() {
+	}
 
-	public RedditSubreddit(String url, String title, final boolean isSortable) {
+	public RedditSubreddit(final String url, final String title, final boolean isSortable) {
 		this.url = url;
 		this.title = title;
 	}
@@ -134,27 +145,36 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 		accounts_active = parcel.readInt();
 		subscribers = parcel.readInt();
 
-		if(accounts_active < 0) accounts_active = null;
-		if(subscribers < 0) subscribers = null;
+		if(accounts_active < 0) {
+			accounts_active = null;
+		}
+		if(subscribers < 0) {
+			subscribers = null;
+		}
 
 		over18 = parcel.readInt() == 1;
 	}
 
-	public static final Parcelable.Creator<RedditSubreddit> CREATOR = new Parcelable.Creator<RedditSubreddit>() {
+	public static final Parcelable.Creator<RedditSubreddit> CREATOR
+			= new Parcelable.Creator<RedditSubreddit>() {
+		@Override
 		public RedditSubreddit createFromParcel(final Parcel in) {
 			return new RedditSubreddit(in);
 		}
 
+		@Override
 		public RedditSubreddit[] newArray(final int size) {
 			return new RedditSubreddit[size];
 		}
 	};
 
+	@Override
 	public int compareTo(final RedditSubreddit another) {
-		return General.asciiLowercase(display_name).compareTo(General.asciiLowercase(another.display_name));
+		return StringUtils.asciiLowercase(display_name)
+				.compareTo(StringUtils.asciiLowercase(another.display_name));
 	}
 
-	public String getSidebarHtml(boolean nightMode) {
+	public String getSidebarHtml(final boolean nightMode) {
 		final String unescaped = StringEscapeUtils.unescapeHtml4(description_html);
 
 		final StringBuilder result = new StringBuilder(unescaped.length() + 512);
@@ -162,7 +182,8 @@ public class RedditSubreddit implements Parcelable, Comparable<RedditSubreddit>,
 		result.append("<html>");
 
 		result.append("<head>");
-		result.append("<meta name=\"viewport\" content=\"width=device-width, user-scalable=yes\">");
+		result.append(
+				"<meta name=\"viewport\" content=\"width=device-width, user-scalable=yes\">");
 
 		if(nightMode) {
 			result.append("<style>");

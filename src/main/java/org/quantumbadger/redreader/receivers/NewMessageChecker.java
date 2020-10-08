@@ -24,10 +24,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import androidx.core.app.NotificationCompat;
 import android.util.Log;
+import androidx.core.app.NotificationCompat;
 import org.quantumbadger.redreader.R;
 import org.quantumbadger.redreader.account.RedditAccount;
 import org.quantumbadger.redreader.account.RedditAccountManager;
@@ -59,18 +60,32 @@ public class NewMessageChecker extends BroadcastReceiver {
 	private static final String PREFS_SAVED_MESSAGE_TIMESTAMP = "LastMessageTimestamp";
 
 
-	public void onReceive(Context context, Intent intent) {
+	@Override
+	public void onReceive(final Context context, final Intent intent) {
 		checkForNewMessages(context);
 	}
 
-	public static void checkForNewMessages(Context context) {
+	public static void checkForNewMessages(final Context context) {
 
 		Log.i("RedReader", "Checking for new messages.");
 
-		boolean notificationsEnabled = PrefsUtility.pref_behaviour_notifications(context, PreferenceManager.getDefaultSharedPreferences(context));
-		if (!notificationsEnabled) return;
+		final boolean notificationsEnabled = PrefsUtility.pref_behaviour_notifications(
+				context,
+				PreferenceManager.getDefaultSharedPreferences(context));
+		if(!notificationsEnabled) {
+			return;
+		}
 
-		final RedditAccount user = RedditAccountManager.getInstance(context).getDefaultAccount();
+		final RedditAccount user;
+
+		try {
+			user = RedditAccountManager.getInstance(context).getDefaultAccount();
+
+		} catch(final SQLiteDatabaseCorruptException e) {
+			// Avoid background crash
+			Log.e(TAG, "Accounts database corrupt", e);
+			return;
+		}
 
 		if(user.isAnonymous()) {
 			return;
@@ -94,10 +109,12 @@ public class NewMessageChecker extends BroadcastReceiver {
 				context) {
 
 			@Override
-			protected void onDownloadNecessary() {}
+			protected void onDownloadNecessary() {
+			}
 
 			@Override
-			protected void onDownloadStarted() {}
+			protected void onDownloadStarted() {
+			}
 
 			@Override
 			protected void onCallbackException(final Throwable t) {
@@ -105,18 +122,36 @@ public class NewMessageChecker extends BroadcastReceiver {
 			}
 
 			@Override
-			protected void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
+			protected void onFailure(
+					final @CacheRequest.RequestFailureType int type,
+					final Throwable t,
+					final Integer status,
+					final String readableMessage) {
 				Log.e(TAG, "Request failed", t);
 			}
 
 			@Override
-			protected void onProgress(final boolean authorizationInProgress, final long bytesRead, final long totalBytes) {}
+			protected void onProgress(
+					final boolean authorizationInProgress,
+					final long bytesRead,
+					final long totalBytes) {
+			}
 
 			@Override
-			protected void onSuccess(final CacheManager.ReadableCacheFile cacheFile, final long timestamp, final UUID session, final boolean fromCache, final String mimetype) {}
+			protected void onSuccess(
+					final CacheManager.ReadableCacheFile cacheFile,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache,
+					final String mimetype) {
+			}
 
 			@Override
-			public void onJsonParseStarted(final JsonValue value, final long timestamp, final UUID session, final boolean fromCache) {
+			public void onJsonParseStarted(
+					final JsonValue value,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache) {
 
 				try {
 
@@ -136,7 +171,8 @@ public class NewMessageChecker extends BroadcastReceiver {
 					final RedditThing thing = children.get(0).asObject(RedditThing.class);
 
 					String title;
-					final String text = context.getString(R.string.notification_message_action);
+					final String text
+							= context.getString(R.string.notification_message_action);
 
 					final String messageID;
 					final long messageTimestamp;
@@ -144,7 +180,9 @@ public class NewMessageChecker extends BroadcastReceiver {
 					switch(thing.getKind()) {
 						case COMMENT: {
 							final RedditComment comment = thing.asComment();
-							title = context.getString(R.string.notification_comment, comment.author);
+							title = context.getString(
+									R.string.notification_comment,
+									comment.author);
 							messageID = comment.name;
 							messageTimestamp = comment.created_utc;
 							break;
@@ -152,7 +190,9 @@ public class NewMessageChecker extends BroadcastReceiver {
 
 						case MESSAGE: {
 							final RedditMessage message = thing.asMessage();
-							title =context.getString(R.string.notification_message, message.author);
+							title = context.getString(
+									R.string.notification_message,
+									message.author);
 							messageID = message.name;
 							messageTimestamp = message.created_utc;
 							break;
@@ -165,11 +205,18 @@ public class NewMessageChecker extends BroadcastReceiver {
 
 					// Check if the previously saved message is the same as the one we just received
 
-					final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-					final String oldMessageId = prefs.getString(PREFS_SAVED_MESSAGE_ID, "");
-					final long oldMessageTimestamp = prefs.getLong(PREFS_SAVED_MESSAGE_TIMESTAMP, 0);
+					final SharedPreferences prefs
+							= PreferenceManager.getDefaultSharedPreferences(context);
+					final String oldMessageId = prefs.getString(
+							PREFS_SAVED_MESSAGE_ID,
+							"");
+					final long oldMessageTimestamp = prefs.getLong(
+							PREFS_SAVED_MESSAGE_TIMESTAMP,
+							0);
 
-					if(oldMessageId == null || (!messageID.equals(oldMessageId) && oldMessageTimestamp <= messageTimestamp)) {
+					if(oldMessageId == null || (!messageID.equals(oldMessageId)
+							&& oldMessageTimestamp
+							<= messageTimestamp)) {
 
 						Log.e(TAG, "New messages detected. Showing notification.");
 
@@ -179,7 +226,8 @@ public class NewMessageChecker extends BroadcastReceiver {
 								.apply();
 
 						if(messageCount > 1) {
-							title = context.getString(R.string.notification_message_multiple);
+							title
+									= context.getString(R.string.notification_message_multiple);
 						}
 
 						createNotification(title, text, context);
@@ -188,8 +236,12 @@ public class NewMessageChecker extends BroadcastReceiver {
 						Log.e(TAG, "All messages have been previously seen.");
 					}
 
-				} catch(Throwable t) {
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "Parse failure");
+				} catch(final Throwable t) {
+					notifyFailure(
+							CacheRequest.REQUEST_FAILURE_PARSE,
+							t,
+							null,
+							"Parse failure");
 				}
 			}
 		};
@@ -199,9 +251,13 @@ public class NewMessageChecker extends BroadcastReceiver {
 
 	private static final AtomicBoolean sChannelCreated = new AtomicBoolean(false);
 
-	private static void createNotification(final String title, final String text, final Context context) {
+	private static void createNotification(
+			final String title,
+			final String text,
+			final Context context) {
 
-		final NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		final NotificationManager nm = (NotificationManager)context.getSystemService(
+				Context.NOTIFICATION_SERVICE);
 
 		synchronized(sChannelCreated) {
 
@@ -215,27 +271,34 @@ public class NewMessageChecker extends BroadcastReceiver {
 
 						final NotificationChannel channel = new NotificationChannel(
 								NOTIFICATION_CHANNEL_ID,
-								context.getString(R.string.notification_channel_name_reddit_messages),
+								context.getString(
+										R.string.notification_channel_name_reddit_messages),
 								NotificationManager.IMPORTANCE_DEFAULT);
 
 						nm.createNotificationChannel(channel);
 
 					} else {
-						Log.i(TAG, "Not creating notification channel as it already exists");
+						Log.i(
+								TAG,
+								"Not creating notification channel as it already exists");
 					}
 
 				} else {
-					Log.i(TAG, "Not creating notification channel due to old Android version");
+					Log.i(
+							TAG,
+							"Not creating notification channel due to old Android version");
 				}
 			}
 		}
 
-		final NotificationCompat.Builder notification = new NotificationCompat.Builder(context)
+		final NotificationCompat.Builder notification = new NotificationCompat.Builder(
+				context)
 				.setSmallIcon(R.drawable.icon_notif)
 				.setContentTitle(title)
 				.setContentText(text)
 				.setAutoCancel(true)
-				.setChannelId(NOTIFICATION_CHANNEL_ID);
+				.setChannelId(
+						NOTIFICATION_CHANNEL_ID);
 
 		final Intent intent = new Intent(context, InboxListingActivity.class);
 		notification.setContentIntent(PendingIntent.getActivity(context, 0, intent, 0));

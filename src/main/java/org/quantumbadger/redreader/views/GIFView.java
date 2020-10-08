@@ -37,35 +37,48 @@ public final class GIFView extends View {
 
 	private final Paint paint = new Paint();
 
+	public static Movie prepareMovie(@NonNull final byte[] data) {
+
+		final Movie movie = Movie.decodeByteArray(data, 0, data.length);
+
+		if(movie.duration() < 1) {
+			throw new RuntimeException("Invalid GIF");
+		}
+
+		return movie;
+	}
+
 	// Accept as byte[] rather than stream due to Android bug workaround
-	public GIFView(Context context, @NonNull final byte[] data) {
+	public GIFView(final Context context, final Movie movie) {
 		super(context);
 
 		setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
-		mMovie = Movie.decodeByteArray(data, 0, data.length);
-
-		if(mMovie.duration() < 1) {
-			throw new RuntimeException("Invalid GIF");
-		}
+		mMovie = movie;
 
 		paint.setAntiAlias(true);
 		paint.setFilterBitmap(true);
 	}
 
+	@Override
 	protected void onDraw(final Canvas canvas) {
 		canvas.drawColor(Color.TRANSPARENT);
 		super.onDraw(canvas);
-		long now = SystemClock.uptimeMillis();
+		final long now = SystemClock.uptimeMillis();
 
-		final float scale = Math.min((float)getWidth() / mMovie.width(), (float)getHeight() / mMovie.height());
+		final float scale = Math.min(
+				(float)getWidth() / mMovie.width(),
+				(float)getHeight() / mMovie.height());
 
 		canvas.scale(scale, scale);
-		canvas.translate(((float)getWidth() / scale - (float)mMovie.width())/2f,
-				((float)getHeight() / scale - (float)mMovie.height())/2f);
+		canvas.translate(
+				((float)getWidth() / scale - (float)mMovie.width()) / 2f,
+				((float)getHeight() / scale - (float)mMovie.height()) / 2f);
 
 
-		if(movieStart == 0) movieStart = (int)now;
+		if(movieStart == 0) {
+			movieStart = (int)now;
+		}
 
 		mMovie.setTime((int)((now - movieStart) % mMovie.duration()));
 		mMovie.draw(canvas, 0, 0, paint);
@@ -81,10 +94,10 @@ public final class GIFView extends View {
 		int len;
 
 		try {
-			while ((len = is.read(buffer)) >= 0) {
+			while((len = is.read(buffer)) >= 0) {
 				baos.write(buffer, 0, len);
 			}
-		} catch (IOException e) {
+		} catch(final IOException e) {
 			throw new RuntimeException(e);
 		}
 

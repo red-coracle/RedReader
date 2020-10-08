@@ -36,7 +36,9 @@ import java.util.HashMap;
 
 public class RedditSubredditManager {
 
-	public void offerRawSubredditData(Collection<RedditSubreddit> toWrite, long timestamp) {
+	public void offerRawSubredditData(
+			final Collection<RedditSubreddit> toWrite,
+			final long timestamp) {
 		subredditCache.performWrite(toWrite);
 	}
 
@@ -48,14 +50,23 @@ public class RedditSubredditManager {
 
 	// TODO store favourites in preference
 
-	public enum SubredditListType { SUBSCRIBED, MODERATED, MULTIREDDITS, MOST_POPULAR, DEFAULTS }
+	public enum SubredditListType {
+		SUBSCRIBED,
+		MODERATED,
+		MULTIREDDITS,
+		MOST_POPULAR,
+		DEFAULTS
+	}
 
 	private static RedditSubredditManager singleton;
 	private static RedditAccount singletonUser;
 
-	private final WeakCache<SubredditCanonicalId, RedditSubreddit, SubredditRequestFailure> subredditCache;
+	private final WeakCache<SubredditCanonicalId, RedditSubreddit, SubredditRequestFailure>
+			subredditCache;
 
-	public static synchronized RedditSubredditManager getInstance(Context context, RedditAccount user) {
+	public static synchronized RedditSubredditManager getInstance(
+			final Context context,
+			final RedditAccount user) {
 
 		if(singleton == null || !user.equals(singletonUser)) {
 			singletonUser = user;
@@ -65,34 +76,49 @@ public class RedditSubredditManager {
 		return singleton;
 	}
 
-	private RedditSubredditManager(Context context, RedditAccount user) {
+	private RedditSubredditManager(final Context context, final RedditAccount user) {
 
 		// Subreddit cache
 
 		final RawObjectDB<SubredditCanonicalId, RedditSubreddit> subredditDb
-				= new RawObjectDB<>(context, getDbFilename("subreddits", user), RedditSubreddit.class);
+				= new RawObjectDB<>(
+				context,
+				getDbFilename("subreddits", user),
+				RedditSubreddit.class);
 
-		final ThreadedRawObjectDB<SubredditCanonicalId, RedditSubreddit, SubredditRequestFailure> subredditDbWrapper
-				= new ThreadedRawObjectDB<>(subredditDb, new RedditAPIIndividualSubredditDataRequester(context, user));
+		final ThreadedRawObjectDB<SubredditCanonicalId, RedditSubreddit, SubredditRequestFailure>
+				subredditDbWrapper
+				= new ThreadedRawObjectDB<>(
+				subredditDb,
+				new RedditAPIIndividualSubredditDataRequester(context, user));
 
 		subredditCache = new WeakCache<>(subredditDbWrapper);
 	}
 
-	private static String getDbFilename(String type, RedditAccount user) {
+	private static String getDbFilename(final String type, final RedditAccount user) {
 		return General.sha1(user.username.getBytes()) + "_" + type + "_subreddits.db";
 	}
 
-	public void getSubreddit(SubredditCanonicalId subredditCanonicalId,
-							 TimestampBound timestampBound,
-							 RequestResponseHandler<RedditSubreddit, SubredditRequestFailure> handler,
-							 UpdatedVersionListener<SubredditCanonicalId, RedditSubreddit> updatedVersionListener) {
+	public void getSubreddit(
+			final SubredditCanonicalId subredditCanonicalId,
+			final TimestampBound timestampBound,
+			final RequestResponseHandler<RedditSubreddit, SubredditRequestFailure> handler,
+			final UpdatedVersionListener<
+					SubredditCanonicalId, RedditSubreddit> updatedVersionListener) {
 
-		subredditCache.performRequest(subredditCanonicalId, timestampBound, handler, updatedVersionListener);
+		subredditCache.performRequest(
+				subredditCanonicalId,
+				timestampBound,
+				handler,
+				updatedVersionListener);
 	}
 
-	public void getSubreddits(Collection<SubredditCanonicalId> ids,
-							 TimestampBound timestampBound,
-							 RequestResponseHandler<HashMap<SubredditCanonicalId, RedditSubreddit>, SubredditRequestFailure> handler) {
+	public void getSubreddits(
+			final Collection<SubredditCanonicalId> ids,
+			final TimestampBound timestampBound,
+			final RequestResponseHandler<
+					HashMap<SubredditCanonicalId, RedditSubreddit>,
+					SubredditRequestFailure> handler) {
 
 		subredditCache.performRequest(ids, timestampBound, handler);
 	}

@@ -18,16 +18,16 @@
 package org.quantumbadger.redreader.views;
 
 import android.preference.PreferenceManager;
-import androidx.appcompat.app.AppCompatActivity;
 import android.text.Layout;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.style.ClickableSpan;
 import android.view.MotionEvent;
-import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatTextView;
 import org.quantumbadger.redreader.common.PrefsUtility;
 
-public class LinkifiedTextView extends TextView {
+public class LinkifiedTextView extends AppCompatTextView {
 
 	private final AppCompatActivity mActivity;
 
@@ -57,12 +57,12 @@ public class LinkifiedTextView extends TextView {
 
 		final Spannable buffer = (Spannable)text;
 
-		int action = event.getAction();
+		final int action = event.getAction();
 
-		if (action == MotionEvent.ACTION_UP ||
+		if(action == MotionEvent.ACTION_UP ||
 				action == MotionEvent.ACTION_DOWN) {
-			int x = (int) event.getX();
-			int y = (int) event.getY();
+			int x = (int)event.getX();
+			int y = (int)event.getY();
 
 			x -= getTotalPaddingLeft();
 			y -= getTotalPaddingTop();
@@ -76,10 +76,10 @@ public class LinkifiedTextView extends TextView {
 
 			final ClickableSpan[] links = buffer.getSpans(off, off, ClickableSpan.class);
 
-			if (links.length != 0) {
-				if (action == MotionEvent.ACTION_UP) {
+			if(links.length != 0) {
+				if(action == MotionEvent.ACTION_UP) {
 					links[0].onClick(this);
-				} else if (action == MotionEvent.ACTION_DOWN) {
+				} else if(action == MotionEvent.ACTION_DOWN) {
 					Selection.setSelection(
 							buffer,
 							buffer.getSpanStart(links[0]),

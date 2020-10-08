@@ -49,7 +49,7 @@ public class RRTime {
 		final DateTime dateTime = new DateTime(utc_ms);
 		final DateTime localDateTime = dateTime.withZone(DateTimeZone.getDefault());
 
-		if (DateFormat.is24HourFormat(context)) {
+		if(DateFormat.is24HourFormat(context)) {
 			return dtFormatter24hr.print(localDateTime);
 		} else {
 			return dtFormatter12hr.print(localDateTime);
@@ -64,41 +64,74 @@ public class RRTime {
 		final long endTime = utcCurrentTimeMillis();
 		final DateTime dateTime = new DateTime(endTime);
 		final DateTime localDateTime = dateTime.withZone(DateTimeZone.getDefault());
-		Period period = new Duration(startTime, endTime).toPeriodTo(localDateTime);
+		final Period period = new Duration(startTime, endTime).toPeriodTo(localDateTime);
 
-		PeriodFormatter periodFormatter = new PeriodFormatterBuilder()
-				.appendYears().appendSuffix(space).appendSuffix(context.getString(R.string.time_year), context.getString(R.string.time_years)).appendSeparator(separator)
-				.appendMonths().appendSuffix(space).appendSuffix(context.getString(R.string.time_month), context.getString(R.string.time_months)).appendSeparator(separator)
-				.appendDays().appendSuffix(space).appendSuffix(context.getString(R.string.time_day), context.getString(R.string.time_days)).appendSeparator(separator)
-				.appendHours().appendSuffix(space).appendSuffix(context.getString(R.string.time_hour), context.getString(R.string.time_hours)).appendSeparator(separator)
-				.appendMinutes().appendSuffix(space).appendSuffix(context.getString(R.string.time_min), context.getString(R.string.time_mins)).appendSeparator(separator)
-				.appendSeconds().appendSuffix(space).appendSuffix(context.getString(R.string.time_sec), context.getString(R.string.time_secs)).appendSeparator(separator)
-				.appendMillis().appendSuffix(space).appendSuffix(context.getString(R.string.time_ms))
+		final PeriodFormatter periodFormatter = new PeriodFormatterBuilder()
+				.appendYears()
+				.appendSuffix(space)
+				.appendSuffix(
+						context.getString(R.string.time_year),
+						context.getString(R.string.time_years))
+				.appendSeparator(separator)
+				.appendMonths()
+				.appendSuffix(space)
+				.appendSuffix(
+						context.getString(R.string.time_month),
+						context.getString(R.string.time_months))
+				.appendSeparator(separator)
+				.appendDays()
+				.appendSuffix(space)
+				.appendSuffix(
+						context.getString(R.string.time_day),
+						context.getString(R.string.time_days))
+				.appendSeparator(separator)
+				.appendHours()
+				.appendSuffix(space)
+				.appendSuffix(
+						context.getString(R.string.time_hour),
+						context.getString(R.string.time_hours))
+				.appendSeparator(separator)
+				.appendMinutes()
+				.appendSuffix(space)
+				.appendSuffix(
+						context.getString(R.string.time_min),
+						context.getString(R.string.time_mins))
+				.appendSeparator(separator)
+				.appendSeconds()
+				.appendSuffix(space)
+				.appendSuffix(
+						context.getString(R.string.time_sec),
+						context.getString(R.string.time_secs))
+				.appendSeparator(separator)
+				.appendMillis()
+				.appendSuffix(space)
+				.appendSuffix(context.getString(R.string.time_ms))
 				.toFormatter();
 
-		String duration = periodFormatter.print(period.normalizedStandard(PeriodType.yearMonthDayTime()));
+		String duration
+				= periodFormatter.print(period.normalizedStandard(PeriodType.yearMonthDayTime()));
 
-		List<String> parts = Arrays.asList(duration.split(comma));
-		if (parts.size() >= 2) {
+		final List<String> parts = Arrays.asList(duration.split(comma));
+		if(parts.size() >= 2) {
 			duration = parts.get(0) + comma + parts.get(1);
 		}
 
 		return String.format(context.getString(R.string.time_ago), duration);
 	}
 
-	public static long since(long timestamp) {
+	public static long since(final long timestamp) {
 		return utcCurrentTimeMillis() - timestamp;
 	}
 
-	public static long secsToMs(long secs) {
+	public static long secsToMs(final long secs) {
 		return secs * 1000;
 	}
 
-	public static long minsToMs(long mins) {
+	public static long minsToMs(final long mins) {
 		return secsToMs(mins * 60);
 	}
 
-	public static long hoursToMs(long hours) {
+	public static long hoursToMs(final long hours) {
 		return minsToMs(hours * 60);
 	}
 }

@@ -37,6 +37,7 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.DefaultTimeBar;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.ui.TimeBar;
@@ -78,7 +79,7 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 		mVideoPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelector);
 
-		PlayerView videoPlayerView = new PlayerView(context);
+		final PlayerView videoPlayerView = new PlayerView(context);
 
 		addView(videoPlayerView);
 
@@ -89,6 +90,14 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 		mVideoPlayer.setPlayWhenReady(true);
 		videoPlayerView.setUseController(false);
+
+		if(PrefsUtility.pref_behaviour_video_zoom_default(
+				context,
+				PreferenceManager.getDefaultSharedPreferences(context))) {
+			videoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+		} else {
+			videoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+		}
 
 		if(PrefsUtility.pref_behaviour_video_playback_controls(
 				context,
@@ -104,11 +113,13 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 			{
 				final RelativeLayout.LayoutParams controlBarLayoutParams
-						= (RelativeLayout.LayoutParams) controlBar.getLayoutParams();
+						= (RelativeLayout.LayoutParams)controlBar.getLayoutParams();
 				controlBarLayoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
 				controlBarLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
 				controlBarLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-				controlBarLayoutParams.rightMargin = General.dpToPixels(context, controlsMarginRightDp);
+				controlBarLayoutParams.rightMargin = General.dpToPixels(
+						context,
+						controlsMarginRightDp);
 			}
 
 			final LinearLayout buttons = new LinearLayout(context);
@@ -117,7 +128,7 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 			{
 				final LinearLayout.LayoutParams buttonsLayoutParams
-						= (LinearLayout.LayoutParams) buttons.getLayoutParams();
+						= (LinearLayout.LayoutParams)buttons.getLayoutParams();
 				buttonsLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
 				buttonsLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
 			}
@@ -128,7 +139,7 @@ public class ExoPlayerWrapperView extends FrameLayout {
 					R.drawable.exo_controls_previous,
 					new OnClickListener() {
 						@Override
-						public void onClick(View view) {
+						public void onClick(final View view) {
 							mVideoPlayer.seekTo(0);
 							updateProgress();
 						}
@@ -140,7 +151,7 @@ public class ExoPlayerWrapperView extends FrameLayout {
 					R.drawable.exo_controls_rewind,
 					new OnClickListener() {
 						@Override
-						public void onClick(View view) {
+						public void onClick(final View view) {
 							mVideoPlayer.seekTo(mVideoPlayer.getCurrentPosition() - 3000);
 							updateProgress();
 						}
@@ -155,13 +166,15 @@ public class ExoPlayerWrapperView extends FrameLayout {
 						R.drawable.exo_controls_pause,
 						new OnClickListener() {
 							@Override
-							public void onClick(View view) {
+							public void onClick(final View view) {
 								mVideoPlayer.setPlayWhenReady(!mVideoPlayer.getPlayWhenReady());
 
 								if(mVideoPlayer.getPlayWhenReady()) {
-									playButton.get().setImageResource(R.drawable.exo_controls_pause);
+									playButton.get()
+											.setImageResource(R.drawable.exo_controls_pause);
 								} else {
-									playButton.get().setImageResource(R.drawable.exo_controls_play);
+									playButton.get()
+											.setImageResource(R.drawable.exo_controls_play);
 								}
 
 								updateProgress();
@@ -177,18 +190,48 @@ public class ExoPlayerWrapperView extends FrameLayout {
 					R.drawable.exo_controls_fastforward,
 					new OnClickListener() {
 						@Override
-						public void onClick(View view) {
+						public void onClick(final View view) {
 							mVideoPlayer.seekTo(mVideoPlayer.getCurrentPosition() + 3000);
 							updateProgress();
 						}
 					}), buttons);
+
+			{
+				final AtomicReference<ImageButton> zoomButton = new AtomicReference<>();
+
+				zoomButton.set(createButton(
+						context,
+						mControlView,
+						R.drawable.ic_zoom_in_dark,
+						new OnClickListener() {
+							@Override
+							public void onClick(final View v) {
+								if (videoPlayerView.getResizeMode()
+										== AspectRatioFrameLayout.RESIZE_MODE_FIT) {
+									videoPlayerView.setResizeMode(
+											AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+									zoomButton.get().setImageResource(R.drawable.ic_zoom_out_dark);
+								} else {
+									videoPlayerView.setResizeMode(
+											AspectRatioFrameLayout.RESIZE_MODE_FIT);
+									zoomButton.get().setImageResource(R.drawable.ic_zoom_in_dark);
+								}
+							}
+						}));
+
+				if(videoPlayerView.getResizeMode() == AspectRatioFrameLayout.RESIZE_MODE_ZOOM) {
+					zoomButton.get().setImageResource(R.drawable.ic_zoom_out_dark);
+				}
+
+				addButton(zoomButton.get(), buttons);
+			}
 
 			mTimeBarView = new DefaultTimeBar(context, null);
 			controlBar.addView(mTimeBarView);
 
 			{
 				final LinearLayout.LayoutParams seekBarLayoutParams
-						= (LinearLayout.LayoutParams) mTimeBarView.getLayoutParams();
+						= (LinearLayout.LayoutParams)mTimeBarView.getLayoutParams();
 
 				final int marginPx = General.dpToPixels(context, 8);
 
@@ -197,18 +240,21 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 			mTimeBarView.addListener(new TimeBar.OnScrubListener() {
 				@Override
-				public void onScrubStart(TimeBar timeBar, long position) {
+				public void onScrubStart(final TimeBar timeBar, final long position) {
 
 				}
 
 				@Override
-				public void onScrubMove(TimeBar timeBar, long position) {
+				public void onScrubMove(final TimeBar timeBar, final long position) {
 					mVideoPlayer.seekTo(position);
 				}
 
 				@Override
-				public void onScrubStop(TimeBar timeBar, long position, boolean canceled) {
-
+				public void onScrubStop(
+						final TimeBar timeBar,
+						final long position,
+						final boolean canceled) {
+					mVideoPlayer.seekTo(position);
 				}
 			});
 
@@ -247,7 +293,9 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 		mVideoPlayer.addListener(new Player.EventListener() {
 			@Override
-			public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+			public void onPlayerStateChanged(
+					final boolean playWhenReady,
+					final int playbackState) {
 
 				// Loop
 				if(playbackState == Player.STATE_ENDED) {
@@ -299,7 +347,10 @@ public class ExoPlayerWrapperView extends FrameLayout {
 			@DrawableRes final int image,
 			@NonNull final OnClickListener clickListener) {
 
-		final ImageButton ib = (ImageButton)LayoutInflater.from(context).inflate(R.layout.flat_image_button, root, false);
+		final ImageButton ib = (ImageButton)LayoutInflater.from(context).inflate(
+				R.layout.flat_image_button,
+				root,
+				false);
 
 		final int buttonPadding = General.dpToPixels(context, 14);
 		ib.setPadding(buttonPadding, buttonPadding, buttonPadding, buttonPadding);
@@ -315,7 +366,8 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 		layout.addView(button);
 
-		final LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) button.getLayoutParams();
+		final LinearLayout.LayoutParams layoutParams =
+				(LinearLayout.LayoutParams)button.getLayoutParams();
 
 		layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
 		layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -345,5 +397,9 @@ public class ExoPlayerWrapperView extends FrameLayout {
 
 	public void setMuted(final boolean mute) {
 		mVideoPlayer.setVolume(mute ? 0 : 1);
+	}
+
+	public int isControlViewVisible() {
+		return mControlView != null ? mControlView.getVisibility() : GONE;
 	}
 }

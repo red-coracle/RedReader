@@ -24,8 +24,6 @@
     <string name="prefs_category_cache">Katxe</string>
     <string name="prefs_category_menus">Menuak</string>
     <string name="pref_appearance_theme_header">Itxura</string>
-    <string name="pref_appearance_tabletmode_header">Tableta modua</string>
-    <string name="pref_appearance_font_header">Letra-tipoa</string>
     <string name="pref_appearance_comments_header">Iruzkinak</string>
     <string name="pref_appearance_other_header">Bestelakoak</string>
     <string name="pref_appearance_twopane_title">Tableta modua (bi panel)</string>
@@ -34,7 +32,6 @@
     <string name="pref_appearance_thumbnails_header">Miniaturak</string>
     <string name="pref_appearance_thumbnails_show_title">Erakutsi miniaturak</string>
     <string name="pref_appearance_fontscale_posts_title">Argitalpenen letra-tamaina</string>
-    <string name="pref_appearance_fontscale_comments_title">Iruzkinen letra-tamaina</string>
     <string name="pref_appearance_thumbnails_nsfw_show_title">Erakutsi NSFW miniaturak</string>
     <string name="pref_appearance_thumbnails_wifionly_title">Miniaturak Wi-Fiarekin soilik</string>
     <string name="pref_behaviour_notifications_title">Jakinarazpenak</string>
@@ -470,10 +467,6 @@
     <string name="action_collapse">Gaitu itxiera</string>
     <string name="error_403_message">Redditek erabiltzaileak hori egiteko baimenik ez duela dio. Saiatu saioa ixten, eta saioa berriro hasten (kontua kontuen zerrendatik ezabatuz, eta gero berriro gehituz).</string>
     <string name="error_toast_no_urls_in_self">Ez dira URLak aurkitu testu propio honetan.</string>
-    <plurals name="subtitle_replies">
-        <item quantity="one">…</item>
-        <item quantity="other">(%d erantzun)</item>
-    </plurals>
     <string name="pref_menus_mainmenu_useritems_title">Menu nagusiko erabiltzaile elementuak</string>
     <string name="mainmenu_downvoted">Boto negatiboak dituzten argitalpenak</string>
     <string name="mainmenu_modmail">Mod posta</string>
@@ -482,7 +475,6 @@
     <string name="imageview_decode_failed">Errorea irudia dekodetzen. Barneko nabigatzailearekin saiatzen.</string>
     <string name="comment_header_specific_thread_title">Iruzkin hari espezifiko bat ikusten ari zara.</string>
     <string name="comment_header_specific_thread_message">Klik egin hemen argitalpen honen iruzkin guztiak ikusteko.</string>
-    <string name="more_comments_button_text">Kargatu iruzkin gehiago</string>
     <string name="action_comment_context">Testuingurua</string>
     <string name="error_title_login_user_denied_permission">Baimena ukatua</string>
     <string name="error_message_login_user_denied_permission">Kontura sartzeko baimena ukatu da. Mesedez saiatu berriro.</string>
@@ -495,7 +487,6 @@
     <string name="screen_orientation_landscape">Horizontala</string>
     <string name="pref_behaviour_bezel_toolbar_header">Alaka tresna-barra</string>
     <string name="pref_behaviour_bezel_toolbar_swipezone_title">Alaka tresna-barraren lerraketa eskualdearen tamaina</string>
-    <string name="pref_appearance_fontscale_inbox_title">Sarrera-ontziaren letra tamaina</string>
     <string name="delete_success">Ezabatua. Objektua ikusgarria izango da birkargatu arte.</string>
     <string name="pref_behaviour_videoview_mode_external_app_vlc">Kanpoko app: VLC</string>
     <string name="error_url_required_message">URL bat adierazi behar duzu.</string>
@@ -574,4 +565,7 @@
     <string name="pref_appearance_show_aspect_ratio_indicator_title">Erakutsi alderdien ratioa</string>
     <string name="pref_appearance_show_aspect_ratio_indicator_summary">Erakutsi multimedia kargatzeko ikusmena eskuragarri dagoenean</string>
     <string name="pref_behaviour_sharing_share_dialog_title">Erabili partekatutako elkarrizketa-koadroa</string>
+	<plurals name="load_more_comments_button_reply_count">
+		<item quantity="other">Kargatu iruzkin gehiago (%d erantzun)</item>
+	</plurals>
 </resources>

@@ -23,7 +23,8 @@ import android.view.ViewGroup;
 /**
  * Created by veyndan on 18/04/2016.
  */
-public abstract class HeaderRecyclerAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
+public abstract class HeaderRecyclerAdapter<VH extends RecyclerView.ViewHolder>
+		extends RecyclerView.Adapter<VH> {
 
 	private static final int TYPE_HEADER = 0;
 	private static final int TYPE_CONTENT = 1;
@@ -31,8 +32,8 @@ public abstract class HeaderRecyclerAdapter<VH extends RecyclerView.ViewHolder> 
 	protected static final int HEADER_SIZE = 1;
 
 	@Override
-	public VH onCreateViewHolder(ViewGroup parent, int viewType) {
-		switch (viewType) {
+	public VH onCreateViewHolder(final ViewGroup parent, final int viewType) {
+		switch(viewType) {
 			case TYPE_HEADER:
 				return onCreateHeaderItemViewHolder(parent);
 			case TYPE_CONTENT:
@@ -47,8 +48,8 @@ public abstract class HeaderRecyclerAdapter<VH extends RecyclerView.ViewHolder> 
 	protected abstract VH onCreateContentItemViewHolder(ViewGroup parent);
 
 	@Override
-	public void onBindViewHolder(VH holder, int position) {
-		if (position == 0) {
+	public void onBindViewHolder(final VH holder, final int position) {
+		if(position == 0) {
 			onBindHeaderItemViewHolder(holder, position);
 		} else {
 			onBindContentItemViewHolder(holder, position - HEADER_SIZE);
@@ -65,7 +66,7 @@ public abstract class HeaderRecyclerAdapter<VH extends RecyclerView.ViewHolder> 
 	}
 
 	@Override
-	public int getItemViewType(int position) {
+	public int getItemViewType(final int position) {
 		return position == 0 ? TYPE_HEADER : TYPE_CONTENT;
 	}
 

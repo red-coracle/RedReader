@@ -17,16 +17,13 @@
 
 package org.quantumbadger.redreader.fragments;
 
-import android.content.DialogInterface;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import androidx.fragment.app.Fragment;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +37,11 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import org.quantumbadger.redreader.R;
+import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.cache.CacheManager;
 import org.quantumbadger.redreader.common.AndroidCommon;
 import org.quantumbadger.redreader.common.General;
@@ -60,9 +61,10 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class WebViewFragment extends Fragment implements RedditPostView.PostSelectionListener {
+public class WebViewFragment extends Fragment
+		implements RedditPostView.PostSelectionListener {
 
-	private AppCompatActivity mActivity;
+	private BaseActivity mActivity;
 
 	private String mUrl, html;
 	private volatile String currentUrl;
@@ -79,7 +81,9 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 
 		final Bundle bundle = new Bundle(1);
 		bundle.putString("url", url);
-		if (post != null) bundle.putParcelable("post", post);
+		if(post != null) {
+			bundle.putParcelable("post", post);
+		}
 		f.setArguments(bundle);
 
 		return f;
@@ -104,21 +108,28 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 		html = getArguments().getString("html");
 	}
 
+	@SuppressLint("SetJavaScriptEnabled")
 	@Override
-	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+	public View onCreateView(
+			final LayoutInflater inflater,
+			final ViewGroup container,
+			final Bundle savedInstanceState) {
 
-		mActivity = (AppCompatActivity) getActivity();
+		mActivity = (BaseActivity)getActivity();
 
 		CookieSyncManager.createInstance(mActivity);
 
-		outer = (FrameLayout) inflater.inflate(R.layout.web_view_fragment, null);
+		outer = (FrameLayout)inflater.inflate(R.layout.web_view_fragment, null);
 
 		final RedditPost src_post = getArguments().getParcelable("post");
 		final RedditPreparedPost post;
 
-		if (src_post != null) {
+		if(src_post != null) {
 
-			final RedditParsedPost parsedPost = new RedditParsedPost(mActivity, src_post, false);
+			final RedditParsedPost parsedPost = new RedditParsedPost(
+					mActivity,
+					src_post,
+					false);
 
 			post = new RedditPreparedPost(
 					mActivity,
@@ -133,17 +144,28 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 			post = null;
 		}
 
-		webView = (WebViewFixed) outer.findViewById(R.id.web_view_fragment_webviewfixed);
-		final FrameLayout loadingViewFrame = (FrameLayout) outer.findViewById(R.id.web_view_fragment_loadingview_frame);
+		webView = outer.findViewById(R.id.web_view_fragment_webviewfixed);
+		final FrameLayout loadingViewFrame
+				= outer.findViewById(R.id.web_view_fragment_loadingview_frame);
 
-		progressView = new ProgressBar(mActivity, null, android.R.attr.progressBarStyleHorizontal);
+		progressView = new ProgressBar(
+				mActivity,
+				null,
+				android.R.attr.progressBarStyleHorizontal);
 		loadingViewFrame.addView(progressView);
-		loadingViewFrame.setPadding(General.dpToPixels(mActivity, 10), 0, General.dpToPixels(mActivity, 10), 0);
-		final FrameLayout fullscreenViewFrame = (FrameLayout) outer.findViewById(R.id.web_view_fragment_fullscreen_frame);
+		loadingViewFrame.setPadding(
+				General.dpToPixels(mActivity, 10),
+				0,
+				General.dpToPixels(mActivity, 10),
+				0);
+		final FrameLayout fullscreenViewFrame
+				= outer.findViewById(R.id.web_view_fragment_fullscreen_frame);
 
-		VideoEnabledWebChromeClient chromeClient = new VideoEnabledWebChromeClient(loadingViewFrame, fullscreenViewFrame) {
+		final VideoEnabledWebChromeClient chromeClient = new VideoEnabledWebChromeClient(
+				loadingViewFrame,
+				fullscreenViewFrame) {
 			@Override
-			public void onProgressChanged(WebView view, final int newProgress) {
+			public void onProgressChanged(final WebView view, final int newProgress) {
 
 				super.onProgressChanged(view, newProgress);
 
@@ -151,73 +173,78 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 					@Override
 					public void run() {
 						progressView.setProgress(newProgress);
-						progressView.setVisibility(newProgress == 100 ? View.GONE : View.VISIBLE);
+						progressView.setVisibility(newProgress == 100
+								? View.GONE
+								: View.VISIBLE);
 					}
 				});
 			}
 		};
 
-		chromeClient.setOnToggledFullscreen(new VideoEnabledWebChromeClient.ToggledFullscreenCallback()
-		{
-			@Override
-			public void toggledFullscreen(boolean fullscreen)
-			{
-				// Your code to handle the full-screen change, for example showing and hiding the title bar. Example:
-				if (fullscreen)
-				{
-					WindowManager.LayoutParams attrs = getActivity().getWindow().getAttributes();
-					attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
-					attrs.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-					getActivity().getWindow().setAttributes(attrs);
-					((AppCompatActivity) getActivity()).getSupportActionBar().hide();
-					if (android.os.Build.VERSION.SDK_INT >= 14)
-					{
-						//noinspection all
-						getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
-					}
+		chromeClient.setOnToggledFullscreen(fullscreen -> {
+			// Your code to handle the full-screen change, for example showing
+			// and hiding the title bar. Example:
+			if(fullscreen) {
+				final WindowManager.LayoutParams attrs = mActivity.getWindow()
+						.getAttributes();
+				attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+				attrs.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+				mActivity.getWindow().setAttributes(attrs);
+				mActivity.getSupportActionBar().hide();
+				if(Build.VERSION.SDK_INT >= 14) {
+					//noinspection all
+					mActivity.getWindow()
+							.getDecorView()
+							.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
 				}
-				else
-				{
-					WindowManager.LayoutParams attrs = getActivity().getWindow().getAttributes();
-					//only re-enable status bar if there is no contradicting preference set
-					if (!PrefsUtility.pref_appearance_hide_android_status(getContext(),
-							PreferenceManager.getDefaultSharedPreferences(getContext()))) {
-						attrs.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
-					}
-					attrs.flags &= ~WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-					getActivity().getWindow().setAttributes(attrs);
-					((AppCompatActivity) getActivity()).getSupportActionBar().show();
-					if (android.os.Build.VERSION.SDK_INT >= 14)
-					{
-						//noinspection all
-						getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-					}
+			} else {
+				final WindowManager.LayoutParams attrs = mActivity.getWindow()
+						.getAttributes();
+				//only re-enable status bar if there is no contradicting preference set
+				if(!PrefsUtility.pref_appearance_hide_android_status(
+						getContext(),
+						PreferenceManager.getDefaultSharedPreferences(getContext()))) {
+					attrs.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
 				}
-
+				attrs.flags &= ~WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+				mActivity.getWindow().setAttributes(attrs);
+				mActivity.getSupportActionBar().show();
+				if(Build.VERSION.SDK_INT >= 14) {
+					//noinspection all
+					mActivity.getWindow()
+							.getDecorView()
+							.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+				}
 			}
+
 		});
 
 		/*handle download links show an alert box to load this outside the internal browser*/
 		webView.setDownloadListener(new DownloadListener() {
 			@Override
-			public void onDownloadStart(final String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+			public void onDownloadStart(
+					final String url,
+					final String userAgent,
+					final String contentDisposition,
+					final String mimetype,
+					final long contentLength) {
 				{
 					new AlertDialog.Builder(mActivity)
 							.setTitle(R.string.download_link_title)
 							.setMessage(R.string.download_link_message)
-							.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int which) {
-									Intent i = new Intent(Intent.ACTION_VIEW);
-									i.setData(Uri.parse(url));
-									getContext().startActivity(i);
-									mActivity.onBackPressed(); //get back from internal browser
-								}
-							})
-							.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int which) {
-									mActivity.onBackPressed(); //get back from internal browser
-								}
-							})
+							.setPositiveButton(
+									android.R.string.yes,
+									(dialog, which) -> {
+										final Intent i = new Intent(Intent.ACTION_VIEW);
+										i.setData(Uri.parse(url));
+										getContext().startActivity(i);
+										mActivity.onBackPressed(); //get back from internal browser
+									})
+							.setNegativeButton(
+									android.R.string.no,
+									(dialog, which) -> {
+										mActivity.onBackPressed(); //get back from internal browser
+									})
 							.setIcon(android.R.drawable.ic_dialog_alert)
 							.show();
 				}
@@ -241,7 +268,7 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 		webView.setWebChromeClient(chromeClient);
 
 
-		if (mUrl != null) {
+		if(mUrl != null) {
 			webView.loadUrl(mUrl);
 		} else {
 			webView.loadHtmlUTF8WithBaseURL("https://reddit.com/", html);
@@ -249,42 +276,56 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 
 		webView.setWebViewClient(new WebViewClient() {
 			@Override
-			public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
+			public boolean shouldOverrideUrlLoading(
+					final WebView view,
+					final String url) {
 
-				if (url == null) return false;
+				if(url == null) {
+					return false;
+				}
 
-				if (url.startsWith("data:")) {
+				if(url.startsWith("data:")) {
 					// Prevent imgur bug where we're directed to some random data URI
 					return true;
 				}
 
 				// Go back if loading same page to prevent redirect loops.
-				if (goingBack && currentUrl != null && url.equals(currentUrl)) {
+				if(goingBack && currentUrl != null && url.equals(currentUrl)) {
 
 					General.quickToast(mActivity,
-							String.format(Locale.US, "Handling redirect loop (level %d)", -lastBackDepthAttempt), Toast.LENGTH_SHORT);
+							String.format(
+									Locale.US,
+									"Handling redirect loop (level %d)",
+									-lastBackDepthAttempt), Toast.LENGTH_SHORT);
 
 					lastBackDepthAttempt--;
 
-					if (webView.canGoBackOrForward(lastBackDepthAttempt)) {
+					if(webView.canGoBackOrForward(lastBackDepthAttempt)) {
 						webView.goBackOrForward(lastBackDepthAttempt);
 					} else {
 						mActivity.finish();
 					}
 				} else {
 
-					if (RedditURLParser.parse(Uri.parse(url)) != null) {
+					if(RedditURLParser.parse(Uri.parse(url)) != null) {
 						LinkHandler.onLinkClicked(mActivity, url, false);
 					} else {
-						if (! PrefsUtility.pref_behaviour_useinternalbrowser(
-								getActivity(),
-								PreferenceManager.getDefaultSharedPreferences(getActivity()))) {
-							LinkHandler.openWebBrowser((AppCompatActivity)getActivity(), Uri.parse(url), true);
-						} else if (PrefsUtility.pref_behaviour_usecustomtabs(
-								getActivity(),
-								PreferenceManager.getDefaultSharedPreferences(getActivity())) &&
-								Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-							LinkHandler.openCustomTab((AppCompatActivity)getActivity(),Uri.parse(url));
+						if(!PrefsUtility.pref_behaviour_useinternalbrowser(
+								mActivity,
+								PreferenceManager.getDefaultSharedPreferences(mActivity))) {
+							LinkHandler.openWebBrowser(
+									mActivity,
+									Uri.parse(url),
+									true);
+						} else if(PrefsUtility.pref_behaviour_usecustomtabs(
+								mActivity,
+								PreferenceManager.getDefaultSharedPreferences(mActivity))
+								&& Build.VERSION.SDK_INT
+										>= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+							LinkHandler.openCustomTab(
+									mActivity,
+									Uri.parse(url),
+									null);
 						} else {
 							webView.loadUrl(url);
 							currentUrl = url;
@@ -296,14 +337,14 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 			}
 
 			@Override
-			public void onPageStarted(WebView view, String url, Bitmap favicon) {
+			public void onPageStarted(final WebView view, final String url, final Bitmap favicon) {
 				super.onPageStarted(view, url, favicon);
 
-				if (mUrl != null && url != null) {
+				if(mUrl != null && url != null) {
 
 					final AppCompatActivity activity = mActivity;
 
-					if (activity != null) {
+					if(activity != null) {
 						activity.setTitle(url);
 					}
 				}
@@ -321,18 +362,26 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 							@Override
 							public void run() {
 
-								if (currentUrl == null || url == null) return;
+								if(currentUrl == null || url == null) {
+									return;
+								}
 
-								if (!url.equals(view.getUrl())) return;
+								if(!url.equals(view.getUrl())) {
+									return;
+								}
 
-								if (goingBack && url.equals(currentUrl)) {
+								if(goingBack && url.equals(currentUrl)) {
 
-									General.quickToast(mActivity,
-											String.format(Locale.US, "Handling redirect loop (level %d)", -lastBackDepthAttempt));
+									General.quickToast(
+											mActivity,
+											String.format(
+													Locale.US,
+													"Handling redirect loop (level %d)",
+													-lastBackDepthAttempt));
 
 									lastBackDepthAttempt--;
 
-									if (webView.canGoBackOrForward(lastBackDepthAttempt)) {
+									if(webView.canGoBackOrForward(lastBackDepthAttempt)) {
 										webView.goBackOrForward(lastBackDepthAttempt);
 									} else {
 										mActivity.finish();
@@ -348,7 +397,10 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 			}
 
 			@Override
-			public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
+			public void doUpdateVisitedHistory(
+					final WebView view,
+					final String url,
+					final boolean isReload) {
 				super.doUpdateVisitedHistory(view, url, isReload);
 			}
 		});
@@ -356,40 +408,51 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 		final FrameLayout outerFrame = new FrameLayout(mActivity);
 		outerFrame.addView(outer);
 
-		if (post != null) {
+		if(post != null) {
 
 			final SideToolbarOverlay toolbarOverlay = new SideToolbarOverlay(mActivity);
 
-			final BezelSwipeOverlay bezelOverlay = new BezelSwipeOverlay(mActivity, new BezelSwipeOverlay.BezelSwipeListener() {
-				@Override
-				public boolean onSwipe(@BezelSwipeOverlay.SwipeEdge int edge) {
+			final BezelSwipeOverlay bezelOverlay = new BezelSwipeOverlay(
+					mActivity,
+					new BezelSwipeOverlay.BezelSwipeListener() {
+						@Override
+						public boolean onSwipe(@BezelSwipeOverlay.SwipeEdge final int edge) {
 
-					toolbarOverlay.setContents(post.generateToolbar(mActivity, false, toolbarOverlay));
-					toolbarOverlay.show(edge == BezelSwipeOverlay.LEFT ?
-							SideToolbarOverlay.SideToolbarPosition.LEFT : SideToolbarOverlay.SideToolbarPosition.RIGHT);
-					return true;
-				}
+							toolbarOverlay.setContents(post.generateToolbar(
+									mActivity,
+									false,
+									toolbarOverlay));
+							toolbarOverlay.show(edge == BezelSwipeOverlay.LEFT
+									?
+									SideToolbarOverlay.SideToolbarPosition.LEFT
+									: SideToolbarOverlay.SideToolbarPosition.RIGHT);
+							return true;
+						}
 
-				@Override
-				public boolean onTap() {
+						@Override
+						public boolean onTap() {
 
-					if (toolbarOverlay.isShown()) {
-						toolbarOverlay.hide();
-						return true;
-					}
+							if(toolbarOverlay.isShown()) {
+								toolbarOverlay.hide();
+								return true;
+							}
 
-					return false;
-				}
-			});
+							return false;
+						}
+					});
 
 			outerFrame.addView(bezelOverlay);
 			outerFrame.addView(toolbarOverlay);
 
-			bezelOverlay.getLayoutParams().width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
-			bezelOverlay.getLayoutParams().height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
+			bezelOverlay.getLayoutParams().width
+					= android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
+			bezelOverlay.getLayoutParams().height
+					= android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
 
-			toolbarOverlay.getLayoutParams().width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
-			toolbarOverlay.getLayoutParams().height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
+			toolbarOverlay.getLayoutParams().width
+					= android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
+			toolbarOverlay.getLayoutParams().height
+					= android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
 		}
 
 		return outerFrame;
@@ -413,7 +476,7 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 
 	public boolean onBackButtonPressed() {
 
-		if (webView.canGoBack()) {
+		if(webView.canGoBack()) {
 			goingBack = true;
 			lastBackDepthAttempt = -1;
 			webView.goBack();
@@ -423,12 +486,14 @@ public class WebViewFragment extends Fragment implements RedditPostView.PostSele
 		return false;
 	}
 
+	@Override
 	public void onPostSelected(final RedditPreparedPost post) {
-		((RedditPostView.PostSelectionListener) mActivity).onPostSelected(post);
+		((RedditPostView.PostSelectionListener)mActivity).onPostSelected(post);
 	}
 
+	@Override
 	public void onPostCommentsSelected(final RedditPreparedPost post) {
-		((RedditPostView.PostSelectionListener) mActivity).onPostCommentsSelected(post);
+		((RedditPostView.PostSelectionListener)mActivity).onPostCommentsSelected(post);
 	}
 
 	public String getCurrentUrl() {

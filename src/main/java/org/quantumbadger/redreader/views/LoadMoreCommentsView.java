@@ -72,7 +72,7 @@ public class LoadMoreCommentsView extends LinearLayout {
 		final ImageView icon;
 
 		{
-			final TypedArray appearance = context.obtainStyledAttributes(new int[]{
+			final TypedArray appearance = context.obtainStyledAttributes(new int[] {
 					R.attr.rrIconForward,
 					R.attr.rrListItemBackgroundCol,
 					R.attr.rrListDividerCol});
@@ -91,39 +91,50 @@ public class LoadMoreCommentsView extends LinearLayout {
 		icon.setScaleY(0.75f);
 
 		layout.addView(icon);
-		((LinearLayout.LayoutParams)icon.getLayoutParams()).setMargins(marginPx, marginPx, marginPx, marginPx);
+		((LinearLayout.LayoutParams)icon.getLayoutParams()).setMargins(
+				marginPx,
+				marginPx,
+				marginPx,
+				marginPx);
 
 		final LinearLayout textLayout = new LinearLayout(context);
 		textLayout.setOrientation(VERTICAL);
 		layout.addView(textLayout);
-		((LinearLayout.LayoutParams)textLayout.getLayoutParams()).setMargins(0, marginPx, marginPx, marginPx);
+		((LinearLayout.LayoutParams)textLayout.getLayoutParams()).setMargins(
+				0,
+				marginPx,
+				marginPx,
+				marginPx);
 
 		mTitleView = new TextView(context);
 		mTitleView.setText("Error: text not set");
 		mTitleView.setTextSize(13f);
 		textLayout.addView(mTitleView);
 
-		setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(final View v) {
+		setOnClickListener(v -> {
 
-				if(mCommentListingURL.pathType() == RedditURLParser.POST_COMMENT_LISTING_URL) {
+			if(mCommentListingURL.pathType()
+					== RedditURLParser.POST_COMMENT_LISTING_URL) {
 
-					final PostCommentListingURL listingUrl = mCommentListingURL.asPostCommentListURL();
+				final PostCommentListingURL listingUrl =
+						mCommentListingURL.asPostCommentListURL();
 
-					final ArrayList<String> commentIds = new ArrayList<>(16);
-					for(final PostCommentListingURL url : mItem.asLoadMore().getMoreUrls(mCommentListingURL)) {
-						commentIds.add(url.commentId);
-					}
-
-					final Intent intent = new Intent(context, MoreCommentsListingActivity.class);
-					intent.putExtra("postId", listingUrl.postId);
-					intent.putStringArrayListExtra("commentIds", commentIds);
-					context.startActivity(intent);
-
-				} else {
-					General.quickToast(context, R.string.load_more_comments_failed_unknown_url_type);
+				final ArrayList<String> commentIds = new ArrayList<>(16);
+				for(final PostCommentListingURL url : mItem.asLoadMore()
+						.getMoreUrls(mCommentListingURL)) {
+					commentIds.add(url.commentId);
 				}
+
+				final Intent intent =
+						new Intent(context, MoreCommentsListingActivity.class);
+				intent.putExtra("postId", listingUrl.postId);
+				intent.putStringArrayListExtra("commentIds", commentIds);
+				context.startActivity(intent);
+
+			} else {
+				General.quickToast(
+						context,
+						R.string.load_more_comments_failed_unknown_url_type);
 			}
 		});
 	}
@@ -132,12 +143,13 @@ public class LoadMoreCommentsView extends LinearLayout {
 
 		mItem = item;
 
-		final StringBuilder title = new StringBuilder(getContext().getString(R.string.more_comments_button_text));
 		final int count = item.asLoadMore().getCount();
 
-		title.append(getResources().getQuantityString(R.plurals.subtitle_replies, count, count));
+		mTitleView.setText(getResources().getQuantityString(
+				R.plurals.load_more_comments_button_reply_count,
+				count,
+				count));
 
-		mTitleView.setText(title);
 		mIndentView.setIndentation(item.getIndent());
 	}
 

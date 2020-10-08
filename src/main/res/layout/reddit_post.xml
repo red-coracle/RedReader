@@ -19,7 +19,7 @@
 
 <LinearLayout
 		xmlns:android="http://schemas.android.com/apk/res/android"
-		android:layout_width="match_parent"
+		xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:orientation="vertical"
 		android:baselineAligned="false">
@@ -40,7 +40,9 @@
 			android:orientation="horizontal"
 			android:minHeight="64dp"
 			android:elevation="10dp"
-			android:nextFocusRight="@id/reddit_post_comments_button">
+			android:nextFocusRight="@id/reddit_post_comments_button"
+			android:baselineAligned="false"
+			tools:ignore="UnusedAttribute">
 
 		<FrameLayout
 				android:layout_width="wrap_content"
@@ -52,7 +54,8 @@
 					android:id="@+id/reddit_post_thumbnail_view"
 					android:layout_width="wrap_content"
 					android:layout_height="match_parent"
-					android:scaleType="center"/>
+					android:scaleType="center"
+					tools:ignore="ContentDescription"/>
 
 			<ImageView
 					android:id="@+id/reddit_post_overlay_icon"
@@ -60,7 +63,8 @@
 					android:layout_height="match_parent"
 					android:scaleType="center"
 					android:visibility="gone"
-					android:background="#99000000"/>
+					android:background="#99000000"
+					tools:ignore="ContentDescription"/>
 
 		</FrameLayout>
 
@@ -80,7 +84,7 @@
 					android:layout_height="wrap_content"
 					android:textColor="?rrPostTitleCol"
 					android:paddingLeft="10dp"
-					android:paddingRight="5dp"
+					android:paddingRight="10dp"
 					android:paddingTop="5dp"
 					android:paddingBottom="0dp"
 					android:textSize="14sp"/>
@@ -92,10 +96,11 @@
 					android:gravity="center_vertical"
 					android:textColor="#909090"
 					android:paddingLeft="10dp"
-					android:paddingRight="5dp"
+					android:paddingRight="10dp"
 					android:paddingTop="1dp"
 					android:paddingBottom="5dp"
-					android:textSize="11sp"/>
+					android:textSize="11sp"
+					tools:ignore="SmallSp"/>
 
 		</LinearLayout>
 
@@ -125,7 +130,8 @@
 					android:layout_width="fill_parent"
 					android:gravity="center"
 					android:textSize="11sp"
-					android:textColor="?rrPostCommentsButtonTextCol"/>
+					android:textColor="?rrPostCommentsButtonTextCol"
+					tools:ignore="SmallSp"/>
 
 		</LinearLayout>
 

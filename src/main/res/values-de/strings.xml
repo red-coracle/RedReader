@@ -27,16 +27,13 @@
     <string name="prefs_category_menus">Menüs</string>
     <!-- Appearance Prefs -->
     <string name="pref_appearance_theme_header">Design</string>
-    <string name="pref_appearance_font_header">Schriftgröße</string>
     <string name="pref_appearance_thumbnails_header">Vorschaubilder</string>
-    <string name="pref_appearance_tabletmode_header">Tablet-Modus</string>
     <string name="pref_appearance_comments_header">Kommentare</string>
     <string name="pref_appearance_other_header">Sonstiges</string>
     <string name="pref_appearance_twopane_title">Tablet-Modus (Zweispaltig)</string>
     <string name="pref_appearance_theme_title">Design</string>
     <string name="pref_appearance_solidblack_title">Echtes Schwarz im Nachtmodus</string>
-    <string name="pref_appearance_fontscale_posts_title">Post-Schriftgröße</string>
-    <string name="pref_appearance_fontscale_comments_title">Kommentar-Schriftgröße</string>
+    <string name="pref_appearance_fontscale_posts_title">Post-Titeln</string>
     <string name="pref_appearance_thumbnails_show_title">Zeige Vorschaubilder</string>
     <string name="pref_appearance_thumbnails_nsfw_show_title">Zeige NSFW-Vorschaubilder</string>
     <string name="pref_appearance_thumbnails_wifionly_title">Zeige Vorschaubilder nur im WLAN</string>
@@ -48,8 +45,8 @@
     <string name="pref_behaviour_actions_comment_header">Kommentar-Aktionen</string>
     <string name="pref_behaviour_posts_header">Posts</string>
     <string name="pref_behaviour_fling_post_left_title">Posts nach links wischen</string>
-    <string name="pref_behaviour_fling_post_right_title">Posts nach rechts wischen</string>
-    <string name="pref_behaviour_actions_comment_tap_title">Auf Kommentare tippen</string>
+    <string name="pref_behaviour_fling_post_right_title">Nach rechts wischen</string>
+    <string name="pref_behaviour_actions_comment_tap_title">Drücken</string>
     <string name="pref_behaviour_nsfw_title">Zeige NSFW-Inhalte</string>
     <!-- Cache Prefs -->
     <string name="pref_cache_pruning">Cache leeren</string>
@@ -314,11 +311,6 @@
     <string name="subtitle_points">Punkte</string>
     <string name="subtitle_by">von</string>
     <string name="subtitle_to">an</string>
-    <plurals name="subtitle_replies">
-        <item quantity="zero">…</item>
-        <item quantity="one">" (%d Antworten)"</item>
-        <item quantity="other">" (%d Antworten)"</item>
-    </plurals>
     <string name="general_unknown">Unbekannt</string>
     <string name="action_search">Suchen</string>
     <string name="search_subreddit_restrict">Suche begrenzen</string>
@@ -373,7 +365,7 @@
     <string name="options_unsubscribing">Abbestellen…</string>
     <string name="options_sidebar">Seitenleiste anzeigen</string>
     <!-- 2014-04-13 -->
-    <string name="pref_menus_mainmenu_useritems_title">Hauptmenüeinträge</string>
+    <string name="pref_menus_mainmenu_useritems_title">Benutzer-Einträge</string>
     <string name="mainmenu_submitted">Eingereichte Posts</string>
     <string name="mainmenu_downvoted">Abgewertete Posts</string>
     <string name="mainmenu_modmail">Mod Nachrichten</string>
@@ -455,7 +447,6 @@
     <string name="mainmenu_useritems">Benutzer-Elemente</string>
     <string name="mark_all_as_read">Alles als gelesen markieren</string>
     <string name="mark_all_as_read_success">Alle Nachrichten als gelesen markiert</string>
-    <string name="more_comments_button_text">Weitere Kommentare laden</string>
     <string name="no_comments_yet">Noch keine Kommentare</string>
     <string name="no_file_selected">Keine Datei ausgewählt</string>
     <string name="no_search_results">Keine Suchergebnisse gefunden</string>
@@ -468,9 +459,8 @@
     <string name="pm_send_hint_message_text">Nachrichtentext</string>
     <string name="pm_send_hint_recipient">Empfänger</string>
     <string name="pm_send_hint_subject">Betreff</string>
-    <string name="pref_appearance_fontscale_inbox_title">Skalierung der Schrift im Posteingang</string>
     <string name="pref_appearance_hide_android_status_title">Android-Statusleiste verstecken</string>
-    <string name="pref_appearance_hide_username_main_menu_title">Benutzername im Hauptmenü verstecken</string>
+    <string name="pref_appearance_hide_username_main_menu_title">Benutzername verstecken</string>
     <string name="pref_appearance_image_viewer_header">Bildbetrachter</string>
     <string name="pref_appearance_image_viewer_show_floating_toolbar_title">Schwebene Werkzeugleiste über Bild anzeigen</string>
     <string name="pref_appearance_link_text_clickable_title">Link-Text klickbar machen</string>
@@ -491,7 +481,7 @@
     <string name="pref_behaviour_enable_swipe_refresh_title">Nach unten wischen um zu aktualisieren</string>
     <string name="pref_behaviour_fling_comment_left_title">Aktion für das Nach-links-Wischen von Kommentaren</string>
     <string name="pref_behaviour_fling_comment_right_title">Aktion für das Nach-rechts-Wischen von Kommentaren</string>
-    <string name="pref_behaviour_gallery_swipe_length_title">Wischlänge in Gallerie</string>
+    <string name="pref_behaviour_gallery_swipe_length_title">Wischlänge in Galerie</string>
     <string name="pref_behaviour_gifview_mode_internal_legacy">Interner Betrachter (veraltet)</string>
     <string name="pref_behaviour_gifview_mode_internal_movie">Interner Betrachter (Movie, Android 4.0+)</string>
     <string name="pref_behaviour_gifview_mode_title">GIF-Betrachter</string>
@@ -620,4 +610,9 @@
     <string name="error_toast_no_share_app_installed">Keine geeignete App installiert, um dies zu teilen.</string>
     <string name="pref_appearance_show_aspect_ratio_indicator_title">Aspect Ratio-Indikator anzeigen</string>
     <string name="action_copy_selftext">Selbsttext kopieren</string>
+    <string name="pref_appearance_fontscale_post_subtitles_title">Post-Untertiteln</string>
+	<plurals name="load_more_comments_button_reply_count">
+		<item quantity="one">"Weitere Kommentare laden (%d Antworten)"</item>
+		<item quantity="other">"Weitere Kommentare laden (%d Antworten)"</item>
+	</plurals>
 </resources>

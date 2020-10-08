@@ -30,6 +30,7 @@ import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategy;
 import org.quantumbadger.redreader.cache.downloadstrategy.DownloadStrategyAlways;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.TimestampBound;
+import org.quantumbadger.redreader.http.HTTPBackend;
 import org.quantumbadger.redreader.io.RequestResponseHandler;
 import org.quantumbadger.redreader.jsonwrap.JsonBufferedArray;
 import org.quantumbadger.redreader.jsonwrap.JsonValue;
@@ -47,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.quantumbadger.redreader.http.HTTPBackend.PostField;
 
 public final class RedditAPI {
 
@@ -66,14 +66,24 @@ public final class RedditAPI {
 	public static final int SUBSCRIPTION_ACTION_SUBSCRIBE = 0;
 	public static final int SUBSCRIPTION_ACTION_UNSUBSCRIBE = 1;
 
-	@IntDef({ACTION_UPVOTE, ACTION_UNVOTE, ACTION_DOWNVOTE, ACTION_SAVE, ACTION_HIDE, ACTION_UNSAVE,
-		ACTION_UNHIDE, ACTION_REPORT, ACTION_DELETE})
+	@IntDef({
+			ACTION_UPVOTE,
+			ACTION_UNVOTE,
+			ACTION_DOWNVOTE,
+			ACTION_SAVE,
+			ACTION_HIDE,
+			ACTION_UNSAVE,
+			ACTION_UNHIDE,
+			ACTION_REPORT,
+			ACTION_DELETE})
 	@Retention(RetentionPolicy.SOURCE)
-	public @interface RedditAction {}
+	public @interface RedditAction {
+	}
 
 	@IntDef({SUBSCRIPTION_ACTION_SUBSCRIBE, SUBSCRIPTION_ACTION_UNSUBSCRIBE})
 	@Retention(RetentionPolicy.SOURCE)
-	public @interface RedditSubredditAction {}
+	public @interface RedditSubredditAction {
+	}
 
 	public static void submit(
 			final CacheManager cm,
@@ -86,52 +96,71 @@ public final class RedditAPI {
 			final boolean sendRepliesToInbox,
 			final boolean markAsNsfw,
 			final boolean markAsSpoiler,
-			final Context context)
-	{
+			final Context context) {
 
-		final LinkedList<PostField> postFields = new LinkedList<>();
-		postFields.add(new PostField("kind", is_self ? "self" : "link"));
-		postFields.add(new PostField("sendreplies", sendRepliesToInbox ? "true" : "false"));
-		postFields.add(new PostField("nsfw", markAsNsfw ? "true" : "false"));
-		postFields.add(new PostField("spoiler", markAsSpoiler ? "true" : "false"));
-		postFields.add(new PostField("sr", subreddit));
-		postFields.add(new PostField("title", title));
+		final LinkedList<HTTPBackend.PostField> postFields = new LinkedList<>();
+		postFields.add(new HTTPBackend.PostField("kind", is_self ? "self" : "link"));
+		postFields.add(new HTTPBackend.PostField(
+				"sendreplies",
+				sendRepliesToInbox ? "true" : "false"));
+		postFields.add(new HTTPBackend.PostField("nsfw", markAsNsfw ? "true" : "false"));
+		postFields.add(new HTTPBackend.PostField("spoiler", markAsSpoiler ? "true" : "false"));
+		postFields.add(new HTTPBackend.PostField("sr", subreddit));
+		postFields.add(new HTTPBackend.PostField("title", title));
 
-		if(is_self)
-			postFields.add(new PostField("text", body));
-		else
-			postFields.add(new PostField("url", body));
+		if(is_self) {
+			postFields.add(new HTTPBackend.PostField("text", body));
+		} else {
+			postFields.add(new HTTPBackend.PostField("url", body));
+		}
 
 
-		cm.makeRequest(new APIPostRequest(Constants.Reddit.getUri("/api/submit"), user, postFields, context) {
+		cm.makeRequest(new APIPostRequest(
+				Constants.Reddit.getUri("/api/submit"),
+				user,
+				postFields,
+				context) {
 
 			@Override
-			public void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache) {
+			public void onJsonParseStarted(
+					final JsonValue result,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache) {
 
 				System.out.println(result.toString());
 
 				try {
-					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
+					final APIResponseHandler.APIFailureType failureType =
+							findFailureType(result);
 
 					if(failureType != null) {
 						responseHandler.notifyFailure(failureType);
 						return;
 					}
 
-				} catch(Throwable t) {
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
+				} catch(final Throwable t) {
+					notifyFailure(
+							CacheRequest.REQUEST_FAILURE_PARSE,
+							t,
+							null,
+							"JSON failed to parse");
 				}
 
 				responseHandler.notifySuccess(findRedirectUrl(result));
 			}
 
 			@Override
-			protected void onCallbackException(Throwable t) {
+			protected void onCallbackException(final Throwable t) {
 				BugReportActivity.handleGlobalError(context, t);
 			}
 
 			@Override
-			protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+			protected void onFailure(
+					@CacheRequest.RequestFailureType final int type,
+					final Throwable t,
+					final Integer status,
+					final String readableMessage) {
 				responseHandler.notifyFailure(type, t, status, readableMessage);
 			}
 		});
@@ -146,82 +175,119 @@ public final class RedditAPI {
 			@NonNull final String body,
 			@NonNull final Context context) {
 
-		final LinkedList<PostField> postFields = new LinkedList<>();
-		postFields.add(new PostField("api_type", "json"));
-		postFields.add(new PostField("subject", subject));
-		postFields.add(new PostField("to", recipient));
-		postFields.add(new PostField("text", body));
+		final LinkedList<HTTPBackend.PostField> postFields = new LinkedList<>();
+		postFields.add(new HTTPBackend.PostField("api_type", "json"));
+		postFields.add(new HTTPBackend.PostField("subject", subject));
+		postFields.add(new HTTPBackend.PostField("to", recipient));
+		postFields.add(new HTTPBackend.PostField("text", body));
 
-		cm.makeRequest(new APIPostRequest(Constants.Reddit.getUri("/api/compose"), user, postFields, context) {
+		cm.makeRequest(new APIPostRequest(
+				Constants.Reddit.getUri("/api/compose"),
+				user,
+				postFields,
+				context) {
 
 			@Override
-			public void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache) {
+			public void onJsonParseStarted(
+					final JsonValue result,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache) {
 
 				System.out.println(result.toString());
 
 				try {
-					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
+					final APIResponseHandler.APIFailureType failureType =
+							findFailureType(result);
 
 					if(failureType != null) {
 						responseHandler.notifyFailure(failureType);
 						return;
 					}
 
-				} catch(Throwable t) {
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
+				} catch(final Throwable t) {
+					notifyFailure(
+							CacheRequest.REQUEST_FAILURE_PARSE,
+							t,
+							null,
+							"JSON failed to parse");
 				}
 
 				responseHandler.notifySuccess(null);
 			}
 
 			@Override
-			protected void onCallbackException(Throwable t) {
+			protected void onCallbackException(final Throwable t) {
 				BugReportActivity.handleGlobalError(context, t);
 			}
 
 			@Override
-			protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+			protected void onFailure(
+					@CacheRequest.RequestFailureType final int type,
+					final Throwable t,
+					final Integer status,
+					final String readableMessage) {
 				responseHandler.notifyFailure(type, t, status, readableMessage);
 			}
 		});
 	}
 
-	public static void comment(final CacheManager cm,
-							   final APIResponseHandler.ActionResponseHandler responseHandler,
-							   final APIResponseHandler.ActionResponseHandler inboxResponseHandler,
-							   final RedditAccount user,
-							   final String parentIdAndType,
-							   final String markdown,
-							   final boolean sendRepliesToInbox,
-							   final Context context) {
+	public static void comment(
+			final CacheManager cm,
+			final APIResponseHandler.ActionResponseHandler responseHandler,
+			final APIResponseHandler.ActionResponseHandler inboxResponseHandler,
+			final RedditAccount user,
+			final String parentIdAndType,
+			final String markdown,
+			final boolean sendRepliesToInbox,
+			final Context context) {
 
-		final LinkedList<PostField> postFields = new LinkedList<>();
-		postFields.add(new PostField("thing_id", parentIdAndType));
-		postFields.add(new PostField("text", markdown));
+		final LinkedList<HTTPBackend.PostField> postFields = new LinkedList<>();
+		postFields.add(new HTTPBackend.PostField("thing_id", parentIdAndType));
+		postFields.add(new HTTPBackend.PostField("text", markdown));
 
-		cm.makeRequest(new APIPostRequest(Constants.Reddit.getUri("/api/comment"), user, postFields, context) {
+		cm.makeRequest(new APIPostRequest(
+				Constants.Reddit.getUri("/api/comment"),
+				user,
+				postFields,
+				context) {
 
 			@Override
-			public void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache) {
+			public void onJsonParseStarted(
+					final JsonValue result,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache) {
 
 				System.out.println(result.toString());
 
 				try {
-					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
+					final APIResponseHandler.APIFailureType failureType =
+							findFailureType(result);
 					if(failureType != null) {
 						responseHandler.notifyFailure(failureType);
 						return;
 					}
 					// sending replies to inbox is the default behaviour
-					if (!sendRepliesToInbox) {
-						String commentFullname = findThingIdFromCommentResponse(result);
-						if (commentFullname != null && commentFullname.length() > 0) {
-							sendReplies(cm, inboxResponseHandler, user, commentFullname, false, context);
+					if(!sendRepliesToInbox) {
+						final String commentFullname = findThingIdFromCommentResponse(result);
+						if(commentFullname != null && commentFullname.length() > 0) {
+							sendReplies(
+									cm,
+									inboxResponseHandler,
+									user,
+									commentFullname,
+									false,
+									context);
 						}
 					}
 
-				} catch(Throwable t) {
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
+				} catch(final Throwable t) {
+					notifyFailure(
+							CacheRequest.REQUEST_FAILURE_PARSE,
+							t,
+							null,
+							"JSON failed to parse");
 				}
 
 				@Nullable String permalink = findStringValue(result, "permalink");
@@ -234,12 +300,16 @@ public final class RedditAPI {
 			}
 
 			@Override
-			protected void onCallbackException(Throwable t) {
+			protected void onCallbackException(final Throwable t) {
 				BugReportActivity.handleGlobalError(context, t);
 			}
 
 			@Override
-			protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+			protected void onFailure(
+					@CacheRequest.RequestFailureType final int type,
+					final Throwable t,
+					final Integer status,
+					final String readableMessage) {
 				responseHandler.notifyFailure(type, t, status, readableMessage);
 			}
 		});
@@ -251,92 +321,128 @@ public final class RedditAPI {
 			final RedditAccount user,
 			final Context context) {
 
-		final LinkedList<PostField> postFields = new LinkedList<>();
+		final LinkedList<HTTPBackend.PostField> postFields = new LinkedList<>();
 
-		cm.makeRequest(new APIPostRequest(Constants.Reddit.getUri("/api/read_all_messages"), user, postFields, context) {
+		cm.makeRequest(new APIPostRequest(
+				Constants.Reddit.getUri("/api/read_all_messages"),
+				user,
+				postFields,
+				context) {
 
 			@Override
-			public void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache) {
+			public void onJsonParseStarted(
+					final JsonValue result,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache) {
 
 				try {
-					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
+					final APIResponseHandler.APIFailureType failureType =
+							findFailureType(result);
 
 					if(failureType != null) {
 						responseHandler.notifyFailure(failureType);
 						return;
 					}
 
-				} catch(Throwable t) {
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
+				} catch(final Throwable t) {
+					notifyFailure(
+							CacheRequest.REQUEST_FAILURE_PARSE,
+							t,
+							null,
+							"JSON failed to parse");
 				}
 
 				responseHandler.notifySuccess(null);
 			}
 
 			@Override
-			protected void onCallbackException(Throwable t) {
+			protected void onCallbackException(final Throwable t) {
 				BugReportActivity.handleGlobalError(context, t);
 			}
 
 			@Override
-			protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+			protected void onFailure(
+					@CacheRequest.RequestFailureType final int type,
+					final Throwable t,
+					final Integer status,
+					final String readableMessage) {
 				responseHandler.notifyFailure(type, t, status, readableMessage);
 			}
 		});
 	}
 
-	public static void editComment(final CacheManager cm,
-								   final APIResponseHandler.ActionResponseHandler responseHandler,
-								   final RedditAccount user,
-								   final String commentIdAndType,
-								   final String markdown,
-								   final Context context) {
+	public static void editComment(
+			final CacheManager cm,
+			final APIResponseHandler.ActionResponseHandler responseHandler,
+			final RedditAccount user,
+			final String commentIdAndType,
+			final String markdown,
+			final Context context) {
 
-		final LinkedList<PostField> postFields = new LinkedList<>();
-		postFields.add(new PostField("thing_id", commentIdAndType));
-		postFields.add(new PostField("text", markdown));
+		final LinkedList<HTTPBackend.PostField> postFields = new LinkedList<>();
+		postFields.add(new HTTPBackend.PostField("thing_id", commentIdAndType));
+		postFields.add(new HTTPBackend.PostField("text", markdown));
 
-		cm.makeRequest(new APIPostRequest(Constants.Reddit.getUri("/api/editusertext"), user, postFields, context) {
+		cm.makeRequest(new APIPostRequest(
+				Constants.Reddit.getUri("/api/editusertext"),
+				user,
+				postFields,
+				context) {
 
 			@Override
-			public void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache) {
+			public void onJsonParseStarted(
+					final JsonValue result,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache) {
 
 				try {
-					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
+					final APIResponseHandler.APIFailureType failureType =
+							findFailureType(result);
 
 					if(failureType != null) {
 						responseHandler.notifyFailure(failureType);
 						return;
 					}
 
-				} catch(Throwable t) {
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
+				} catch(final Throwable t) {
+					notifyFailure(
+							CacheRequest.REQUEST_FAILURE_PARSE,
+							t,
+							null,
+							"JSON failed to parse");
 				}
 
 				responseHandler.notifySuccess(null);
 			}
 
 			@Override
-			protected void onCallbackException(Throwable t) {
+			protected void onCallbackException(final Throwable t) {
 				BugReportActivity.handleGlobalError(context, t);
 			}
 
 			@Override
-			protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+			protected void onFailure(
+					@CacheRequest.RequestFailureType final int type,
+					final Throwable t,
+					final Integer status,
+					final String readableMessage) {
 				responseHandler.notifyFailure(type, t, status, readableMessage);
 			}
 		});
 	}
 
-	public static void action(final CacheManager cm,
-							  final APIResponseHandler.ActionResponseHandler responseHandler,
-							  final RedditAccount user,
-							  final String idAndType,
-							  final @RedditAction int action,
-							  final Context context) {
+	public static void action(
+			final CacheManager cm,
+			final APIResponseHandler.ActionResponseHandler responseHandler,
+			final RedditAccount user,
+			final String idAndType,
+			final @RedditAction int action,
+			final Context context) {
 
-		final LinkedList<PostField> postFields = new LinkedList<>();
-		postFields.add(new PostField("id", idAndType));
+		final LinkedList<HTTPBackend.PostField> postFields = new LinkedList<>();
+		postFields.add(new HTTPBackend.PostField("id", idAndType));
 
 		final URI url = prepareActionUri(action, postFields);
 
@@ -347,24 +453,37 @@ public final class RedditAPI {
 			}
 
 			@Override
-			protected void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
+			protected void onFailure(
+					final @CacheRequest.RequestFailureType int type,
+					final Throwable t,
+					final Integer status,
+					final String readableMessage) {
 				responseHandler.notifyFailure(type, t, status, readableMessage);
 			}
 
 			@Override
-			public void onJsonParseStarted(final JsonValue result, final long timestamp, final UUID session, final boolean fromCache) {
+			public void onJsonParseStarted(
+					final JsonValue result,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache) {
 
 				try {
 
-					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
+					final APIResponseHandler.APIFailureType failureType =
+							findFailureType(result);
 
 					if(failureType != null) {
 						responseHandler.notifyFailure(failureType);
 						return;
 					}
 
-				} catch(Throwable t) {
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
+				} catch(final Throwable t) {
+					notifyFailure(
+							CacheRequest.REQUEST_FAILURE_PARSE,
+							t,
+							null,
+							"JSON failed to parse");
 				}
 
 				responseHandler.notifySuccess(null);
@@ -372,38 +491,47 @@ public final class RedditAPI {
 		});
 	}
 
-	private static URI prepareActionUri(final @RedditAction int action, final LinkedList<PostField> postFields) {
+	private static URI prepareActionUri(
+			final @RedditAction int action,
+			final LinkedList<HTTPBackend.PostField> postFields) {
 		switch(action) {
 			case ACTION_DOWNVOTE:
-				postFields.add(new PostField("dir", "-1"));
+				postFields.add(new HTTPBackend.PostField("dir", "-1"));
 				return Constants.Reddit.getUri(Constants.Reddit.PATH_VOTE);
 
 			case ACTION_UNVOTE:
-				postFields.add(new PostField("dir", "0"));
+				postFields.add(new HTTPBackend.PostField("dir", "0"));
 				return Constants.Reddit.getUri(Constants.Reddit.PATH_VOTE);
 
 			case ACTION_UPVOTE:
-				postFields.add(new PostField("dir", "1"));
+				postFields.add(new HTTPBackend.PostField("dir", "1"));
 				return Constants.Reddit.getUri(Constants.Reddit.PATH_VOTE);
 
-			case ACTION_SAVE: return Constants.Reddit.getUri(Constants.Reddit.PATH_SAVE);
-			case ACTION_HIDE: return Constants.Reddit.getUri(Constants.Reddit.PATH_HIDE);
-			case ACTION_UNSAVE: return Constants.Reddit.getUri(Constants.Reddit.PATH_UNSAVE);
-			case ACTION_UNHIDE: return Constants.Reddit.getUri(Constants.Reddit.PATH_UNHIDE);
-			case ACTION_REPORT: return Constants.Reddit.getUri(Constants.Reddit.PATH_REPORT);
-			case ACTION_DELETE: return Constants.Reddit.getUri(Constants.Reddit.PATH_DELETE);
+			case ACTION_SAVE:
+				return Constants.Reddit.getUri(Constants.Reddit.PATH_SAVE);
+			case ACTION_HIDE:
+				return Constants.Reddit.getUri(Constants.Reddit.PATH_HIDE);
+			case ACTION_UNSAVE:
+				return Constants.Reddit.getUri(Constants.Reddit.PATH_UNSAVE);
+			case ACTION_UNHIDE:
+				return Constants.Reddit.getUri(Constants.Reddit.PATH_UNHIDE);
+			case ACTION_REPORT:
+				return Constants.Reddit.getUri(Constants.Reddit.PATH_REPORT);
+			case ACTION_DELETE:
+				return Constants.Reddit.getUri(Constants.Reddit.PATH_DELETE);
 
 			default:
 				throw new RuntimeException("Unknown post/comment action");
 		}
 	}
 
-	public static void subscriptionAction(final CacheManager cm,
-							  final APIResponseHandler.ActionResponseHandler responseHandler,
-							  final RedditAccount user,
-							  final SubredditCanonicalId subredditId,
-							  final @RedditSubredditAction int action,
-							  final Context context) {
+	public static void subscriptionAction(
+			final CacheManager cm,
+			final APIResponseHandler.ActionResponseHandler responseHandler,
+			final RedditAccount user,
+			final SubredditCanonicalId subredditId,
+			final @RedditSubredditAction int action,
+			final Context context) {
 
 		RedditSubredditManager.getInstance(context, user).getSubreddit(
 				subredditId,
@@ -411,7 +539,7 @@ public final class RedditAPI {
 				new RequestResponseHandler<RedditSubreddit, SubredditRequestFailure>() {
 
 					@Override
-					public void onRequestFailed(SubredditRequestFailure failureReason) {
+					public void onRequestFailed(final SubredditRequestFailure failureReason) {
 						responseHandler.notifyFailure(
 								failureReason.requestFailureType,
 								failureReason.t,
@@ -420,39 +548,62 @@ public final class RedditAPI {
 					}
 
 					@Override
-					public void onRequestSuccess(RedditSubreddit subreddit, long timeCached) {
+					public void onRequestSuccess(
+							final RedditSubreddit subreddit,
+							final long timeCached) {
 
-						final LinkedList<PostField> postFields = new LinkedList<>();
+						final LinkedList<HTTPBackend.PostField> postFields = new LinkedList<>();
 
-						postFields.add(new PostField("sr", subreddit.name));
+						postFields.add(new HTTPBackend.PostField("sr", subreddit.name));
 
 						final URI url = subscriptionPrepareActionUri(action, postFields);
 
-						cm.makeRequest(new APIPostRequest(url, user, postFields, context) {
+						cm.makeRequest(new APIPostRequest(
+								url,
+								user,
+								postFields,
+								context) {
 							@Override
 							protected void onCallbackException(final Throwable t) {
 								BugReportActivity.handleGlobalError(context, t);
 							}
 
 							@Override
-							protected void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
-								responseHandler.notifyFailure(type, t, status, readableMessage);
+							protected void onFailure(
+									final @CacheRequest.RequestFailureType int type,
+									final Throwable t,
+									final Integer status,
+									final String readableMessage) {
+								responseHandler.notifyFailure(
+										type,
+										t,
+										status,
+										readableMessage);
 							}
 
 							@Override
-							public void onJsonParseStarted(final JsonValue result, final long timestamp, final UUID session, final boolean fromCache) {
+							public void onJsonParseStarted(
+									final JsonValue result,
+									final long timestamp,
+									final UUID session,
+									final boolean fromCache) {
 
 								try {
 
-									final APIResponseHandler.APIFailureType failureType = findFailureType(result);
+									final APIResponseHandler.APIFailureType failureType =
+											findFailureType(result);
 
 									if(failureType != null) {
 										responseHandler.notifyFailure(failureType);
 										return;
 									}
 
-								} catch(Throwable t) {
-									notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
+								} catch(final Throwable t) {
+									notifyFailure(
+											CacheRequest.REQUEST_FAILURE_PARSE,
+											t,
+											null,
+											"JSON failed to parse");
 								}
 
 								responseHandler.notifySuccess(null);
@@ -464,15 +615,16 @@ public final class RedditAPI {
 		);
 	}
 
-	private static URI subscriptionPrepareActionUri(final @RedditSubredditAction int action,
-										final LinkedList<PostField> postFields) {
+	private static URI subscriptionPrepareActionUri(
+			final @RedditSubredditAction int action,
+			final LinkedList<HTTPBackend.PostField> postFields) {
 		switch(action) {
 			case SUBSCRIPTION_ACTION_SUBSCRIBE:
-				postFields.add(new PostField("action", "sub"));
+				postFields.add(new HTTPBackend.PostField("action", "sub"));
 				return Constants.Reddit.getUri(Constants.Reddit.PATH_SUBSCRIBE);
 
 			case SUBSCRIPTION_ACTION_UNSUBSCRIBE:
-				postFields.add(new PostField("action", "unsub"));
+				postFields.add(new HTTPBackend.PostField("action", "unsub"));
 				return Constants.Reddit.getUri(Constants.Reddit.PATH_SUBSCRIBE);
 
 			default:
@@ -480,20 +632,30 @@ public final class RedditAPI {
 		}
 	}
 
-	public static void getUser(final CacheManager cm,
-							   final String usernameToGet,
-							   final APIResponseHandler.UserResponseHandler responseHandler,
-							   final RedditAccount user,
-							   final DownloadStrategy downloadStrategy,
-							   final boolean cancelExisting,
-							   final Context context) {
+	public static void getUser(
+			final CacheManager cm,
+			final String usernameToGet,
+			final APIResponseHandler.UserResponseHandler responseHandler,
+			final RedditAccount user,
+			final DownloadStrategy downloadStrategy,
+			final boolean cancelExisting,
+			final Context context) {
 
 		final URI uri = Constants.Reddit.getUri("/user/" + usernameToGet + "/about.json");
 
-		cm.makeRequest(new APIGetRequest(uri, user, Constants.Priority.API_USER_ABOUT, Constants.FileType.USER_ABOUT, downloadStrategy, true, cancelExisting, context) {
+		cm.makeRequest(new APIGetRequest(
+				uri,
+				user,
+				Constants.Priority.API_USER_ABOUT,
+				Constants.FileType.USER_ABOUT,
+				downloadStrategy,
+				true,
+				cancelExisting,
+				context) {
 
 			@Override
-			protected void onDownloadNecessary() {}
+			protected void onDownloadNecessary() {
+			}
 
 			@Override
 			protected void onDownloadStarted() {
@@ -506,12 +668,20 @@ public final class RedditAPI {
 			}
 
 			@Override
-			protected void onFailure(final @CacheRequest.RequestFailureType int type, final Throwable t, final Integer status, final String readableMessage) {
+			protected void onFailure(
+					final @CacheRequest.RequestFailureType int type,
+					final Throwable t,
+					final Integer status,
+					final String readableMessage) {
 				responseHandler.notifyFailure(type, t, status, readableMessage);
 			}
 
 			@Override
-			public void onJsonParseStarted(final JsonValue result, final long timestamp, final UUID session, final boolean fromCache) {
+			public void onJsonParseStarted(
+					final JsonValue result,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache) {
 
 				try {
 
@@ -519,50 +689,72 @@ public final class RedditAPI {
 					final RedditUser userResult = userThing.asUser();
 					responseHandler.notifySuccess(userResult, timestamp);
 
-				} catch(Throwable t) {
+				} catch(final Throwable t) {
 					// TODO look for error
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON parse failed for unknown reason");
+					notifyFailure(
+							CacheRequest.REQUEST_FAILURE_PARSE,
+							t,
+							null,
+							"JSON parse failed for unknown reason");
 				}
 			}
 		});
 	}
 
-	public static void sendReplies(final CacheManager cm,
-							   final APIResponseHandler.ActionResponseHandler responseHandler,
-							   final RedditAccount user,
-							   final String fullname,
-							   final boolean state,
-							   final Context context) {
+	public static void sendReplies(
+			final CacheManager cm,
+			final APIResponseHandler.ActionResponseHandler responseHandler,
+			final RedditAccount user,
+			final String fullname,
+			final boolean state,
+			final Context context) {
 
-		final LinkedList<PostField> postFields = new LinkedList<>();
-		postFields.add(new PostField("id", fullname));
-		postFields.add(new PostField("state", String.valueOf(state)));
-		cm.makeRequest(new APIPostRequest(Constants.Reddit.getUri("/api/sendreplies"), user, postFields, context) {
+		final LinkedList<HTTPBackend.PostField> postFields = new LinkedList<>();
+		postFields.add(new HTTPBackend.PostField("id", fullname));
+		postFields.add(new HTTPBackend.PostField("state", String.valueOf(state)));
+		cm.makeRequest(new APIPostRequest(
+				Constants.Reddit.getUri("/api/sendreplies"),
+				user,
+				postFields,
+				context) {
 
 			@Override
-			public void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache) {
+			public void onJsonParseStarted(
+					final JsonValue result,
+					final long timestamp,
+					final UUID session,
+					final boolean fromCache) {
 
 				try {
-					final APIResponseHandler.APIFailureType failureType = findFailureType(result);
+					final APIResponseHandler.APIFailureType failureType =
+							findFailureType(result);
 
 					if(failureType != null) {
 						responseHandler.notifyFailure(failureType);
 						return;
 					}
-				} catch(Throwable t) {
-					notifyFailure(CacheRequest.REQUEST_FAILURE_PARSE, t, null, "JSON failed to parse");
+				} catch(final Throwable t) {
+					notifyFailure(
+							CacheRequest.REQUEST_FAILURE_PARSE,
+							t,
+							null,
+							"JSON failed to parse");
 				}
 
 				responseHandler.notifySuccess(null);
 			}
 
 			@Override
-			protected void onCallbackException(Throwable t) {
+			protected void onCallbackException(final Throwable t) {
 				BugReportActivity.handleGlobalError(context, t);
 			}
 
 			@Override
-			protected void onFailure(@CacheRequest.RequestFailureType int type, Throwable t, Integer status, String readableMessage) {
+			protected void onFailure(
+					@CacheRequest.RequestFailureType final int type,
+					final Throwable t,
+					final Integer status,
+					final String readableMessage) {
 				responseHandler.notifyFailure(type, t, status, readableMessage);
 			}
 		});
@@ -574,7 +766,7 @@ public final class RedditAPI {
 			return "t1_" + response.asObject().getArray("jquery").getArray(30)
 					.getArray(3).getArray(0).getObject(0)
 					.getObject("data").getString("id");
-		} catch (final Exception e) {
+		} catch(final Exception e) {
 			Log.e(TAG, "Failed to find comment thing ID", e);
 		}
 		return null;
@@ -683,7 +875,8 @@ public final class RedditAPI {
 						unknownError = true;
 					}
 
-					final APIResponseHandler.APIFailureType failureType = findFailureType(v.getValue());
+					final APIResponseHandler.APIFailureType failureType =
+							findFailureType(v.getValue());
 
 					if(failureType == APIResponseHandler.APIFailureType.UNKNOWN) {
 						unknownError = true;
@@ -694,7 +887,8 @@ public final class RedditAPI {
 				}
 
 				try {
-					final JsonBufferedArray errors = response.asObject().getObject("json").getArray("errors");
+					final JsonBufferedArray errors =
+							response.asObject().getObject("json").getArray("errors");
 
 					if(errors != null) {
 
@@ -705,7 +899,7 @@ public final class RedditAPI {
 						}
 					}
 
-				} catch(Exception e) {
+				} catch(final Exception e) {
 					// Do nothing
 				}
 
@@ -714,7 +908,8 @@ public final class RedditAPI {
 			case JsonValue.TYPE_ARRAY:
 
 				for(final JsonValue v : response.asArray()) {
-					final APIResponseHandler.APIFailureType failureType = findFailureType(v);
+					final APIResponseHandler.APIFailureType failureType =
+							findFailureType(v);
 
 					if(failureType == APIResponseHandler.APIFailureType.UNKNOWN) {
 						unknownError = true;
@@ -730,32 +925,41 @@ public final class RedditAPI {
 
 				final String responseAsString = response.asString();
 
-				if(Constants.Reddit.isApiErrorUser(responseAsString))
+				if(Constants.Reddit.isApiErrorUser(responseAsString)) {
 					return APIResponseHandler.APIFailureType.INVALID_USER;
+				}
 
-				if(Constants.Reddit.isApiErrorCaptcha(responseAsString))
+				if(Constants.Reddit.isApiErrorCaptcha(responseAsString)) {
 					return APIResponseHandler.APIFailureType.BAD_CAPTCHA;
+				}
 
-				if(Constants.Reddit.isApiErrorNotAllowed(responseAsString))
+				if(Constants.Reddit.isApiErrorNotAllowed(responseAsString)) {
 					return APIResponseHandler.APIFailureType.NOTALLOWED;
+				}
 
-				if(Constants.Reddit.isApiErrorSubredditRequired(responseAsString))
+				if(Constants.Reddit.isApiErrorSubredditRequired(responseAsString)) {
 					return APIResponseHandler.APIFailureType.SUBREDDIT_REQUIRED;
+				}
 
-				if(Constants.Reddit.isApiErrorURLRequired(responseAsString))
+				if(Constants.Reddit.isApiErrorURLRequired(responseAsString)) {
 					return APIResponseHandler.APIFailureType.URL_REQUIRED;
+				}
 
-				if(Constants.Reddit.isApiTooFast(responseAsString))
+				if(Constants.Reddit.isApiTooFast(responseAsString)) {
 					return APIResponseHandler.APIFailureType.TOO_FAST;
+				}
 
-				if(Constants.Reddit.isApiTooLong(responseAsString))
+				if(Constants.Reddit.isApiTooLong(responseAsString)) {
 					return APIResponseHandler.APIFailureType.TOO_LONG;
+				}
 
-				if(Constants.Reddit.isApiAlreadySubmitted(responseAsString))
+				if(Constants.Reddit.isApiAlreadySubmitted(responseAsString)) {
 					return APIResponseHandler.APIFailureType.ALREADY_SUBMITTED;
+				}
 
-				if(Constants.Reddit.isApiError(responseAsString))
+				if(Constants.Reddit.isApiError(responseAsString)) {
 					unknownError = true;
+				}
 
 				break;
 
@@ -769,45 +973,111 @@ public final class RedditAPI {
 	private static abstract class APIPostRequest extends CacheRequest {
 
 		@Override
-		protected void onDownloadNecessary() {}
-
-		@Override
-		protected void onDownloadStarted() {}
-
-		public APIPostRequest(final URI url, final RedditAccount user, final List<PostField> postFields, final Context context) {
-			super(url, user, null, Constants.Priority.API_ACTION, 0,
-					DownloadStrategyAlways.INSTANCE, Constants.FileType.NOCACHE, DOWNLOAD_QUEUE_REDDIT_API, true, postFields, false, false, context);
+		protected void onDownloadNecessary() {
 		}
 
 		@Override
-		protected final void onSuccess(final CacheManager.ReadableCacheFile cacheFile, final long timestamp, final UUID session, final boolean fromCache, final String mimetype) {
+		protected void onDownloadStarted() {
+		}
+
+		public APIPostRequest(
+				final URI url,
+				final RedditAccount user,
+				final List<HTTPBackend.PostField> postFields,
+				final Context context) {
+			super(
+					url,
+					user,
+					null,
+					Constants.Priority.API_ACTION,
+					0,
+					DownloadStrategyAlways.INSTANCE,
+					Constants.FileType.NOCACHE,
+					DOWNLOAD_QUEUE_REDDIT_API,
+					true,
+					postFields,
+					false,
+					false,
+					context);
+		}
+
+		@Override
+		protected final void onSuccess(
+				final CacheManager.ReadableCacheFile cacheFile,
+				final long timestamp,
+				final UUID session,
+				final boolean fromCache,
+				final String mimetype) {
 			throw new RuntimeException("onSuccess called for uncached request");
 		}
 
 		@Override
-		protected final void onProgress(final boolean authorizationInProgress, final long bytesRead, final long totalBytes) {
+		protected final void onProgress(
+				final boolean authorizationInProgress,
+				final long bytesRead,
+				final long totalBytes) {
 		}
 
 		@Override
-		public abstract void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache);
+		public abstract void onJsonParseStarted(
+				JsonValue result,
+				long timestamp,
+				UUID session,
+				boolean fromCache);
 	}
 
 	// TODO merge get and post into one?
 	private static abstract class APIGetRequest extends CacheRequest {
 
-		public APIGetRequest(final URI url, final RedditAccount user, final int priority, final int fileType, final DownloadStrategy downloadStrategy, final boolean cache, final boolean cancelExisting, final Context context) {
-			super(url, user, null, priority, 0, downloadStrategy, fileType, DOWNLOAD_QUEUE_REDDIT_API, true, null, cache, cancelExisting, context);
+		public APIGetRequest(
+				final URI url,
+				final RedditAccount user,
+				final int priority,
+				final int fileType,
+				final DownloadStrategy downloadStrategy,
+				final boolean cache,
+				final boolean cancelExisting,
+				final Context context) {
+			super(
+					url,
+					user,
+					null,
+					priority,
+					0,
+					downloadStrategy,
+					fileType,
+					DOWNLOAD_QUEUE_REDDIT_API,
+					true,
+					null,
+					cache,
+					cancelExisting,
+					context);
 		}
 
 		@Override
-		protected final void onSuccess(final CacheManager.ReadableCacheFile cacheFile, final long timestamp, final UUID session, final boolean fromCache, final String mimetype) {
-			if(!cache) throw new RuntimeException("onSuccess called for uncached request");
+		protected final void onSuccess(
+				final CacheManager.ReadableCacheFile cacheFile,
+				final long timestamp,
+				final UUID session,
+				final boolean fromCache,
+				final String mimetype) {
+			if(!cache) {
+				throw new RuntimeException("onSuccess called for uncached request");
+			}
 		}
 
 		@Override
-		protected final void onProgress(final boolean authorizationInProgress, final long bytesRead, final long totalBytes) {}
+		protected final void onProgress(
+				final boolean authorizationInProgress,
+				final long bytesRead,
+				final long totalBytes) {
+		}
 
 		@Override
-		public abstract void onJsonParseStarted(JsonValue result, long timestamp, UUID session, boolean fromCache);
+		public abstract void onJsonParseStarted(
+				JsonValue result,
+				long timestamp,
+				UUID session,
+				boolean fromCache);
 	}
 }

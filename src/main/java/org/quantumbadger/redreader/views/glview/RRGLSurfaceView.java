@@ -28,7 +28,9 @@ public class RRGLSurfaceView extends GLSurfaceView {
 	private final FingerTracker mFingerTracker;
 	private final RRGLDisplayListRenderer.DisplayListManager mDisplayListManager;
 
-	public RRGLSurfaceView(Context context, RRGLDisplayListRenderer.DisplayListManager displayListManager) {
+	public RRGLSurfaceView(
+			final Context context,
+			final RRGLDisplayListRenderer.DisplayListManager displayListManager) {
 		super(context);
 
 		setEGLContextClientVersion(2);
@@ -41,7 +43,7 @@ public class RRGLSurfaceView extends GLSurfaceView {
 	}
 
 	@Override
-	public boolean onTouchEvent(MotionEvent event) {
+	public boolean onTouchEvent(final MotionEvent event) {
 		mFingerTracker.onTouchEvent(event);
 		requestRender();
 		return true;

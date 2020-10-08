@@ -24,7 +24,7 @@ public final class CharArrSubstring {
 	protected final int start;
 	public final int length;
 
-	CharArrSubstring(char[] arr, int start, int length) {
+	CharArrSubstring(final char[] arr, final int start, final int length) {
 		this.arr = arr;
 		this.start = start;
 		this.length = length;
@@ -55,40 +55,49 @@ public final class CharArrSubstring {
 	public CharArrSubstring rejoin(final CharArrSubstring toAppend) {
 
 		if(toAppend.start - 1 != start + length) {
-			throw new RuntimeException("Internal error: attempt to join non-consecutive substrings");
+			throw new RuntimeException(
+					"Internal error: attempt to join non-consecutive substrings");
 		}
 
 		return new CharArrSubstring(arr, start, length + 1 + toAppend.length);
 	}
 
-	private static int indexOfLinebreak(final char[] raw, int startPos) {
+	private static int indexOfLinebreak(final char[] raw, final int startPos) {
 		for(int i = startPos; i < raw.length; i++) {
-			if(raw[i] == '\n') return i;
+			if(raw[i] == '\n') {
+				return i;
+			}
 		}
 		return -1;
 	}
 
 	public int countSpacesAtStart() {
 		for(int i = 0; i < length; i++) {
-			if(arr[start + i] != ' ') return i;
+			if(arr[start + i] != ' ') {
+				return i;
+			}
 		}
 		return length;
 	}
 
 	public int countSpacesAtEnd() {
 		for(int i = 0; i < length; i++) {
-			if(arr[start + length - 1 - i] != ' ') return i;
+			if(arr[start + length - 1 - i] != ' ') {
+				return i;
+			}
 		}
 		return length;
 	}
 
-	public char charAt(int index) {
+	public char charAt(final int index) {
 		return arr[start + index];
 	}
 
 	public int countPrefixLengthIgnoringSpaces(final char c) {
 		for(int i = 0; i < length; i++) {
-			if(arr[start + i] != ' ' && arr[start + i] != c) return i;
+			if(arr[start + i] != ' ' && arr[start + i] != c) {
+				return i;
+			}
 		}
 		return length;
 	}
@@ -96,28 +105,33 @@ public final class CharArrSubstring {
 	public int countPrefixLevelIgnoringSpaces(final char c) {
 		int level = 0;
 		for(int i = 0; i < length; i++) {
-			if(arr[start + i] != ' ' && arr[start + i] != c) return level;
-			else if(arr[start + i] == c) level++; // TODO tidy up
+			if(arr[start + i] != ' ' && arr[start + i] != c) {
+				return level;
+			} else if(arr[start + i] == c) {
+				level++; // TODO tidy up
+			}
 		}
 		return length;
 	}
 
-	public CharArrSubstring left(int chars) {
+	public CharArrSubstring left(final int chars) {
 		return new CharArrSubstring(arr, start, chars);
 	}
 
-	public CharArrSubstring substring(int start) {
+	public CharArrSubstring substring(final int start) {
 		return new CharArrSubstring(arr, this.start + start, length - start);
 	}
 
-	public CharArrSubstring substring(int start, int len) {
+	public CharArrSubstring substring(final int start, final int len) {
 		return new CharArrSubstring(arr, this.start + start, len);
 	}
 
 	public CharArrSubstring readInteger(final int start) {
 		for(int i = start; i < length; i++) {
 			final char c = arr[this.start + i];
-			if(c < '0' || c > '9') return new CharArrSubstring(arr, this.start + start, i - start);
+			if(c < '0' || c > '9') {
+				return new CharArrSubstring(arr, this.start + start, i - start);
+			}
 		}
 		return new CharArrSubstring(arr, this.start + start, length - start);
 	}
@@ -136,12 +150,16 @@ public final class CharArrSubstring {
 		return true;
 	}
 
-	public boolean equalAt(int position, String needle) {
+	public boolean equalAt(final int position, final String needle) {
 
-		if(length < position + needle.length()) return false;
+		if(length < position + needle.length()) {
+			return false;
+		}
 
 		for(int i = 0; i < needle.length(); i++) {
-			if(needle.charAt(i) != arr[start + position + i]) return false;
+			if(needle.charAt(i) != arr[start + position + i]) {
+				return false;
+			}
 		}
 
 		return true;

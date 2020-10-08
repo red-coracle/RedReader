@@ -24,16 +24,13 @@
     <string name="prefs_category_cache">Кэш</string>
     <string name="prefs_category_menus">Меню</string>
     <string name="pref_appearance_theme_header">Оформление</string>
-    <string name="pref_appearance_font_header">Шрифт</string>
     <string name="pref_appearance_thumbnails_header">Миниатюры</string>
-    <string name="pref_appearance_tabletmode_header">Режим планшета</string>
     <string name="pref_appearance_comments_header">Комментарии</string>
     <string name="pref_appearance_other_header">Прочее</string>
     <string name="pref_appearance_twopane_title">Режим планшета (две панели)</string>
     <string name="pref_appearance_theme_title">Тема</string>
     <string name="pref_appearance_solidblack_title">Сплошной чёрный в ночном режиме</string>
     <string name="pref_appearance_fontscale_posts_title">Размер шрифта в публикациях</string>
-    <string name="pref_appearance_fontscale_comments_title">Размер шрифта в комментариях</string>
     <string name="pref_appearance_thumbnails_show_title">Показывать миниатюры</string>
     <string name="pref_appearance_thumbnails_nsfw_show_title">Показывать NSFW миниатюры</string>
     <string name="pref_appearance_thumbnails_wifionly_title">Миниатюры только для Wi-Fi</string>
@@ -282,11 +279,10 @@
     <string name="error_toast_parent_post_not_downloaded">Родительская публикация еще не загружена.</string>
     <string name="download_subreddits">Загружаем сабреддиты…</string>
     <string name="subtitle_points">очки</string>
-    <plurals name="subtitle_replies">
-        <item quantity="one">…</item>
-        <item quantity="few">(%d ответа)</item>
-        <item quantity="many">(%d ответов)</item>
-        <item quantity="other">(%d ответов)</item>
+    <plurals name="load_more_comments_button_reply_count">
+        <item quantity="few">Загрузить еще комментарии (%d ответа)</item>
+        <item quantity="many">Загрузить еще комментарии (%d ответов)</item>
+        <item quantity="other">Загрузить еще комментарии (%d ответов)</item>
     </plurals>
     <string name="general_unknown">неизвестен</string>
     <string name="action_search">Поиск</string>
@@ -346,7 +342,6 @@
     <string name="user_comments">Комментарии</string>
     <string name="comment_header_specific_thread_title">Сейчас вы просматриваете отдельную ветвь комментариев.</string>
     <string name="comment_header_specific_thread_message">Нажмите здесь, чтобы посмотреть все комментарии к этой публикации.</string>
-    <string name="more_comments_button_text">Загрузить еще комментарии</string>
     <string name="action_comment_context">Контекст</string>
     <string name="action_comment_go_to">Перейти к комментарию</string>
     <string name="webview_https_already">Текущий URL уже использует HTTPS.</string>
@@ -374,7 +369,6 @@
     <string name="pref_behaviour_gifview_mode_internal_legacy">Встроенный просмотрщик (устаревший)</string>
     <string name="pref_behaviour_view_mode_internal_browser">Встроенный браузер</string>
     <string name="pref_behaviour_view_mode_external_browser">Внешний браузер</string>
-    <string name="pref_appearance_fontscale_inbox_title">Размер шрифта во входящих сообщениях</string>
     <string name="action_delete">Удалить</string>
     <string name="delete_confirm">Вы действительно хотите удалить это?</string>
     <string name="delete_success">Успешно удалено. Элемент будет по-прежнему отображаться пока вы не обновите.</string>
@@ -526,9 +520,7 @@
     <string name="download_link_title">Скачать файл</string>
     <string name="download_link_message">Это ссылка для скачивания. Вы хотите загрузить ее во внешнем браузере?</string>
     <string name="pref_behaviour_self_post_tap_actions_title">Действие по касанию текста публикации</string>
-    <string name="pref_menus_show_popular_main_menu_key"/>
     <string name="pref_menus_show_popular_main_menu_title">Показывать /r/popular в главном меню</string>
-    <string name="pref_behaviour_video_playback_controls_key"/>
     <string name="pref_behaviour_video_playback_controls_title">Включить элементы управления воспроизведением видео</string>
     <string name="error_no_suitable_apps_available">Нет подходящих приложений.</string>
     <string name="subtitle_by">от</string>

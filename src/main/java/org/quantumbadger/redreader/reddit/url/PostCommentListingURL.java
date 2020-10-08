@@ -22,6 +22,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import org.quantumbadger.redreader.common.Constants;
 import org.quantumbadger.redreader.common.General;
+import org.quantumbadger.redreader.common.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class PostCommentListingURL extends CommentListingURL {
 
 	public final Sort order;
 
-	public static PostCommentListingURL forPostId(String postId) {
+	public static PostCommentListingURL forPostId(final String postId) {
 		return new PostCommentListingURL(null, postId, null, null, null, null);
 	}
 
@@ -67,20 +68,20 @@ public class PostCommentListingURL extends CommentListingURL {
 	}
 
 	@Override
-	public PostCommentListingURL after(String after) {
+	public PostCommentListingURL after(final String after) {
 		return new PostCommentListingURL(after, postId, commentId, context, limit, order);
 	}
 
 	@Override
-	public PostCommentListingURL limit(Integer limit) {
+	public PostCommentListingURL limit(final Integer limit) {
 		return new PostCommentListingURL(after, postId, commentId, context, limit, order);
 	}
 
-	public PostCommentListingURL context(Integer context) {
+	public PostCommentListingURL context(final Integer context) {
 		return new PostCommentListingURL(after, postId, commentId, context, limit, order);
 	}
 
-	public PostCommentListingURL order(Sort order) {
+	public PostCommentListingURL order(final Sort order) {
 		return new PostCommentListingURL(after, postId, commentId, context, limit, order);
 	}
 
@@ -97,7 +98,8 @@ public class PostCommentListingURL extends CommentListingURL {
 	public Uri generateJsonUri() {
 
 		final Uri.Builder builder = new Uri.Builder();
-		builder.scheme(Constants.Reddit.getScheme()).authority(Constants.Reddit.getDomain());
+		builder.scheme(Constants.Reddit.getScheme())
+				.authority(Constants.Reddit.getDomain());
 
 		internalGenerateCommon(builder);
 
@@ -109,7 +111,8 @@ public class PostCommentListingURL extends CommentListingURL {
 	public Uri generateNonJsonUri() {
 
 		final Uri.Builder builder = new Uri.Builder();
-		builder.scheme(Constants.Reddit.getScheme()).authority(Constants.Reddit.getHumanReadableDomain());
+		builder.scheme(Constants.Reddit.getScheme())
+				.authority(Constants.Reddit.getHumanReadableDomain());
 		internalGenerateCommon(builder);
 		return builder.build();
 	}
@@ -148,21 +151,30 @@ public class PostCommentListingURL extends CommentListingURL {
 		{
 			final List<String> pathSegmentsList = uri.getPathSegments();
 
-			final ArrayList<String> pathSegmentsFiltered = new ArrayList<>(pathSegmentsList.size());
+			final ArrayList<String> pathSegmentsFiltered = new ArrayList<>(
+					pathSegmentsList.size());
 			for(String segment : pathSegmentsList) {
 
-				while(General.asciiLowercase(segment).endsWith(".json") || General.asciiLowercase(segment).endsWith(".xml")) {
+				while(StringUtils.asciiLowercase(segment).endsWith(".json")
+						|| StringUtils.asciiLowercase(segment).endsWith(".xml")) {
 					segment = segment.substring(0, segment.lastIndexOf('.'));
 				}
 
 				pathSegmentsFiltered.add(segment);
 			}
 
-			pathSegments = pathSegmentsFiltered.toArray(new String[pathSegmentsFiltered.size()]);
+			pathSegments
+					= pathSegmentsFiltered.toArray(new String[pathSegmentsFiltered.size()]);
 		}
 
 		if(pathSegments.length == 1 && uri.getHost().equals("redd.it")) {
-			return new PostCommentListingURL(null, pathSegments[0], null, null, null, null);
+			return new PostCommentListingURL(
+					null,
+					pathSegments[0],
+					null,
+					null,
+					null,
+					null);
 		}
 
 		if(pathSegments.length < 2) {
@@ -206,12 +218,13 @@ public class PostCommentListingURL extends CommentListingURL {
 			} else if(parameterKey.equalsIgnoreCase("limit")) {
 				try {
 					limit = Integer.parseInt(uri.getQueryParameter(parameterKey));
-				} catch(Throwable ignored) {}
+				} catch(final Throwable ignored) {
+				}
 
 			} else if(parameterKey.equalsIgnoreCase("context")) {
 				try {
 					context = Integer.parseInt(uri.getQueryParameter(parameterKey));
-				} catch(Throwable ignored) {
+				} catch(final Throwable ignored) {
 				}
 
 			} else if(parameterKey.equalsIgnoreCase("sort")) {
@@ -223,7 +236,8 @@ public class PostCommentListingURL extends CommentListingURL {
 	}
 
 	@Override
-	public @RedditURLParser.PathType int pathType() {
+	public @RedditURLParser.PathType
+	int pathType() {
 		return RedditURLParser.POST_COMMENT_LISTING_URL;
 	}
 
@@ -250,7 +264,7 @@ public class PostCommentListingURL extends CommentListingURL {
 
 		public static Sort lookup(String name) {
 
-			name = General.asciiUppercase(name);
+			name = StringUtils.asciiUppercase(name);
 
 			if(name.equals("CONFIDENCE")) {
 				return BEST; // oh, reddit...
@@ -258,7 +272,7 @@ public class PostCommentListingURL extends CommentListingURL {
 
 			try {
 				return Sort.valueOf(name);
-			} catch(IllegalArgumentException e) {
+			} catch(final IllegalArgumentException e) {
 				return null;
 			}
 		}

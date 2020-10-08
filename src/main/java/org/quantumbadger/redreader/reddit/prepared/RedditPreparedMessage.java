@@ -21,24 +21,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import android.text.SpannableStringBuilder;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import org.apache.commons.text.StringEscapeUtils;
 import org.quantumbadger.redreader.R;
+import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.activities.CommentReplyActivity;
 import org.quantumbadger.redreader.common.BetterSSB;
-import org.quantumbadger.redreader.common.LinkHandler;
 import org.quantumbadger.redreader.common.RRThemeAttributes;
 import org.quantumbadger.redreader.common.RRTime;
 import org.quantumbadger.redreader.reddit.prepared.bodytext.BodyElement;
 import org.quantumbadger.redreader.reddit.prepared.html.HtmlReader;
 import org.quantumbadger.redreader.reddit.things.RedditMessage;
-
-import java.util.HashSet;
 
 public final class RedditPreparedMessage implements RedditRenderableInboxItem {
 
@@ -63,7 +61,7 @@ public final class RedditPreparedMessage implements RedditRenderableInboxItem {
 		final int rrCommentHeaderAuthorCol;
 
 		{
-			final TypedArray appearance = activity.obtainStyledAttributes(new int[]{
+			final TypedArray appearance = activity.obtainStyledAttributes(new int[] {
 					R.attr.rrCommentHeaderBoldCol,
 					R.attr.rrCommentHeaderAuthorCol,
 			});
@@ -81,19 +79,30 @@ public final class RedditPreparedMessage implements RedditRenderableInboxItem {
 		final BetterSSB sb = new BetterSSB();
 
 		if(src.author == null) {
-			sb.append("[" + applicationContext.getString(R.string.general_unknown) + "]", BetterSSB.FOREGROUND_COLOR | BetterSSB.BOLD, rrCommentHeaderAuthorCol, 0, 1f);
+			sb.append(
+					"[" + applicationContext.getString(R.string.general_unknown) + "]",
+					BetterSSB.FOREGROUND_COLOR | BetterSSB.BOLD,
+					rrCommentHeaderAuthorCol,
+					0,
+					1f);
 		} else {
-			sb.append(src.author, BetterSSB.FOREGROUND_COLOR | BetterSSB.BOLD, rrCommentHeaderAuthorCol, 0, 1f);
+			sb.append(
+					src.author,
+					BetterSSB.FOREGROUND_COLOR | BetterSSB.BOLD,
+					rrCommentHeaderAuthorCol,
+					0,
+					1f);
 		}
 
 		sb.append("   ", 0);
-		sb.append(RRTime.formatDurationFrom(applicationContext, src.created_utc * 1000L), BetterSSB.FOREGROUND_COLOR | BetterSSB.BOLD, rrCommentHeaderBoldCol, 0, 1f);
+		sb.append(
+				RRTime.formatDurationFrom(applicationContext, src.created_utc * 1000L),
+				BetterSSB.FOREGROUND_COLOR | BetterSSB.BOLD,
+				rrCommentHeaderBoldCol,
+				0,
+				1f);
 
 		header = sb.get();
-	}
-
-	public HashSet<String> computeAllLinks() {
-		return LinkHandler.computeAllLinks(StringEscapeUtils.unescapeHtml4(src.body_html));
 	}
 
 	public SpannableStringBuilder getHeader() {
@@ -104,39 +113,57 @@ public final class RedditPreparedMessage implements RedditRenderableInboxItem {
 
 		final Intent intent = new Intent(activity, CommentReplyActivity.class);
 		intent.putExtra(CommentReplyActivity.PARENT_ID_AND_TYPE_KEY, idAndType);
-		intent.putExtra(CommentReplyActivity.PARENT_MARKDOWN_KEY, src.getUnescapedBodyMarkdown());
-		intent.putExtra(CommentReplyActivity.PARENT_TYPE, CommentReplyActivity.PARENT_TYPE_MESSAGE);
+		intent.putExtra(
+				CommentReplyActivity.PARENT_MARKDOWN_KEY,
+				src.getUnescapedBodyMarkdown());
+		intent.putExtra(
+				CommentReplyActivity.PARENT_TYPE,
+				CommentReplyActivity.PARENT_TYPE_MESSAGE);
 		activity.startActivity(intent);
 	}
 
-	public void handleInboxClick(AppCompatActivity activity) {
+	@Override
+	public void handleInboxClick(final BaseActivity activity) {
 		openReplyActivity(activity);
 	}
 
 	@Override
-	public void handleInboxLongClick(final AppCompatActivity activity) {
+	public void handleInboxLongClick(final BaseActivity activity) {
 		openReplyActivity(activity);
 	}
 
 	@Override
-	public CharSequence getHeader(final RRThemeAttributes theme, final RedditChangeDataManager changeDataManager, final Context context) {
+	public CharSequence getHeader(
+			final RRThemeAttributes theme,
+			final RedditChangeDataManager changeDataManager,
+			final Context context) {
 		return header;
 	}
 
 	@Override
-	public View getBody(final AppCompatActivity activity, final Integer textColor, final Float textSize, final boolean showLinkButtons) {
+	public View getBody(
+			final BaseActivity activity,
+			final Integer textColor,
+			final Float textSize,
+			final boolean showLinkButtons) {
 
 		final LinearLayout subjectLayout = new LinearLayout(activity);
 		subjectLayout.setOrientation(LinearLayout.VERTICAL);
 
 		final TextView subjectText = new TextView(activity);
-		subjectText.setText(StringEscapeUtils.unescapeHtml4(src.subject != null ? src.subject : "(no subject)"));
+		subjectText.setText(StringEscapeUtils.unescapeHtml4(src.subject != null
+				? src.subject
+				: "(no subject)"));
 		subjectText.setTextColor(textColor);
 		subjectText.setTextSize(textSize);
 		subjectText.setTypeface(null, Typeface.BOLD);
 
 		subjectLayout.addView(subjectText);
-		subjectLayout.addView(body.generateView(activity, textColor, textSize, showLinkButtons));
+		subjectLayout.addView(body.generateView(
+				activity,
+				textColor,
+				textSize,
+				showLinkButtons));
 
 		return subjectLayout;
 	}

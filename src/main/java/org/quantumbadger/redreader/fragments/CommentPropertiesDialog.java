@@ -19,10 +19,11 @@ package org.quantumbadger.redreader.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.widget.LinearLayout;
+import androidx.annotation.NonNull;
 import org.apache.commons.text.StringEscapeUtils;
 import org.quantumbadger.redreader.R;
+import org.quantumbadger.redreader.activities.BaseActivity;
 import org.quantumbadger.redreader.common.RRTime;
 import org.quantumbadger.redreader.reddit.things.RedditComment;
 
@@ -40,12 +41,14 @@ public final class CommentPropertiesDialog extends PropertiesDialog {
 	}
 
 	@Override
-	protected String getTitle(Context context) {
+	protected String getTitle(final Context context) {
 		return context.getString(R.string.props_comment_title);
 	}
 
 	@Override
-	protected void prepare(AppCompatActivity context, LinearLayout items) {
+	protected void prepare(
+			@NonNull final BaseActivity context,
+			@NonNull final LinearLayout items) {
 
 		final RedditComment comment = getArguments().getParcelable("comment");
 
@@ -54,23 +57,51 @@ public final class CommentPropertiesDialog extends PropertiesDialog {
 		items.addView(propView(context, R.string.props_author, comment.author, false));
 
 		if(comment.author_flair_text != null && comment.author_flair_text.length() > 0) {
-			items.addView(propView(context, R.string.props_author_flair, comment.author_flair_text, false));
+			items.addView(propView(
+					context,
+					R.string.props_author_flair,
+					comment.author_flair_text,
+					false));
 		}
 
-		items.addView(propView(context, R.string.props_created, RRTime.formatDateTime(comment.created_utc * 1000, context), false));
+		items.addView(propView(
+				context,
+				R.string.props_created,
+				RRTime.formatDateTime(comment.created_utc * 1000, context),
+				false));
 
 		if(comment.edited instanceof Long) {
-			items.addView(propView(context, R.string.props_edited, RRTime.formatDateTime((Long) comment.edited * 1000, context), false));
+			items.addView(propView(
+					context,
+					R.string.props_edited,
+					RRTime.formatDateTime((Long)comment.edited * 1000, context),
+					false));
 		} else {
-			items.addView(propView(context, R.string.props_edited, R.string.props_never, false));
+			items.addView(propView(
+					context,
+					R.string.props_edited,
+					R.string.props_never,
+					false));
 		}
 
-		items.addView(propView(context, R.string.props_score, String.valueOf(comment.ups - comment.downs), false));
+		items.addView(propView(
+				context,
+				R.string.props_score,
+				String.valueOf(comment.ups - comment.downs),
+				false));
 
-		items.addView(propView(context, R.string.props_subreddit, comment.subreddit, false));
+		items.addView(propView(
+				context,
+				R.string.props_subreddit,
+				comment.subreddit,
+				false));
 
 		if(comment.body != null && comment.body.length() > 0) {
-			items.addView(propView(context, R.string.props_body_markdown, StringEscapeUtils.unescapeHtml4(comment.body), false));
+			items.addView(propView(
+					context,
+					R.string.props_body_markdown,
+					StringEscapeUtils.unescapeHtml4(comment.body),
+					false));
 
 			if(comment.body_html != null) {
 				items.addView(propView(
